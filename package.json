@@ -22,8 +22,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-function-labels.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-function-labels.toggle",
+        "title": "Toggle Function Labels"
       }
     ]
   },

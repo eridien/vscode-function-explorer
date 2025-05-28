@@ -1,0 +1,390 @@
+ [
+  {
+    "children": [
+      {
+        "name": "gapWorker",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 6,
+              "character": 6
+            },
+            {
+              "line": 8,
+              "character": 31
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "name",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 10,
+              "character": 6
+            },
+            {
+              "line": 10,
+              "character": 24
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "pwd",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 11,
+              "character": 6
+            },
+            {
+              "line": 11,
+              "character": 32
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "apiKey",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 12,
+              "character": 6
+            },
+            {
+              "line": 12,
+              "character": 52
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "markUsrId",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 13,
+              "character": 6
+            },
+            {
+              "line": 13,
+              "character": 52
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "authHdr",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 14,
+              "character": 6
+            },
+            {
+              "line": 16,
+              "character": 54
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "pruneTvdb",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 17,
+              "character": 6
+            },
+            {
+              "line": 17,
+              "character": 61
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "token",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+    "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 600,
+              "character": 0
+            },
+            {
+              "line": 617,
+              "character": 1
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "saveLinda",
+        "kind": "Function",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 619,
+              "character": 0
+            },
+            {
+              "line": 636,
+              "character": 1
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "createNoemby",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 638,
+              "character": 13
+            },
+            {
+              "line": 649,
+              "character": 1
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "deleteNoemby",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 651,
+              "character": 13
+            },
+            {
+              "line": 654,
+              "character": 1
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "startStop",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 656,
+              "character": 13
+            },
+            {
+              "line": 686,
+              "character": 1
+            }
+          ]
+        },
+        "containerName": ""
+      },
+      {
+        "name": "afterLastWatched",
+        "kind": "Variable",
+        "location": {
+          "uri": {
+            "$mid": 1,
+            "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+            "_sep": 1,
+            "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+            "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+            "scheme": "file"
+          },
+          "range": [
+            {
+              "line": 688,
+              "character": 13
+            },
+            {
+              "line": 724,
+              "character": 1
+            }
+          ]
+        },
+        "containerName": ""
+      }
+    ]
+  },
+  {
+    "name": "getToken",
+    "kind": "Variable",
+    "location": {
+      "uri": {
+        "$mid": 1,
+        "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+        "_sep": 1,
+        "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+        "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+        "scheme": "file"
+      },
+      "range": [
+        {
+          "line": 25,
+          "character": 6
+        },
+        {
+          "line": 36,
+          "character": 1
+        }
+      ]
+    },
+    "containerName": ""
+  },
+  {
+    "name": "config",
+    "kind": "Variable",
+    "location": {
+      "uri": {
+        "$mid": 1,
+        "fsPath": "c:\\Users\\mark\\apps\\test-app\\src\\emby.js",
+        "_sep": 1,
+        "external": "file:///c%3A/Users/mark/apps/test-app/src/emby.js",
+        "path": "/c:/Users/mark/apps/test-app/src/emby.js",
+        "scheme": "file"
+      },
+      "range": [
+        {
+          "line": 26,
+          "character": 8
+        },
+        {
+          "line": 33,
+          "character": 3
+        }
+      ]
+    },
+    "containerName": ""
+  }
+]
