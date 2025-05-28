@@ -1,0 +1,9 @@
+out
+dist
+node_modules
+.vscode-test/
+*.vsix
+.vscode/bookmarks.json
+package-lock.json
+notes
+todo.txt
