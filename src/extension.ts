@@ -5,7 +5,7 @@ import * as gutt   from './gutter';
 export function activate(context: vscode.ExtensionContext) {
 
   gutt.activate(context);
-  // gutt.updateGutter();
+  gutt.updateGutter();
 	const toggle = vscode.commands.registerCommand(
                 'vscode-function-marks.toggle', () => {
 		cmds.toggle();

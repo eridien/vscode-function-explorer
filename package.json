@@ -34,6 +34,24 @@
         "when":    "editorTextFocus"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "functionMarks",
+          "title": "Function Marks",
+          "icon": "images/activity-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "functionMarks": [
+        {
+          "id": "sidebarView",
+          "name": "Function Marks",
+          "icon": "images/activity-icon.svg"
+        }
+      ]
+    },
     "menus": {
       "editor/context": [ {
           "command": "vscode-function-marks.toggle",
