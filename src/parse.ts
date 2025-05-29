@@ -4,24 +4,27 @@ import * as utils  from './utils';
 const {log} = utils.getLog('pars');
 
 class Func {
-  name:       string;
-  kind:       string;
-  lineNumber: number;
-  labeled:    boolean;
-  constructor(node: ts.Node, document: vscode.TextDocument, 
-                             kindIn?: string) {
-    // @ts-expect-error
-    this.name       = node!.name.text;
-    this.kind       = kindIn ?? ts.SyntaxKind[node.kind];
-    this.lineNumber = document.positionAt(node.getStart()).line;
-    this.labeled    = false;
+  name:     string;
+  kind:     string;
+  document: vscode.TextDocument;
+  startPos: vscode.Position;
+  endPos:   vscode.Position;
+  labelId:  number | null;
+  constructor(node: ts.Node, 
+              document: vscode.TextDocument, kindIn?: string) {
+    this.name     = (node as any).name.text;
+    this.kind     = kindIn ?? ts.SyntaxKind[node.kind];
+    this.document = document;
+    this.startPos = document.positionAt(node.getStart());
+    this.endPos   = document.positionAt(node.getEnd());
+    this.labelId  = null;
   }
 }
 
-export function getFuncs( document: vscode.TextDocument) : Func[] {
+export function getFuncs(document: vscode.TextDocument) : Func[] {
   const sourceFile = ts.createSourceFile(
-              document.fileName, document.getText(), 
-              ts.ScriptTarget.Latest, true);
+                              document.fileName, document.getText(), 
+                              ts.ScriptTarget.Latest, true);
   const funcs: Func[] = [];
   function traverse(node: ts.Node) {
     if((ts.isFunctionDeclaration(node) ||

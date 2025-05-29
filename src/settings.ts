@@ -1,6 +1,14 @@
 import * as vscode from 'vscode';
+import * as utils  from './utils';
+const {log} = utils.getLog('sett');
 
-export interface JsonCommenterSettings {
+export let settings = getFunctionLabelSettings();
+
+export function refreshSettings() {
+  settings = getFunctionLabelSettings();
+}
+
+export interface FunctionLabelSettings {
   marginTop:       number;
   alignLeft:       boolean;
   alignRight:      boolean;
@@ -20,14 +28,21 @@ function mm(val: number, max: number, min: number = 0): number {
   return Math.max(min, Math.min(max, val));
 }
 
-export function getJsonCommenterSettings(): JsonCommenterSettings {
-  const config = vscode.workspace.getConfiguration('json-commenter');
+export function getFunctionLabelSettings(): FunctionLabelSettings {
+  const config = vscode.workspace.getConfiguration('function-labels');
   return {
-    indent:              mm(config.get<number>('indent', 4),      60),
-    marginTop:           mm(config.get<number>('marginTop', 1),    6),
-    marginBottom:        mm(config.get<number>('marginBottom', 1), 6),
-    padding:             mm(config.get<number>('padding', 2),      3),
-    minWidth:            mm(config.get<number>('minWidth', 20),  200, 20),
-    maxWidth:            mm(config.get<number>('maxWidth', 60),  200, 20),
+    marginTop:        mm(config.get<number>('marginTop', 0), 6),
+    alignLeft:        config.get('alignLeft',  false),
+    alignRight:       config.get('alignRight', false),
+    indent:           mm(config.get<number>('indent',  0), 120),
+    padding:          mm(config.get<number>('padding', 2), 120),
+    splitName:        config.get('splitName', false),
+    upperCase:        config.get('upperCase', true),
+    marginBottom:     mm(config.get<number>('marginBottom', 0), 6),
+    minWidth:         mm(config.get<number>('minWidth', 20), 120),
+    maxWidth:         mm(config.get<number>('maxWidth', 80), 120),
+    fillerString:     config.get('fillerString', '*'),
+    inline:           config.get('inline', false),
+    descriptionLine:  config.get('descriptionLine', true),
   };
 }
