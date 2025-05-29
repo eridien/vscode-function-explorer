@@ -11,10 +11,10 @@ class Func {
   constructor(node: ts.Node, document: vscode.TextDocument, 
                              kindIn?: string) {
     // @ts-expect-error
-    this.name  = node!.name.text;
-    this.kind  = kindIn ?? ts.SyntaxKind[node.kind];
+    this.name       = node!.name.text;
+    this.kind       = kindIn ?? ts.SyntaxKind[node.kind];
     this.lineNumber = document.positionAt(node.getStart()).line;
-    this.labeled = false;
+    this.labeled    = false;
   }
 }
 
@@ -27,7 +27,7 @@ export function getFuncs( document: vscode.TextDocument) : Func[] {
     if((ts.isFunctionDeclaration(node) ||
         ts.isClassDeclaration(node)    ||
         ts.isMethodDeclaration(node)) && node.name)
-          funcs.push(new Func(node, document));
+      funcs.push(new Func(node, document));
     else if (ts.isVariableDeclaration(node) && node.initializer) {
       if (ts.isFunctionExpression(node.initializer))
         funcs.push(new Func(node, document, 'FunctionExpression'));
@@ -39,3 +39,12 @@ export function getFuncs( document: vscode.TextDocument) : Func[] {
   traverse(sourceFile);
   return funcs;
 }
+
+/*
+kinds supported ...
+  FunctionDeclaration
+  ClassDeclaration
+  MethodDeclaration
+  FunctionExpression
+  ArrowFunction
+*/
