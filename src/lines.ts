@@ -3,11 +3,7 @@ import * as parse  from './parse';
 import * as utils  from './utils';
 const {log} = utils.getLog('line');
 
-type lineType = mark: string | 
-                description: string;
 interface Line {
-  type:       lineType;
-  lineNumber: number;
   inline:     boolean;
   id:         number;
   text:       string;
@@ -43,7 +39,7 @@ export function getLines(document: vscode.TextDocument): Line[] {
      text   = groups[10];
    }
    lines.push(
-     { type: 'mark', inline, id, text}
+     {inline, id, text}
    );
   });
   return lines;
