@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as parse  from './parse';
-import * as lines  from './lines';
+import * as lines  from './banners';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
@@ -13,9 +13,8 @@ export function toggle() {
      (document.languageId !== 'javascript' && 
       document.languageId !== 'typescript'))
     return;
-  utils.initIdNumber(document);
   const funcs = parse.getFuncs(document);
-  log('funcs', funcs);
+  log('funcs', funcs[0]);
   const funcLines = lines.getLines(document);
-  log('funcLines', funcLines);
+  // log('funcLines', funcLines[0]);
 }

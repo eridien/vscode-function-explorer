@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 const vscode = require('vscode');
 const text   = require('./text.js');
 const marks  = require('./marks.js');

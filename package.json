@@ -1,7 +1,7 @@
 {
   "name": "vscode-function-marks",
   "displayName": "Function Marks",
-  "description": "Lightweight function mark alternative to jsdoc",
+  "description": "Bookmarks for functions, classes, and methods.",
   "icon": "images/icon.png",
   "version": "0.0.1",
   "engines": {
@@ -20,9 +20,22 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [ {
+    "commands": [ 
+      {
         "command": "vscode-function-marks.toggle",
         "title":   "Toggle Function Marks",
+        "when":    "editorTextFocus"
+      },{
+        "command": "vscode-function-marks.style",
+        "title":   "Toggle Function Banner Appearance",
+        "when":    "editorTextFocus"
+      },{
+        "command": "vscode-function-marks.prev",
+        "title":   "Previous Function Mark",
+        "when":    "editorTextFocus"
+      },{
+        "command": "vscode-function-marks.next",
+        "title":   "Next Function Mark",
         "when":    "editorTextFocus"
       }
     ],
@@ -31,6 +44,21 @@
         "command": "vscode-function-marks.toggle",
         "key":     "ctrl+alt+\\",
         "mac":     "cmd+alt+\\",
+        "when":    "editorTextFocus"
+      },{
+        "command": "vscode-function-marks.style",
+        "key":     "ctrl+shift+alt+\\",
+        "mac":     "cmd+shift+alt+\\",
+        "when":    "editorTextFocus"
+      },{
+        "command": "vscode-function-marks.prev",
+        "key":     "ctrl+alt+[",
+        "mac":     "cmd+alt+[",
+        "when":    "editorTextFocus"
+      },{
+        "command": "vscode-function-marks.next",
+        "key":     "ctrl+alt+]",
+        "mac":     "cmd+alt+]",
         "when":    "editorTextFocus"
       }
     ],

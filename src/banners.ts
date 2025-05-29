@@ -1,15 +1,12 @@
-import * as vscode from 'vscode';
-import * as parse  from './parse';
-import * as utils  from './utils';
-const {log} = utils.getLog('line');
+import vscode      from 'vscode';
+import {Mark}      from './marks.js';
+import * as utils  from './utils.js';
+const {log, start, end} = utils.getLog('mark');
 
-interface Line {
-  inline:     boolean;
-  id:         number;
-  text:       string;
-}
-
-export function getLines(document: vscode.TextDocument): Line[] {
-  const lines: Line[] = [];
-  return lines;
+export class Banner {
+  text:  string;
+  mark?: Mark;
+  constructor(inline: boolean, text: string) {
+    this.text   = text;
+  }
 }
