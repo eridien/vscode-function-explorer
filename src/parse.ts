@@ -9,7 +9,7 @@ class Func {
   document: vscode.TextDocument;
   startPos: vscode.Position;
   endPos:   vscode.Position;
-  labelId:  number | null;
+  markId:  number | null;
   constructor(node: ts.Node, 
               document: vscode.TextDocument, kindIn?: string) {
     this.name     = (node as any).name.text;
@@ -17,7 +17,7 @@ class Func {
     this.document = document;
     this.startPos = document.positionAt(node.getStart());
     this.endPos   = document.positionAt(node.getEnd());
-    this.labelId  = null;
+    this.markId  = null;
   }
 }
 

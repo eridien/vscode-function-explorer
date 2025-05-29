@@ -5,7 +5,7 @@ import * as parse  from './parse';
 export function activate(context: vscode.ExtensionContext) {
 
 	const toggle = vscode.commands.registerCommand(
-                'vscode-function-labels.toggle', () => {
+                'vscode-function-marks.toggle', () => {
 		cmds.toggle();
 	});
 

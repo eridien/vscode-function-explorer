@@ -132,7 +132,7 @@ export function movePastEol(str: string, index: number, lineNumber: number):
   return [index, lineNumber];
 }
 
-const outputChannel = vscode.window.createOutputChannel('function-labels');
+const outputChannel = vscode.window.createOutputChannel('function-marks');
 
 export function getLog(module: string) {
   const timers: Record<string, number> = {};

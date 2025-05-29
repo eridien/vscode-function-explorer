@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 
-export let settings = getFunctionLabelSettings();
+export let settings = getFunctionMarksettings();
 
 export function refreshSettings() {
-  settings = getFunctionLabelSettings();
+  settings = getFunctionMarksettings();
 }
 
-export interface FunctionLabelSettings {
+export interface FunctionMarksettings {
   marginTop:       number;
   alignLeft:       boolean;
   alignRight:      boolean;
@@ -28,8 +28,8 @@ function mm(val: number, max: number, min: number = 0): number {
   return Math.max(min, Math.min(max, val));
 }
 
-export function getFunctionLabelSettings(): FunctionLabelSettings {
-  const config = vscode.workspace.getConfiguration('function-labels');
+export function getFunctionMarkSettings(): FunctionMarksettings {
+  const config = vscode.workspace.getConfiguration('function-marks');
   return {
     marginTop:        mm(config.get<number>('marginTop', 0), 6),
     alignLeft:        config.get('alignLeft',  false),

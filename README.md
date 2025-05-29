@@ -1,1 +1,1 @@
-# vscode-function-labels
+# vscode-function-marks

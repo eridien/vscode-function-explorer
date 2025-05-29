@@ -1,7 +1,7 @@
 {
-  "name": "vscode-function-labels",
-  "displayName": "Function Labels",
-  "description": "Lightweight function label alternative to jsdoc",
+  "name": "vscode-function-marks",
+  "displayName": "Function Marks",
+  "description": "Lightweight function mark alternative to jsdoc",
   "icon": "images/icon.png",
   "version": "0.0.1",
   "engines": {
@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/eridien/vscode-function-labels"
+    "url": "https://github.com/eridien/vscode-function-marks"
   },
   "publisher": "eridien",
   "activationEvents": [
@@ -21,14 +21,14 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [ {
-        "command": "vscode-function-labels.toggle",
-        "title":   "Toggle Function Labels",
+        "command": "vscode-function-marks.toggle",
+        "title":   "Toggle Function Marks",
         "when":    "editorTextFocus"
       }
     ],
      "keybindings": [
       {
-        "command": "vscode-function-labels.toggle",
+        "command": "vscode-function-marks.toggle",
         "key":     "ctrl+alt+\\",
         "mac":     "cmd+alt+\\",
         "when":    "editorTextFocus"
@@ -36,79 +36,79 @@
     ],
     "menus": {
       "editor/context": [ {
-          "command": "vscode-function-labels.toggle",
+          "command": "vscode-function-marks.toggle",
           "when":    "editorTextFocus",
           "group":   "1_modification"
         }
       ]
     },
     "configuration": {
-      "title": "Function Labels",
+      "title": "Function Marks",
       "properties": {
-        "function-labels.marginTop": {
+        "function-marks.marginTop": {
           "type": "number",
           "default": 2,
           "description": "Number of top margin blank lines."
         },
-        "function-labels.alignLeft": {
+        "function-marks.alignLeft": {
           "type": "boolean",
           "default": false,
           "description": "Set line indent to match the indent of the line below."
         },
-        "function-labels.alignRight": {
+        "function-marks.alignRight": {
           "type": "boolean",
           "default": false,
           "description": "Align the right side of the line to match the right side of the line below."
         },
-        "function-labels.indent": {
+        "function-marks.indent": {
           "type": "number",
           "default": 0,
           "description": "Indentation spaces to the left. Ignored when alignLeft is enabled."
         },
-        "function-labels.padding": {
+        "function-marks.padding": {
           "type": "number",
           "default": 2,
           "description": "Spaces on each side of the name."
         },
-        "function-labels.splitName": {
+        "function-marks.splitName": {
           "type": "boolean",
           "default": true,
           "description": "Split name into words based on capitalization."
         },
-        "function-labels.upperCase": {
+        "function-marks.upperCase": {
           "type": "boolean",
           "default": true,
           "description": "Display name in all uppercase."
         },
-        "function-labels.marginBottom": {
+        "function-marks.marginBottom": {
           "type": "number",
           "default": 1,
           "description": "Number of bottom margin blank lines."
         },
-        "function-labels.minWidth": {
+        "function-marks.minWidth": {
           "type": "number",
           "default": 20,
           "description": "Minimum width of line."
         },
-        "function-labels.maxWidth": {
+        "function-marks.maxWidth": {
           "type": "number",
           "default": 80,
           "description": "Maximum width of line."
         },
-        "function-labels.fillerString": {
+        "function-marks.fillerString": {
           "type": "string",
           "default": "*",
           "description": "String repeated to fill in the line around the name."
         },
-        "function-labels.inline": {
+        "function-marks.inline": {
           "type": "boolean",
           "default": false,
           "description": "Display comment as /* */ instead of //."
         },
-        "function-labels.descriptionLine": {
+        "function-marks.descriptionLine": {
           "type": "boolean",
           "default": true,
-          "description": "Add empty commented line below the label line to make space for description."
+          "description": "Add empty commented line below the mark line to make space for description."
         }
       }
     }

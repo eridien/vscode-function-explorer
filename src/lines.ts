@@ -3,7 +3,7 @@ import * as parse  from './parse';
 import * as utils  from './utils';
 const {log} = utils.getLog('line');
 
-type lineType = label: string | 
+type lineType = mark: string | 
                 description: string;
 interface Line {
   type:       lineType;
@@ -23,7 +23,7 @@ export function getLines(document: vscode.TextDocument): Line[] {
     const lineText   = document.lineAt(lineNumber).text;
     const groups = utils.lineRegEx.exec(lineText);
     if(!groups) {
-      log('infoerr', `Corrupted function label at line ${lineNumber+1}. ` +
+      log('infoerr', `Corrupted function mark at line ${lineNumber+1}. ` +
                      `Please delete the line or fix it.`);
       return;
     }
@@ -43,7 +43,7 @@ export function getLines(document: vscode.TextDocument): Line[] {
      text   = groups[10];
    }
    lines.push(
-     { type: 'label', inline, id, text}
+     { type: 'mark', inline, id, text}
    );
   });
   return lines;
