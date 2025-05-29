@@ -3,11 +3,12 @@ const { log } = getLog('util');
 
 const  zeroWidthChars    =  ['\u200B', '\u200C', '\u200D', '\u2060'];
 export const oneInvChar  = '[' + zeroWidthChars.join('') + ']';
-export const invChrRegEx = new RegExp(oneInvChar);
+export const invChrRegEx = new RegExp(oneInvChar, 'g');
 export const idRegEx     = new RegExp( 
                         `"(${oneInvChar}{6})${oneInvChar}{3}"`, 'g');
-export const lineRegEx = new RegExp(`^( *)"(${oneInvChar}{6})` +
-            `(${oneInvChar})(${oneInvChar})(${oneInvChar})":"(.*?)"(\,?)\s*$`);
+export const lineRegEx = new RegExp(
+      `^((\s*)(//)(${oneInvChar}{6})(.*?)\s*$)|` + 
+      `^((\s*)(/\*)(${oneInvChar}{6})(.*?)\*/.*$)`);
 
 export function invBase4ToVisStr(str:String) {
   const digitMap: { [key: string]: string } = {

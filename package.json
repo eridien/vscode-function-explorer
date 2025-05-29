@@ -20,12 +20,98 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
+    "commands": [ {
+        "command": "vscode-function-labels.toggle",
+        "title":   "Toggle Function Labels",
+        "when":    "editorTextFocus"
+      }
+    ],
+     "keybindings": [
       {
         "command": "vscode-function-labels.toggle",
-        "title": "Toggle Function Labels"
+        "key":     "ctrl+alt+\\",
+        "mac":     "cmd+alt+\\",
+        "when":    "editorTextFocus"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [ {
+          "command": "vscode-function-labels.toggle",
+          "when":    "editorTextFocus",
+          "group":   "1_modification"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Function Labels",
+      "properties": {
+        "function-labels.marginTop": {
+          "type": "number",
+          "default": 2,
+          "description": "Number of top margin blank lines."
+        },
+        "function-labels.alignLeft": {
+          "type": "boolean",
+          "default": false,
+          "description": "Set line indent to match the indent of the line below."
+        },
+        "function-labels.alignRight": {
+          "type": "boolean",
+          "default": false,
+          "description": "Align the right side of the line to match the right side of the line below."
+        },
+        "function-labels.indent": {
+          "type": "number",
+          "default": 0,
+          "description": "Indentation spaces to the left. Ignored when alignLeft is enabled."
+        },
+        "function-labels.padding": {
+          "type": "number",
+          "default": 2,
+          "description": "Spaces on each side of the name."
+        },
+        "function-labels.splitName": {
+          "type": "boolean",
+          "default": true,
+          "description": "Split name into words based on capitalization."
+        },
+        "function-labels.upperCase": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display name in all uppercase."
+        },
+        "function-labels.marginBottom": {
+          "type": "number",
+          "default": 1,
+          "description": "Number of bottom margin blank lines."
+        },
+        "function-labels.minWidth": {
+          "type": "number",
+          "default": 20,
+          "description": "Minimum width of line."
+        },
+        "function-labels.maxWidth": {
+          "type": "number",
+          "default": 80,
+          "description": "Maximum width of line."
+        },
+        "function-labels.fillerString": {
+          "type": "string",
+          "default": "*",
+          "description": "String repeated to fill in the line around the name."
+        },
+        "function-labels.inline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Display comment as /* */ instead of //."
+        },
+        "function-labels.descriptionLine": {
+          "type": "boolean",
+          "default": true,
+          "description": "Add empty commented line below the label line to make space for description."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

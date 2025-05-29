@@ -36,7 +36,7 @@ export function getFunctionLabelSettings(): FunctionLabelSettings {
     alignRight:       config.get('alignRight', false),
     indent:           mm(config.get<number>('indent',  0), 120),
     padding:          mm(config.get<number>('padding', 2), 120),
-    splitName:        config.get('splitName', false),
+    splitName:        config.get('splitName', true),
     upperCase:        config.get('upperCase', true),
     marginBottom:     mm(config.get<number>('marginBottom', 0), 6),
     minWidth:         mm(config.get<number>('minWidth', 20), 120),
