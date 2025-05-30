@@ -1,5 +1,4 @@
 <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-  <rect width="16" height="16" fill="white"/>
+  <path d="M12 2L12 14L8 11L4 14L4 2Z" fill="#cc0"/>
   <text x="5.5" y="8.7" font-size="8" font-family="Arial" font-weight="bold" fill="black">ƒ</text>
-  <path d="M12 2L12 14L8 11L4 14L4 2Z" fill="none" stroke="black"/>
 </svg>

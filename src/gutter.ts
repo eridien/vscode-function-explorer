@@ -12,9 +12,9 @@ let gutterDec:    vscode.TextEditorDecorationType;
 export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
   gutDecLgtUri = vscode.Uri.file(path.join( 
-                  context.extensionPath, 'images', 'mark-icon-lgt.svg'));
+                  context.extensionPath, 'images', 'gutter-icon-lgt.svg'));
   gutDecDrkUri = vscode.Uri.file(path.join( 
-                  context.extensionPath, 'images', 'mark-icon-drk.svg'));
+                  context.extensionPath, 'images', 'gutter-icon-drk.svg'));
   gutterDec = getGutterDec();
 }
 
@@ -32,11 +32,10 @@ vscode.window.onDidChangeActiveColorTheme((event) => {
 });
 
 export function updateGutter() {
-  // start('updateGutter');
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
-  const fsPath      = editor.document.uri.fsPath;
   const decRanges   = [];
+  // const fsPath      = editor.document.uri.fsPath;
   // const marksInFile = marks.getMarksInFile(fsPath);
   // for(const mark of marksInFile) {
     const lineNumber = 1;

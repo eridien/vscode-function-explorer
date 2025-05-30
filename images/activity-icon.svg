@@ -1,4 +1,8 @@
 <svg width="128" height="128" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 2L12 14L8 11L4 14L4 2Z" fill="white" stroke="black" stroke-width="1"/>
-  <text x="5.5" y="8.7" font-size="8" font-family="Arial" font-weight="bold" fill="black">ƒ</text>
+  <path d="M 4 2 L 4 14 L 8.5 11" fill="none" stroke="currentColor" stroke-width="1"/>
+  <!-- Center to bottom right and up to top right -->
+  <path d="M 8 11 L 12 14 L 12 2" fill="none" stroke="currentColor" stroke-width="1"/>
+  <!-- Top horizontal bar -->
+  <path d="M3.5 2L12.5 2" fill="none" stroke="currentColor" stroke-width="1"/>
+  <text x="5.7" y="8.7" font-size="7.5" font-family="Arial" font-weight="bold" fill="currentColor">ƒ</text>
 </svg>
