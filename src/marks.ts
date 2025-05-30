@@ -32,37 +32,39 @@ export function waitForInit() {
 }
 
 export class Mark {
+  document:  vscode.TextDocument;
+  name:      string;
+  kind:      string;
   start:     number;
   nameStart: number;
-  name:      string;
   nameEnd:   number;
   end:       number;
-  kind:      string;
-  fsPath:    string;
   parents?:  Mark[];
   id?:       string;
-  document?: vscode.TextDocument;
-  constructor(node: ts.Node, 
+  sortKey?:  string;
+  enabled:   boolean;
+  constructor(node: ts.Node,
               document: vscode.TextDocument, kindIn?: string) {
+    this.document  = document;
+    this.name      = (node as any).name.text;
+    this.kind      = kindIn ?? ts.SyntaxKind[node.kind];
     this.start     = node.getStart();
     this.nameStart = (node as any).name.getStart();
-    this.name      = (node as any).name.text;
     this.nameEnd   = (node as any).name.getEnd();
     this.end       = node.getEnd();
-    this.kind      = kindIn ?? ts.SyntaxKind[node.kind];
-    this.fsPath    = document.uri.fsPath;
+    this.parents   = [];
+    this.id        = '';
+    this.enabled   = false;
   }
-  setParents(parents: Mark[]) {
-    this.parents = parents;
-  }
-  setId(id: string) {
-    this.id = id;
-  }
-  async getDocument() {
-    if(this.document) return this.document;
-    const uri = vscode.Uri.file(this.fsPath);
-    this.document = await vscode.workspace.openTextDocument(uri);
-    return this.document;
+  setParents(parents: Mark[])  { this.parents = parents; }
+  setId(id: string)            { this.id = id;           }
+  setKind(kind: string)        { this.kind = kind;       }
+  setEnabled(enabled: boolean) { this.enabled = enabled; }
+  getSortKey() {
+    if (this.sortKey === undefined) 
+        this.sortKey = this.document.uri.fsPath + "\x00" + 
+                       this.start.toString().padStart(6, '0');
+    return this.sortKey;
   }
 }
 
@@ -70,13 +72,18 @@ let marksById:       Map<string, Mark>      = new Map();
 let markSetByFsPath: Map<string, Set<Mark>> = new Map();
 
 function addMarkToStorage(mark: Mark) {
-  if(mark.id) marksById.set(mark.id, mark);
-  let markSet = markSetByFsPath.get(mark.fsPath);
-  if (!markSet) {
-    markSet = new Set();
-    markSetByFsPath.set(mark.fsPath, markSet);
+  const oldMark = marksById.get(mark.id);
+  if (oldMark) mark.setEnabled(oldMark.enabled);
+  else {
+    const fsPath = mark.document.uri.fsPath;
+    marksById.set(mark.id, mark);
+    let markSet = markSetByFsPath.get(fsPath);
+    if (!markSet) {
+      markSet = new Set();
+      markSetByFsPath.set(fsPath, markSet);
+    }
+    markSet.add(mark);
   }
-  markSet.add(mark);
 }
 
 export async function getMarks(document: vscode.TextDocument) {
@@ -108,23 +115,18 @@ export async function getMarks(document: vscode.TextDocument) {
       if(parentMark.end  >= mark.end) parents.unshift(parentMark);
     }
     mark.setParents(parents);
-    let id = mark.name   + "\x00" +
-             mark.kind   + "\x00" +
-             mark.fsPath + "\x00";
-    for(let parent of parents) {
-      id += parent.name   + "\x00" +
-            parent.kind   + "\x00" +
-            parent.fsPath + "\x00";
-    }
-    id = id.slice(0, -1);
+    let id = mark.name  + "\x00" + mark.kind   + "\x00";
+    for(let parent of parents) 
+      id += parent.name + "\x00" + parent.kind + "\x00";
+    id += mark.document.uri.fsPath;
     mark.setId(id);
     addMarkToStorage(mark);
-    await saveMarkStorage();
   }
+  await saveMarkStorage();
   end('getMarks', false);
 }
 
-function getMarksByFsPath(fsPath: string) {
+export function getMarksByFsPath(fsPath: string) {
   const fileMarkSet = markSetByFsPath.get(fsPath);
   if (fileMarkSet) return Array.from(fileMarkSet);
   return [];  
@@ -147,10 +149,10 @@ async function saveMarkStorage() {
 }
 
 function deleteMarkFromFileSet(mark: Mark) {
-  let markSet = markSetByFsPath.get(mark.fsPath);
+  let markSet = markSetByFsPath.get(mark.document.uri.fsPath);
   if (markSet) {
     markSet.delete(mark);
-    if(markSet.size === 0) markSetByFsPath.delete(mark.fsPath);
+    if(markSet.size === 0) markSetByFsPath.delete(mark.document.uri.fsPath);
   }
 }
 
@@ -185,25 +187,25 @@ function getMarkAtLine(document: vscode.TextDocument, lineNumber: number) {
   return null;
 }
 
-async function verifyMark(mark: Mark): Promise<boolean> {
-  if(!mark) return false;
-  const document      = await mark.getDocument();
+function verifyMark(mark: Mark): boolean {
+  if(!mark || !mark.document) return false;
+  const document      = mark.document;
   const markStartLine = document.positionAt(mark.start).line;
   const numLines      = document.lineCount;
   if(markStartLine < 0 || markStartLine >= numLines) {
     log('err', 'verifyMark, line number out of range',
-                mark.fsPath, markStartLine);
+                mark.document.uri.fsPath, markStartLine);
     return false;
   }
   const lineText = document.lineAt(markStartLine).text;
   if(!lineText) {
     log('err', 'verifyMark, line text is empty',
-                mark.fsPath, markStartLine);
+                mark.document.uri.fsPath, markStartLine);
     return false;
   }
   if(!lineText.includes(mark.name)) {
     log('err', 'verifyMark, line text does not include mark name',
-                mark.fsPath, markStartLine, mark.name);
+                mark.document.uri.fsPath, markStartLine, mark.name);
     return false;
   }
   return true;
@@ -222,7 +224,7 @@ async function dumpMarks(caller: string, list: boolean, dump: boolean) {
     let str = "\n";
     for(const mark of marks) {
       if(VERIFY_MARKS_IN_DUMP) await verifyMark(mark);
-      str += `${mark.name}, ${mark.fsPath}, ${mark.start}\n`;
+      str += `${mark.name}, ${mark.document.uri.fsPath}, ${mark.start}\n`;
     }
     log(caller, str.slice(0,-1));
   }
