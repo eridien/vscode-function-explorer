@@ -1,6 +1,5 @@
 import vscode      from 'vscode';
 import ts          from "typescript";
-import {Banner}    from './banners';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 
@@ -42,7 +41,6 @@ export class Mark {
   fsPath:    string;
   parents?:  Mark[];
   id?:       string;
-  banner?:   Banner;
   document?: vscode.TextDocument;
   constructor(node: ts.Node, 
               document: vscode.TextDocument, kindIn?: string) {

@@ -26,10 +26,6 @@
         "title":   "Toggle Function Marks",
         "when":    "editorTextFocus"
       },{
-        "command": "vscode-function-marks.style",
-        "title":   "Toggle Function Banner Appearance",
-        "when":    "editorTextFocus"
-      },{
         "command": "vscode-function-marks.prev",
         "title":   "Previous Function Mark",
         "when":    "editorTextFocus"
@@ -44,11 +40,6 @@
         "command": "vscode-function-marks.toggle",
         "key":     "ctrl+alt+\\",
         "mac":     "cmd+alt+\\",
-        "when":    "editorTextFocus"
-      },{
-        "command": "vscode-function-marks.style",
-        "key":     "ctrl+shift+alt+\\",
-        "mac":     "cmd+shift+alt+\\",
         "when":    "editorTextFocus"
       },{
         "command": "vscode-function-marks.prev",
@@ -91,70 +82,23 @@
     "configuration": {
       "title": "Function Marks",
       "properties": {
-        "function-marks.marginTop": {
-          "type": "number",
-          "default": 2,
-          "description": "Number of top margin blank lines."
-        },
-        "function-marks.alignLeft": {
-          "type": "boolean",
-          "default": false,
-          "description": "Set line indent to match the indent of the line below."
-        },
-        "function-marks.alignRight": {
-          "type": "boolean",
-          "default": false,
-          "description": "Align the right side of the line to match the right side of the line below."
-        },
-        "function-marks.indent": {
-          "type": "number",
-          "default": 0,
-          "description": "Indentation spaces to the left. Ignored when alignLeft is enabled."
-        },
-        "function-marks.padding": {
-          "type": "number",
-          "default": 2,
-          "description": "Spaces on each side of the name."
-        },
-        "function-marks.splitName": {
+        "function-marks.fileWrap": {
           "type": "boolean",
           "default": true,
-          "description": "Split name into words based on capitalization."
+          "description": 
+             "When stepping with next/prev cross file boundries."
         },
-        "function-marks.upperCase": {
-          "type": "boolean",
-          "default": true,
-          "description": "Display name in all uppercase."
-        },
-        "function-marks.marginBottom": {
-          "type": "number",
-          "default": 1,
-          "description": "Number of bottom margin blank lines."
-        },
-        "function-marks.minWidth": {
-          "type": "number",
-          "default": 20,
-          "description": "Minimum width of line."
-        },
-        "function-marks.maxWidth": {
-          "type": "number",
-          "default": 80,
-          "description": "Maximum width of line."
-        },
-        "function-marks.fillerString": {
-          "type": "string",
-          "default": "*",
-          "description": "String repeated to fill in the line around the name."
-        },
-        "function-marks.inline": {
+        "function-marks.subFunctions": {
           "type": "boolean",
           "default": false,
-          "description": "Display comment as /* */ instead of //."
+          "description": 
+             "Include nested functions when marking with a selection."
         },
-        "function-marks.descriptionLine": {
+        "function-marks.includeClasses": {
           "type": "boolean",
           "default": true,
-          "description": "Add empty commented line below the mark line to make space for description."
+          "description": 
+             "Mark classes when marking with a selection."
         }
       }
     }
