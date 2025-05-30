@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
-import * as parse  from './parse';
-import * as lines  from './banners';
+import * as mrks   from './marks';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
-export function toggle() {
+export async function toggle() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { return; }
   // const cursPos = editor.selection.active;
@@ -13,8 +12,6 @@ export function toggle() {
      (document.languageId !== 'javascript' && 
       document.languageId !== 'typescript'))
     return;
-  const funcs = parse.getFuncs(document);
-  log('funcs', funcs[0]);
-  const funcLines = lines.getLines(document);
-  // log('funcLines', funcLines[0]);
+  await mrks.getMarks(document);
+  log('marks', mrks.getAllMarks()[2]);
 }

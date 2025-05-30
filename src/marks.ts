@@ -2,7 +2,7 @@ import vscode      from 'vscode';
 import ts          from "typescript";
 import {Banner}    from './banners';
 import * as utils  from './utils.js';
-const {log, start, end} = utils.getLog('mark');
+const {log, start, end} = utils.getLog('mrks');
 
 // const LOAD_MARKS_ON_START = true;
 const LOAD_MARKS_ON_START = false;
@@ -13,7 +13,7 @@ const VERIFY_MARKS_IN_DUMP = true;
 let context: vscode.ExtensionContext;
 let initFinished = false;
 
-async function init(contextIn: vscode.ExtensionContext) {
+export async function activate(contextIn: vscode.ExtensionContext) {
   start('init marks');
   context = contextIn;
   await loadMarkStorage();
@@ -21,9 +21,9 @@ async function init(contextIn: vscode.ExtensionContext) {
   end('init marks');
 }
 
-function waitForInit() {
+export function waitForInit() {
   if (initFinished) return Promise.resolve();
-  return new Promise((resolve: ) => {
+  return new Promise((resolve: any) => {
     const checkInit = () => {
       if (initFinished) { resolve(); } 
       else { setTimeout(checkInit, 50); }
@@ -31,7 +31,6 @@ function waitForInit() {
     checkInit();
   });
 }
-
 
 export class Mark {
   start:     number;
@@ -54,7 +53,6 @@ export class Mark {
     this.end       = node.getEnd();
     this.kind      = kindIn ?? ts.SyntaxKind[node.kind];
     this.fsPath    = document.uri.fsPath;
-    if(this.start != this.nameStart) debugger; // debug
   }
   setParents(parents: Mark[]) {
     this.parents = parents;
@@ -77,7 +75,7 @@ let marksById:       Map<string, Mark>      = new Map();
 let markSetByFsPath: Map<string, Set<Mark>> = new Map();
 
 function addMarkToStorage(mark: Mark) {
-  if(mark.id) {marksById.set(mark.id, mark);
+  if(mark.id) marksById.set(mark.id, mark);
   let markSet = markSetByFsPath.get(mark.fsPath);
   if (!markSet) {
     markSet = new Set();
@@ -110,16 +108,20 @@ export async function getMarks(document: vscode.TextDocument) {
   for(const mark of marks) {
     const parents: Mark[] = [];
     for(const parentMark of marks) {
+      if(parentMark === mark) continue;
       if(parentMark.start > mark.start) break;
       if(parentMark.end  >= mark.end) parents.unshift(parentMark);
     }
     mark.setParents(parents);
-    let id = "";
+    let id = mark.name   + "\x00" +
+             mark.kind   + "\x00" +
+             mark.fsPath + "\x00";
     for(let parent of parents) {
-      id += parent.name + "\x00" +
-            parent.kind + "\x00" +
-            parent.fsPath;
+      id += parent.name   + "\x00" +
+            parent.kind   + "\x00" +
+            parent.fsPath + "\x00";
     }
+    id = id.slice(0, -1);
     mark.setId(id);
     addMarkToStorage(mark);
     await saveMarkStorage();
@@ -133,7 +135,7 @@ function getMarksByFsPath(fsPath: string) {
   return [];  
 }
 
-function getAllMarks() {
+export function getAllMarks() {
   return [...marksById.values()];
 }
 
@@ -212,7 +214,7 @@ async function verifyMark(mark: Mark): Promise<boolean> {
   return true;
 }
 
-async function dumpMarks(caller, list, dump) {
+async function dumpMarks(caller: string, list: boolean, dump: boolean) {
   caller = caller + ' marks: ';
   let marks = Array.from(marksById.values());
   if(marks.length === 0) {
@@ -221,15 +223,11 @@ async function dumpMarks(caller, list, dump) {
   }
   if(dump) log(caller, 'all marks', marks);
   else if(list) {
-    marks.sort((a, b) => ( 
-      a.locStrLc() > b.locStrLc() ? +1 :
-      a.locStrLc() < b.locStrLc() ? -1 : 0));
+    marks.sort((a, b) => a.start - b.start);
     let str = "\n";
     for(const mark of marks) {
       if(VERIFY_MARKS_IN_DUMP) await verifyMark(mark);
-      str += `${utils.tokenToStr(mark.token())} -> ${mark.fileRelUriPath()} ` +
-             `${mark.lineNumber().toString().padStart(3, ' ')} `+
-             `${mark.languageId()}\n`;
+      str += `${mark.name}, ${mark.fsPath}, ${mark.start}\n`;
     }
     log(caller, str.slice(0,-1));
   }
@@ -237,51 +235,11 @@ async function dumpMarks(caller, list, dump) {
     let str = "";
     for(const mark of marks) {
       if(VERIFY_MARKS_IN_DUMP) await verifyMark(mark);
-      const tokenStr = utils.tokenToStr();
-      const tokenIsZero = tokenStr.length == 4 && 
-            tokenStr.slice(-2, -1) == '\u200B';
-      str += mark.lineNumber().toString().padStart(3, ' ') + 
-                               (tokenIsZero ? '' : utils.tokenToStr());
+      str += mark.name;
     }
     log(caller, str);
   }
 }
-
-let uniqueTokenNum = 0;
-
-function getToken(document, zero = true) {
-  const [commLft, commRgt] = utils.commentsByLang(document.languageId);
-  return commLft + utils.numberToInvBase4(zero ? 0 : ++uniqueTokenNum) + '.'
-       + commRgt;
-}
-
-async function addGen2MarkToLine(document, lineNumber, token, save = true) {
-  start('addGen2MarkToLine', lineNumber);
-  token ??= getToken(document);
-  let lineText = document.lineAt(lineNumber).text;
-  const mark = new Mark({gen:2, document, lineNumber, token,
-                         lftChrOfs: lineText.length,
-                         rgtChrOfs: lineText.length + token.length});
-  await addMarkToStorage(mark);
-  await utils.replaceLine(document, lineNumber, lineText + token);
-  if(save) await saveMarkStorage();
-  end('addGen2MarkToLine', lineNumber);
-}
-
-async function addGen2MarkForToken(document, position, token, save = true) {
-  const mark = new Mark({gen:2, document, position, token});
-  await addMarkToStorage(mark);
-  if(save) await saveMarkStorage();
-  return mark;
-}
-
-module.exports = {init, Mark, waitForInit, dumpMarks, getAllMarks, verifyMark,
-                  getMarksFromLine, getMarksInFile, getMarkByTokenRange, 
-                  deleteAllMarksFromFile, deleteMark, getDocument,
-                  saveMarkStorage, addMarkToStorage, 
-                  getToken, addGen2MarkToLine, addGen2MarkForToken };
-
-
 
 /*
 kinds supported ...
