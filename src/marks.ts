@@ -1,5 +1,3 @@
-// ts-nocheck
-
 import vscode      from 'vscode';
 import ts          from "typescript";
 import {Banner}    from './banners';
@@ -23,6 +21,18 @@ async function init(contextIn: vscode.ExtensionContext) {
   end('init marks');
 }
 
+function waitForInit() {
+  if (initFinished) return Promise.resolve();
+  return new Promise((resolve: ) => {
+    const checkInit = () => {
+      if (initFinished) { resolve(); } 
+      else { setTimeout(checkInit, 50); }
+    };
+    checkInit();
+  });
+}
+
+
 export class Mark {
   start:     number;
   nameStart: number;
@@ -34,6 +44,7 @@ export class Mark {
   parents?:  Mark[];
   id?:       string;
   banner?:   Banner;
+  document?: vscode.TextDocument;
   constructor(node: ts.Node, 
               document: vscode.TextDocument, kindIn?: string) {
     this.start     = node.getStart();
@@ -54,10 +65,26 @@ export class Mark {
   setBanner(banner: Banner) {
     this.banner = banner;
   }
+  async getDocument() {
+    if(this.document) return this.document;
+    const uri = vscode.Uri.file(this.fsPath);
+    this.document = await vscode.workspace.openTextDocument(uri);
+    return this.document;
+  }
 }
 
 let marksById:       Map<string, Mark>      = new Map();
 let markSetByFsPath: Map<string, Set<Mark>> = new Map();
+
+function addMarkToStorage(mark: Mark) {
+  if(mark.id) {marksById.set(mark.id, mark);
+  let markSet = markSetByFsPath.get(mark.fsPath);
+  if (!markSet) {
+    markSet = new Set();
+    markSetByFsPath.set(mark.fsPath, markSet);
+  }
+  markSet.add(mark);
+}
 
 export async function getMarks(document: vscode.TextDocument) {
   start('getMarks');
@@ -94,31 +121,10 @@ export async function getMarks(document: vscode.TextDocument) {
             parent.fsPath;
     }
     mark.setId(id);
-    marksById.set(id, mark);
-    let markSet = markSetByFsPath.get(mark.fsPath);
-    if (!markSet) {
-      markSet = new Set();
-      markSetByFsPath.set(mark.fsPath, markSet);
-    }
-    markSet.add(mark);
-  }
-  await saveMarkStorage();
-  start('getMarks');
-  end('getMarks', false);
-}
-
-async function loadMarkStorage() {
-  if(!LOAD_MARKS_ON_START) {
+    addMarkToStorage(mark);
     await saveMarkStorage();
-    return;
   }
-  const marks = context.workspaceState.get('marks', []);
-  for (const mark of marks)
-    await addMarkToStorage(mark, false);
-}
-
-async function saveMarkStorage() {
-  await context.workspaceState.update('marks', getAllMarks());
+  end('getMarks', false);
 }
 
 function getMarksByFsPath(fsPath: string) {
@@ -129,6 +135,18 @@ function getMarksByFsPath(fsPath: string) {
 
 function getAllMarks() {
   return [...marksById.values()];
+}
+
+async function loadMarkStorage() {
+  if(LOAD_MARKS_ON_START) {
+    const marks = context.workspaceState.get('marks', []);
+    for (const mark of marks) addMarkToStorage(mark);
+  }
+  await saveMarkStorage();
+}
+
+async function saveMarkStorage() {
+  await context.workspaceState.update('marks', getAllMarks());
 }
 
 function deleteMarkFromFileSet(mark: Mark) {
@@ -143,66 +161,60 @@ async function deleteMark(mark: Mark, save = true, update = true) {
   if(mark?.id) marksById.delete(mark.id);
   deleteMarkFromFileSet(mark);
   if(save) await saveMarkStorage();
+
+  // delete banner  -- todo
+
   // if(update) utils.updateSide(); 
   //await dumpMarks('deleteMark');
 }
 
-async function deleteAllMarksFromFile(document, update = true) {//​.
-  const fileMarks = getMarksInFile(document.uri.fsPath);
+async function deleteAllMarksFromFile(document: vscode.TextDocument,
+                                      update = true) {
+  const fileMarks = getMarksByFsPath(document.uri.fsPath);
   if(fileMarks.length === 0) return;
-  log('deleteAllMarksFromFile', utils.getFileRelUriPath(document));
+  log('deleteAllMarksFromFile', document.uri.fsPath,);
   for (const mark of fileMarks) await deleteMark(mark, false, false);
   await saveMarkStorage();
-  if(update) utils.updateSide();
+  // if(update) utils.updateSide();
 }
 
-function waitForInit() {
-  if (initFinished) return Promise.resolve();
-  return new Promise((resolve) => {
-    const checkInit = () => {
-      if (initFinished) { resolve(); } 
-      else { setTimeout(checkInit, 50); }
-    };
-    checkInit();
-  });
-}
-
-function getMarksFromLine(document, lineNumber, sort = false) {
-  const fileMarks = getMarksInFile(document.uri.fsPath);
-  if(fileMarks.length === 0) return [];
-  const lineMarks = fileMarks.filter(mark => mark.lineNumber() === lineNumber);
-  if (sort) {
-    lineMarks.sort((a, b) => {
-      if (a.locStrLc() > b.locStrLc()) return +1;
-      if (a.locStrLc() < b.locStrLc()) return -1;
-      return 0;
-    });
+function getMarkAtLine(document: vscode.TextDocument, lineNumber: number) {
+  const fileMarks = getMarksByFsPath(document.uri.fsPath);
+  if(fileMarks.length === 0) return null;
+  for(const mark of fileMarks) {
+    const markStartLine = document.positionAt(mark.start).line;
+    if(markStartLine === lineNumber) return mark;
   }
-  return lineMarks;
+  return null;
 }
 
-async function verifyMark(mark) {
+async function verifyMark(mark: Mark): Promise<boolean> {
   if(!mark) return false;
-  const document   = await vscode.workspace.openTextDocument(mark.fileUri());
-  const lineNumber = mark.lineNumber();
-  const numLines   = document.lineCount;
-  if(lineNumber < 0 || lineNumber >= numLines) {
+  const document      = await mark.getDocument();
+  const markStartLine = document.positionAt(mark.start).line;
+  const numLines      = document.lineCount;
+  if(markStartLine < 0 || markStartLine >= numLines) {
     log('err', 'verifyMark, line number out of range',
-                mark.fileRelUriPath(), lineNumber);
+                mark.fsPath, markStartLine);
     return false;
   }
-  if(mark.gen() === 1 || await utils.getHiddenFolder()) return true;
-  if(document.getText(mark.range()) != mark.token()) {
-    log('err', 'verifyMark, token missing from line',
-                mark.fileRelUriPath(), lineNumber);
-    return false; 
+  const lineText = document.lineAt(markStartLine).text;
+  if(!lineText) {
+    log('err', 'verifyMark, line text is empty',
+                mark.fsPath, markStartLine);
+    return false;
+  }
+  if(!lineText.includes(mark.name)) {
+    log('err', 'verifyMark, line text does not include mark name',
+                mark.fsPath, markStartLine, mark.name);
+    return false;
   }
   return true;
 }
 
 async function dumpMarks(caller, list, dump) {
   caller = caller + ' marks: ';
-  let marks = Array.from(marksByLocStr.values());
+  let marks = Array.from(marksById.values());
   if(marks.length === 0) {
     log(caller, '<no marks>');
     return;
