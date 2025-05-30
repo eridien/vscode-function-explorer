@@ -14,7 +14,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.toggle();
 	});
 
-	context.subscriptions.push(toggle);
+	const prev = vscode.commands.registerCommand(
+                'vscode-function-marks.prev', () => {
+		cmds.prev();
+	});
+
+	const next = vscode.commands.registerCommand(
+                'vscode-function-marks.next', () => {
+		cmds.next();
+	});
+
+	context.subscriptions.push(toggle, prev, next);
 }
 
 export function deactivate() {}

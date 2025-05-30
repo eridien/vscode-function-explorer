@@ -58,9 +58,6 @@ export class Mark {
   setId(id: string) {
     this.id = id;
   }
-  setBanner(banner: Banner) {
-    this.banner = banner;
-  }
   async getDocument() {
     if(this.document) return this.document;
     const uri = vscode.Uri.file(this.fsPath);
