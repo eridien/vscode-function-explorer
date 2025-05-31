@@ -42,7 +42,8 @@ export class Mark {
   end:       number;
   parents?:  Mark[];
   id?:       string;
-  sortKey?:  string;
+  startKey?: string;
+  endKey?:   string;
   enabled:   boolean;
   constructor(node: ts.Node,
               document: vscode.TextDocument, kindIn?: string) {
@@ -61,11 +62,17 @@ export class Mark {
   setId(id: string)            { this.id = id;           }
   setKind(kind: string)        { this.kind = kind;       }
   setEnabled(enabled: boolean) { this.enabled = enabled; }
-  getGlblSortKey() {
-    if (this.sortKey === undefined) 
-        this.sortKey = this.document.uri.fsPath + "\x00" + 
+  getStartKey() {
+    if (this.startKey === undefined) 
+        this.startKey = this.document.uri.fsPath + "\x00" + 
                        this.start.toString().padStart(6, '0');
-    return this.sortKey;
+    return this.startKey;
+  }
+  getEndKey() {
+    if (this.endKey === undefined) 
+        this.endKey = this.document.uri.fsPath + "\x00" + 
+                       this.end.toString().padStart(6, '0');
+    return this.endKey;
   }
 }
 
@@ -145,8 +152,8 @@ export function getSortedMarks(document: vscode.TextDocument | null = null,
     const marks = getAllMarks();
     if(marks.length === 0) return [];
     return marks.sort((a, b) => {
-      if (a.getGlblSortKey() > b.getGlblSortKey()) return reverse? -1 : +1;
-      if (a.getGlblSortKey() < b.getGlblSortKey()) return reverse? +1 : -1;
+      if (a.getStartKey() > b.getStartKey()) return reverse? -1 : +1;
+      if (a.getStartKey() < b.getStartKey()) return reverse? +1 : -1;
       return 0;
     });
   } 
@@ -162,22 +169,24 @@ export function getMarkAtPos(
   if (marks.length === 0) return null;
   let sortKey: string | null = null;
   if(global) sortKey = document.uri.fsPath + "\x00" + 
-                          index.toString().padStart(6, '0');
-  function cmp(mark: Mark) : number {
+                       index.toString().padStart(6, '0');
+  function inside(mark: Mark) : boolean | null {
     if(global) {
-      if (mark.getGlblSortKey() > sortKey!) return +1;
-      if (mark.getGlblSortKey() < sortKey!) return -1;
-      return 0;
+      if(mark.getStartKey() > sortKey!) return null;
+      return mark.getStartKey() < sortKey! && 
+             mark.getEndKey()   > sortKey!;
     }
-    return mark.start - index;
+    if(mark.start > index) return null;
+    return mark.start < index && mark.end > index;
   }
   ///////// body /////////
-  let i = 0;
-  for(; i < marks.length-1; i++) {
-    if (cmp(marks[i])   > 0) return null;
-    if (cmp(marks[i+1]) > 0) return marks[i];
+  let match: Mark | null = null;
+  for(const mark of marks) {
+    const ins = inside(mark);
+    if (ins === null) break;
+    if (ins) match = mark;
   }
-  return null;
+  return match;
 }
 
 async function loadMarkStorage() {
@@ -187,16 +196,22 @@ async function loadMarkStorage() {
   }
   await saveMarkStorage();
 }
-
-export async function revealMark(mark: Mark) {
+/*
+Default                   // Reveal with minimal scrolling
+InCenter                  // Reveal in the center of the viewport
+InCenterIfOutsideViewport // Center only if not visible
+AtTop                     // Reveal at the top of the viewport
+*/
+export async function revealMark(mark: Mark, selection = false) {
   const editor = await vscode.window.showTextDocument(
                           mark.document, { preview: false });
   const position = mark.document.positionAt(mark.start);
   editor.revealRange(
     new vscode.Range(position, position),
-        vscode.TextEditorRevealType.AtTop
+        vscode.TextEditorRevealType.Default
   );
-  editor.selection = new vscode.Selection(position, position);
+  if(selection) 
+    editor.selection = new vscode.Selection(position, position);
 }
 
 async function saveMarkStorage() {
