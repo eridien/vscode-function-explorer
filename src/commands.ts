@@ -16,7 +16,6 @@ export async function toggle() {
     return;
   let topLine = editor.selection.active.line;
   let botLine = editor.selection.anchor.line;
-  await mrks.updateMarks(document);
   let marks: Mark[] = [];
   const fsPath = document.uri.fsPath;
   if(topLine === botLine) {

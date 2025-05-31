@@ -107,7 +107,7 @@ let marksById:       Map<string, Mark>      = new Map();
 let markSetByFsPath: Map<string, Set<Mark>> = new Map();
 
 // does not filter
-function addMarkToStorage(mark: Mark) {
+function addMarkToMapAndSet(mark: Mark) {
   const oldMark = marksById.get(mark.id!);
   if (oldMark) mark.setEnabled(oldMark.enabled);
   const fsPath = mark.getFsPath();
@@ -121,8 +121,8 @@ function addMarkToStorage(mark: Mark) {
 }
 
 // does not filter
-export async function updateMarks(document: vscode.TextDocument) {
-  start('updateMarks');
+export async function updateMarksInFile(document: vscode.TextDocument) {
+  start('updateMarksInFile');
   const sourceFile = ts.createSourceFile(
                               document.fileName, document.getText(), 
                               ts.ScriptTarget.Latest, true);
@@ -154,10 +154,10 @@ export async function updateMarks(document: vscode.TextDocument) {
       id += parent.name + "\x00" + parent.kind + "\x00";
     id += mark.getFsPath();
     mark.setId(id);
-    addMarkToStorage(mark);
+    addMarkToMapAndSet(mark);
   }
   await saveMarkStorage();
-  end('updateMarks', false);
+  end('updateMarksInFile', false);
 }
 
 export async function updateAllMarks() {
@@ -167,7 +167,7 @@ export async function updateAllMarks() {
     if(document.uri.scheme !== 'file') continue;
     if(document.languageId !== 'javascript' && 
        document.languageId !== 'typescript') continue;
-    await updateMarks(document);
+    await updateMarksInFile(document);
   }
   end('updateAllMarks', false);
 }
@@ -253,7 +253,7 @@ async function loadMarkStorage() {
       Object.assign(mark, markObj);
       mark.document =
         await vscode.workspace.openTextDocument(mark.getFsPath());
-      addMarkToStorage(mark);
+      addMarkToMapAndSet(mark);
     }
   }
   await saveMarkStorage();
