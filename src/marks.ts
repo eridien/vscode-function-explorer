@@ -186,6 +186,17 @@ async function loadMarkStorage() {
   await saveMarkStorage();
 }
 
+export async function revealMark(mark: Mark) {
+  const editor = await vscode.window.showTextDocument(
+                          mark.document, { preview: false });
+  const position = mark.document.positionAt(mark.start);
+  editor.revealRange(
+    new vscode.Range(position, position),
+        vscode.TextEditorRevealType.AtTop
+  );
+  editor.selection = new vscode.Selection(position, position);
+}
+
 async function saveMarkStorage() {
   await context.workspaceState.update('marks', getAllMarks());
 }

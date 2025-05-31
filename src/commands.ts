@@ -21,6 +21,7 @@ export async function toggle() {
   const mark = mrks.getMarkAtPos(
                        document, cursIdx, settings.fileWrap);
   if(!mark) return;
+  await mrks.revealMark(mark);
   mark.setEnabled(!mark.enabled);
   if(mark.document.uri.fsPath === document.uri.fsPath) {
     gutt.updateGutter(editor);
