@@ -149,10 +149,27 @@ export async function updateMarks(document: vscode.TextDocument) {
   end('updateMarks', false);
 }
 
-export function getAllMarks(enabled = false) {
+export async function updateAllMarks() {
+  start('updateAllMarks');
+  const documents = vscode.workspace.textDocuments;
+  for(const document of documents) {
+    if(document.uri.scheme !== 'file') continue;
+    if(document.languageId !== 'javascript' && 
+       document.languageId !== 'typescript') continue;
+    await updateMarks(document);
+  }
+  end('updateAllMarks', false);
+}
+
+export function getAllMarks(enabledOnly = false) {
   const marks = [...marksById.values()];
-  if(enabled) return marks.filter(mark => mark.enabled);
-  return marks;
+  if(enabledOnly) return marks.filter(mark => mark.enabled);
+  log('settings.includeClasses', settings.includeClasses);
+  return marks.filter( mark => {
+    const include = settings.includeClasses || 
+                    mark.kind !== 'ClassDeclaration';
+    return include;
+  });
 }
 
 export function getMarksByFsPath(fsPath: string, enabled = false) : Mark[] {
@@ -222,12 +239,7 @@ async function loadMarkStorage() {
   }
   await saveMarkStorage();
 }
-/*
-Default                   // Reveal with minimal scrolling
-InCenter                  // Reveal in the center of the viewport
-InCenterIfOutsideViewport // Center only if not visible
-AtTop                     // Reveal at the top of the viewport
-*/
+
 export async function revealMark(mark: Mark, selection = false) {
   const editor = await vscode.window.showTextDocument(
                           mark.document, { preview: false });

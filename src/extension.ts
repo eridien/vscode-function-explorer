@@ -3,8 +3,8 @@ import * as cmds   from './commands';
 import * as mrks   from './marks';
 import * as gutt   from './gutter';
 import * as sett   from './settings';
-
 export async function activate(context: vscode.ExtensionContext) {
+  sett.activate();
   await mrks.activate(context);
   await mrks.waitForInit();
   gutt.activate(context);
@@ -25,9 +25,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
   const refreshSettings = vscode.workspace
-                    .onDidChangeConfiguration(event => {
+                    .onDidChangeConfiguration(async event => {
       if (event.affectsConfiguration('function-marks'))
-        sett.refreshSettings();
+        await sett.refreshSettings();
     }
   );
 
