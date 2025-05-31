@@ -86,7 +86,7 @@
           "type": "boolean",
           "default": true,
           "description": 
-             "When stepping with next/prev cross file boundries."
+             "Next/Prev steps across all files."
         },
         "function-marks.subFunctions": {
           "type": "boolean",

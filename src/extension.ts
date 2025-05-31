@@ -7,20 +7,19 @@ export async function activate(context: vscode.ExtensionContext) {
   await mrks.activate(context);
   await mrks.waitForInit();
   gutt.activate(context);
-  gutt.updateGutter();
   
 	const toggle = vscode.commands.registerCommand(
-                'vscode-function-marks.toggle', async () => {
-		await cmds.toggle();
+                'vscode-function-marks.toggle', () => {
+		cmds.toggle();
 	});
 
 	const prev = vscode.commands.registerCommand(
-                'vscode-function-marks.prev', () => {
+              'vscode-function-marks.prev', () => {
 		cmds.prev();
 	});
 
 	const next = vscode.commands.registerCommand(
-                'vscode-function-marks.next', () => {
+              'vscode-function-marks.next', () => {
 		cmds.next();
 	});
 

@@ -1,5 +1,6 @@
 import vscode      from 'vscode';
 import ts          from "typescript";
+import {settings}  from './settings.js';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 
@@ -60,7 +61,7 @@ export class Mark {
   setId(id: string)            { this.id = id;           }
   setKind(kind: string)        { this.kind = kind;       }
   setEnabled(enabled: boolean) { this.enabled = enabled; }
-  getSortKey() {
+  getGlblSortKey() {
     if (this.sortKey === undefined) 
         this.sortKey = this.document.uri.fsPath + "\x00" + 
                        this.start.toString().padStart(6, '0');
@@ -72,11 +73,11 @@ let marksById:       Map<string, Mark>      = new Map();
 let markSetByFsPath: Map<string, Set<Mark>> = new Map();
 
 function addMarkToStorage(mark: Mark) {
-  const oldMark = marksById.get(mark.id);
+  const oldMark = marksById.get(mark.id!);
   if (oldMark) mark.setEnabled(oldMark.enabled);
   else {
     const fsPath = mark.document.uri.fsPath;
-    marksById.set(mark.id, mark);
+    marksById.set(mark.id!, mark);
     let markSet = markSetByFsPath.get(fsPath);
     if (!markSet) {
       markSet = new Set();
@@ -86,8 +87,8 @@ function addMarkToStorage(mark: Mark) {
   }
 }
 
-export async function getMarks(document: vscode.TextDocument) {
-  start('getMarks');
+export async function findAllMarks(document: vscode.TextDocument) {
+  start('findMarks');
   const sourceFile = ts.createSourceFile(
                               document.fileName, document.getText(), 
                               ts.ScriptTarget.Latest, true);
@@ -123,7 +124,7 @@ export async function getMarks(document: vscode.TextDocument) {
     addMarkToStorage(mark);
   }
   await saveMarkStorage();
-  end('getMarks', false);
+  end('findMarks', false);
 }
 
 export function getMarksByFsPath(fsPath: string) {
@@ -134,6 +135,47 @@ export function getMarksByFsPath(fsPath: string) {
 
 export function getAllMarks() {
   return [...marksById.values()];
+}
+
+export function getSortedMarks(document: vscode.TextDocument | null = null, 
+                               reverse = false) : Mark[] {
+  if (document === null) {
+    const marks = getAllMarks();
+    if(marks.length === 0) return [];
+    return marks.sort((a, b) => {
+      if (a.getGlblSortKey() > b.getGlblSortKey()) return reverse? -1 : +1;
+      if (a.getGlblSortKey() < b.getGlblSortKey()) return reverse? +1 : -1;
+      return 0;
+    });
+  } 
+  const marks = getMarksByFsPath(document.uri.fsPath);
+  return marks.sort((a, b) => reverse? b.start - a.start 
+                                     : a.start - b.start);
+}
+
+export function getMarkAtPos(
+              document: vscode.TextDocument, 
+              index: number, global = false) : Mark | null {
+  const marks = getSortedMarks(global ? null : document);
+  if (marks.length === 0) return null;
+  let sortKey: string | null = null;
+  if(global) sortKey = document.uri.fsPath + "\x00" + 
+                          index.toString().padStart(6, '0');
+  function cmp(mark: Mark) : number {
+    if(global) {
+      if (mark.getGlblSortKey() > sortKey!) return +1;
+      if (mark.getGlblSortKey() < sortKey!) return -1;
+      return 0;
+    }
+    return mark.start - index;
+  }
+  ///////// body /////////
+  let i = 0;
+  for(; i < marks.length-1; i++) {
+    if (cmp(marks[i])   > 0) return null;
+    if (cmp(marks[i+1]) > 0) return marks[i];
+  }
+  return null;
 }
 
 async function loadMarkStorage() {
@@ -211,7 +253,7 @@ function verifyMark(mark: Mark): boolean {
   return true;
 }
 
-async function dumpMarks(caller: string, list: boolean, dump: boolean) {
+function dumpMarks(caller: string, list: boolean, dump: boolean) {
   caller = caller + ' marks: ';
   let marks = Array.from(marksById.values());
   if(marks.length === 0) {
@@ -223,7 +265,7 @@ async function dumpMarks(caller: string, list: boolean, dump: boolean) {
     marks.sort((a, b) => a.start - b.start);
     let str = "\n";
     for(const mark of marks) {
-      if(VERIFY_MARKS_IN_DUMP) await verifyMark(mark);
+      if(VERIFY_MARKS_IN_DUMP) verifyMark(mark);
       str += `${mark.name}, ${mark.document.uri.fsPath}, ${mark.start}\n`;
     }
     log(caller, str.slice(0,-1));
@@ -231,7 +273,7 @@ async function dumpMarks(caller: string, list: boolean, dump: boolean) {
   else {
     let str = "";
     for(const mark of marks) {
-      if(VERIFY_MARKS_IN_DUMP) await verifyMark(mark);
+      if(VERIFY_MARKS_IN_DUMP) verifyMark(mark);
       str += mark.name;
     }
     log(caller, str);
