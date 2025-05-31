@@ -127,18 +127,20 @@ export async function findAllMarks(document: vscode.TextDocument) {
   end('findMarks', false);
 }
 
-export function getMarksByFsPath(fsPath: string) {
+export function getAllMarks(enabled = false) {
+  const marks = [...marksById.values()];
+  if(enabled) return marks.filter(mark => mark.enabled);
+  return marks;
+}
+
+export function getMarksByFsPath(fsPath: string, enabled = false) : Mark[] {
   const fileMarkSet = markSetByFsPath.get(fsPath);
   if (fileMarkSet) return Array.from(fileMarkSet);
   return [];  
 }
 
-export function getAllMarks() {
-  return [...marksById.values()];
-}
-
 export function getSortedMarks(document: vscode.TextDocument | null = null, 
-                               reverse = false) : Mark[] {
+                               reverse = false, enabled = false) : Mark[] {
   if (document === null) {
     const marks = getAllMarks();
     if(marks.length === 0) return [];
