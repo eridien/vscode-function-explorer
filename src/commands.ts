@@ -12,20 +12,18 @@ export async function toggle() {
   if (!editor) { return; }
   const document = editor.document;
   await mrks.findAllMarks(document);
-  if (document.uri.scheme !== 'file'||
+  if (document.uri.scheme !== 'file' ||
      (document.languageId !== 'javascript' && 
       document.languageId !== 'typescript'))
     return;
-  const cursPos = editor.selection.active;
-  const cursIdx = document.offsetAt(cursPos);
-  const mark = mrks.getMarkAtPos(
-                       document, cursIdx, settings.fileWrap);
+  const line = editor.selection.active.line;
+  const mark = mrks.getMarkAtLine(document, line);
   if(!mark) return;
-  await mrks.revealMark(mark);
   mark.setEnabled(!mark.enabled);
   if(mark.document.uri.fsPath === document.uri.fsPath) {
     gutt.updateGutter(editor);
   }
+  await mrks.revealMark(mark);
 }
 
 export function prev() {

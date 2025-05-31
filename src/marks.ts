@@ -33,18 +33,20 @@ export function waitForInit() {
 }
 
 export class Mark {
-  document:  vscode.TextDocument;
-  name:      string;
-  kind:      string;
-  start:     number;
-  nameStart: number;
-  nameEnd:   number;
-  end:       number;
-  parents?:  Mark[];
-  id?:       string;
-  startKey?: string;
-  endKey?:   string;
-  enabled:   boolean;
+  document:   vscode.TextDocument;
+  name:       string;
+  kind:       string;
+  start:      number;
+  nameStart:  number;
+  nameEnd:    number;
+  end:        number;
+  parents?:   Mark[];
+  id?:        string;
+  startLine?: number;
+  endLine?:   number;
+  startKey?:  string;
+  endKey?:    string;
+  enabled:    boolean;
   constructor(node: ts.Node,
               document: vscode.TextDocument, kindIn?: string) {
     this.document  = document;
@@ -62,16 +64,29 @@ export class Mark {
   setId(id: string)            { this.id = id;           }
   setKind(kind: string)        { this.kind = kind;       }
   setEnabled(enabled: boolean) { this.enabled = enabled; }
+  getStartLine() {
+    if (this.startLine === undefined) 
+        this.startLine = this.document.positionAt(this.start).line;
+    return this.startLine;
+  }
+  getEndLine() {
+    if (this.endLine === undefined) {
+      const endPos = this.document.positionAt(this.end);
+      this.endLine = endPos.line;
+      if (endPos.character > 0) this.endLine++;
+    }
+    return this.endLine;
+  }
   getStartKey() {
     if (this.startKey === undefined) 
         this.startKey = this.document.uri.fsPath + "\x00" + 
-                       this.start.toString().padStart(6, '0');
+                        this.getStartLine().toString().padStart(6, '0');
     return this.startKey;
   }
   getEndKey() {
     if (this.endKey === undefined) 
         this.endKey = this.document.uri.fsPath + "\x00" + 
-                       this.end.toString().padStart(6, '0');
+                      this.getEndLine().toString().padStart(6, '0');
     return this.endKey;
   }
 }
@@ -162,29 +177,14 @@ export function getSortedMarks(document: vscode.TextDocument | null = null,
                                      : a.start - b.start);
 }
 
-export function getMarkAtPos(
-              document: vscode.TextDocument, 
-              index: number, global = false) : Mark | null {
-  const marks = getSortedMarks(global ? null : document);
+export function getMarkAtLine( document: vscode.TextDocument, 
+                               lineNumber: number) : Mark | null {
+  const marks = getSortedMarks(document);
   if (marks.length === 0) return null;
-  let sortKey: string | null = null;
-  if(global) sortKey = document.uri.fsPath + "\x00" + 
-                       index.toString().padStart(6, '0');
-  function inside(mark: Mark) : boolean | null {
-    if(global) {
-      if(mark.getStartKey() > sortKey!) return null;
-      return mark.getStartKey() < sortKey! && 
-             mark.getEndKey()   > sortKey!;
-    }
-    if(mark.start > index) return null;
-    return mark.start < index && mark.end > index;
-  }
-  ///////// body /////////
   let match: Mark | null = null;
   for(const mark of marks) {
-    const ins = inside(mark);
-    if (ins === null) break;
-    if (ins) match = mark;
+    if(mark.getStartLine() > lineNumber) return match;
+    if(mark.getEndLine()   > lineNumber) match = mark;
   }
   return match;
 }
@@ -247,20 +247,10 @@ async function deleteAllMarksFromFile(document: vscode.TextDocument,
   // if(update) utils.updateSide();
 }
 
-function getMarkAtLine(document: vscode.TextDocument, lineNumber: number) {
-  const fileMarks = getMarksByFsPath(document.uri.fsPath);
-  if(fileMarks.length === 0) return null;
-  for(const mark of fileMarks) {
-    const markStartLine = document.positionAt(mark.start).line;
-    if(markStartLine === lineNumber) return mark;
-  }
-  return null;
-}
-
 function verifyMark(mark: Mark): boolean {
   if(!mark || !mark.document) return false;
   const document      = mark.document;
-  const markStartLine = document.positionAt(mark.start).line;
+  const markStartLine = mark.getStartLine();
   const numLines      = document.lineCount;
   if(markStartLine < 0 || markStartLine >= numLines) {
     log('err', 'verifyMark, line number out of range',
