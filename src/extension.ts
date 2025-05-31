@@ -25,9 +25,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
   const refreshSettings = vscode.workspace
-                    .onDidChangeConfiguration(async event => {
+                    .onDidChangeConfiguration(event => {
       if (event.affectsConfiguration('function-marks'))
-        await sett.refreshSettings();
+        sett.refreshSettings();
     }
   );
 

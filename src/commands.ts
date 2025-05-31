@@ -18,13 +18,14 @@ export async function toggle() {
   let botLine = editor.selection.anchor.line;
   await mrks.updateMarks(document);
   let marks: Mark[] = [];
+  const fsPath = document.uri.fsPath;
   if(topLine === botLine) {
-    const mark = mrks.getMarkAtLine(document, topLine);
+    const mark = mrks.getMarkAtLine(fsPath, topLine);
     if(mark) marks = [mark];
   }
   else {
     if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-    marks = mrks.getMarksBetweenLines(document, topLine, botLine);
+    marks = mrks.getMarksBetweenLines(fsPath, topLine, botLine);
   }
   if(marks.length === 0) return;
   let enabledCount = 0;
@@ -32,6 +33,7 @@ export async function toggle() {
   const enable = enabledCount/marks.length < 0.5;
   marks.forEach(mark => mark.setEnabled(enable));
   gutt.updateGutter(editor);
+  await mrks.saveMarkStorage();
   await mrks.revealMark(marks[0]);
 }
 

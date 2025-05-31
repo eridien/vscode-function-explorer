@@ -33,6 +33,6 @@ function getFunctionMarksSettings(): FunctionMarksSettings {
   };
 }
 
-export async function refreshSettings() {
+export function refreshSettings() {
   settings = getFunctionMarksSettings();
 }

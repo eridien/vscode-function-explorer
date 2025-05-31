@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path   from 'path';
-import * as marks  from './marks';
+import * as mrks   from './marks';
 import * as utils  from './utils';
 const {log} = utils.getLog('gutt');
 
@@ -16,6 +16,7 @@ export function activate(contextIn: vscode.ExtensionContext) {
   gutDecDrkUri = vscode.Uri.file(path.join( 
                   context.extensionPath, 'images', 'gutter-icon-drk.svg'));
   gutterDec = getGutterDec();
+  updateGutter();
 }
 
 function getGutterDec() {
@@ -31,17 +32,21 @@ vscode.window.onDidChangeActiveColorTheme((event) => {
   gutterDec = getGutterDec();
 });
 
-export function updateGutter(editor: vscode.TextEditor) {
-  const document = editor.document;
-  const decRanges   = [];
-  const fsPath      = document.uri.fsPath;
-  const marksInFile = marks.getMarksByFsPath(fsPath);
-  for(const mark of marksInFile) {
-    if(mark.enabled) {
-      const lineNumber = document.positionAt(mark.start).line;
-      const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
-      decRanges.push({range});
-    }
+export function updateGutter(editor: vscode.TextEditor | 
+                                     undefined = undefined) {
+  if(!editor) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if(activeEditor) editor = activeEditor;
+    else return;
+  }
+  const document  = editor.document;
+  const decRanges = [];
+  const fsPath    = document.uri.fsPath;
+  const marks     = mrks.getMarks({enabledOnly: true, fsPath});
+  for(const mark of marks) {
+    const lineNumber = document.positionAt(mark.start).line;
+    const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
+    decRanges.push({range});
   }
   editor.setDecorations(gutterDec, decRanges);
 }
