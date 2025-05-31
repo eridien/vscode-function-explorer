@@ -109,8 +109,8 @@ function addMarkToStorage(mark: Mark) {
   }
 }
 
-export async function findAllMarks(document: vscode.TextDocument) {
-  start('findMarks');
+export async function updateMarks(document: vscode.TextDocument) {
+  start('updateMarks');
   const sourceFile = ts.createSourceFile(
                               document.fileName, document.getText(), 
                               ts.ScriptTarget.Latest, true);
@@ -146,7 +146,7 @@ export async function findAllMarks(document: vscode.TextDocument) {
     addMarkToStorage(mark);
   }
   await saveMarkStorage();
-  end('findMarks', false);
+  end('updateMarks', false);
 }
 
 export function getAllMarks(enabled = false) {
@@ -191,16 +191,26 @@ export function getMarkAtLine( document: vscode.TextDocument,
 
 export function getMarksBetweenLines( document: vscode.TextDocument, 
                       startLine: number, endLine: number) : Mark[] {
-  const marks = getSortedMarks(document);
+  let marks = getSortedMarks(document);
   if (marks.length === 0) return [];
   let matches: Mark[] = [];
-  let curLine = startLine;
   for(const mark of marks) {
-
-
-  
-    if(mark.getStartLine() > endLine) return matches;
-    if(mark.getEndLine()   > startLine) matches.push(mark);
+    const markStartLine = mark.getStartLine();
+    if(markStartLine > endLine) break;
+    if(markStartLine >= startLine) matches.push(mark);
+  }
+  if(!settings.includeSubFunctions) {
+    let minDepth = 1e9;
+    for(const mark of matches) {
+      const depth = mark.parents!.length;
+      if(depth < minDepth) minDepth = depth;
+    }
+    const subMarks = [];
+    for(const mark of matches) {
+      const depth = mark.parents!.length;
+      if(depth == minDepth) subMarks.push(mark);
+    }
+    return subMarks;
   }
   return matches;
 }

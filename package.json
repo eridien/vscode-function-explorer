@@ -88,7 +88,7 @@
           "description": 
              "Next/Prev steps across all files."
         },
-        "function-marks.subFunctions": {
+        "function-marks.includeSubFunctions": {
           "type": "boolean",
           "default": false,
           "description": 

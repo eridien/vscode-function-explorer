@@ -9,8 +9,8 @@ export async function activate(context: vscode.ExtensionContext) {
   gutt.activate(context);
   
 	const toggle = vscode.commands.registerCommand(
-                'vscode-function-marks.toggle', () => {
-		cmds.toggle();
+                'vscode-function-marks.toggle', async () => {
+		await cmds.toggle();
 	});
 
 	const prev = vscode.commands.registerCommand(

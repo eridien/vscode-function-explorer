@@ -9,9 +9,9 @@ export function refreshSettings() {
 }
 
 export interface FunctionMarkSettings {
-  fileWrap:        boolean;
-  subFunctions:    boolean;
-  includeClasses:  boolean;
+  fileWrap:            boolean;
+  includeSubFunctions: boolean;
+  includeClasses:      boolean;
 }
 
 function mm(val: number, max: number, min: number = 0): number {
@@ -22,7 +22,7 @@ export function getFunctionMarkSettings(): FunctionMarkSettings {
   const config = vscode.workspace.getConfiguration('function-marks');
   return {
     fileWrap:        config.get('fileWrap',       true),
-    subFunctions:    config.get('subFunctions',   false),
+    includeSubFunctions:    config.get('includeSubFunctions',   false),
     includeClasses:  config.get('includeClasses', true),
   };
 }

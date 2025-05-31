@@ -9,15 +9,15 @@ const {log} = utils.getLog('cmds');
 export async function toggle() {
   log('toggle');
   const editor = vscode.window.activeTextEditor;
-  if (!editor) { return; }
+  if (!editor) return;
   const document = editor.document;
-  await mrks.findAllMarks(document);
   if (document.uri.scheme !== 'file' ||
      (document.languageId !== 'javascript' && 
       document.languageId !== 'typescript'))
     return;
   let topLine = editor.selection.active.line;
   let botLine = editor.selection.anchor.line;
+  await mrks.updateMarks(document);
   let marks: Mark[] = [];
   if(topLine === botLine) {
     const mark = mrks.getMarkAtLine(document, topLine);
