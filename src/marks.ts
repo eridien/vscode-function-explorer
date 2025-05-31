@@ -189,6 +189,22 @@ export function getMarkAtLine( document: vscode.TextDocument,
   return match;
 }
 
+export function getMarksBetweenLines( document: vscode.TextDocument, 
+                      startLine: number, endLine: number) : Mark[] {
+  const marks = getSortedMarks(document);
+  if (marks.length === 0) return [];
+  let matches: Mark[] = [];
+  let curLine = startLine;
+  for(const mark of marks) {
+
+
+  
+    if(mark.getStartLine() > endLine) return matches;
+    if(mark.getEndLine()   > startLine) matches.push(mark);
+  }
+  return matches;
+}
+
 async function loadMarkStorage() {
   if(LOAD_MARKS_ON_START) {
     const marks = context.workspaceState.get('marks', []);

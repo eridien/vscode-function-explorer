@@ -16,14 +16,24 @@ export async function toggle() {
      (document.languageId !== 'javascript' && 
       document.languageId !== 'typescript'))
     return;
-  const line = editor.selection.active.line;
-  const mark = mrks.getMarkAtLine(document, line);
-  if(!mark) return;
-  mark.setEnabled(!mark.enabled);
-  if(mark.document.uri.fsPath === document.uri.fsPath) {
-    gutt.updateGutter(editor);
+  let topLine = editor.selection.active.line;
+  let botLine = editor.selection.anchor.line;
+  let marks: Mark[] = [];
+  if(topLine === botLine) {
+    const mark = mrks.getMarkAtLine(document, topLine);
+    if(mark) marks = [mark];
   }
-  await mrks.revealMark(mark);
+  else {
+    if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
+    marks = mrks.getMarksBetweenLines(document, topLine, botLine);
+  }
+  if(marks.length === 0) return;
+  let enabledCount = 0;
+  marks.forEach(mark => { if(mark.enabled) enabledCount++; });
+  const enable = enabledCount/marks.length < 0.5;
+  marks.forEach(mark => mark.setEnabled(enable));
+  gutt.updateGutter(editor);
+  await mrks.revealMark(marks[0]);
 }
 
 export function prev() {
