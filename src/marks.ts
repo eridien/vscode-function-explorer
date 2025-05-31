@@ -1,6 +1,6 @@
 import vscode      from 'vscode';
 import ts          from "typescript";
-import {settings}  from './settings.js';
+import {settings}  from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 

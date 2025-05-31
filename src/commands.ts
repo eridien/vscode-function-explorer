@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as mrks   from './marks';
 import * as gutt   from './gutter';
 import {Mark}      from './marks';
-import {settings}  from './settings.js';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
