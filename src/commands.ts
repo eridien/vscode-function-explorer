@@ -24,7 +24,7 @@ export async function toggle() {
   }
   else {
     if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-    marks = mrks.getMarksBetweenLines(fsPath, topLine, botLine);
+    marks = mrks.getMarksBetweenLines(fsPath, topLine, botLine, true);
   }
   if(marks.length === 0) return;
   let enabledCount = 0;

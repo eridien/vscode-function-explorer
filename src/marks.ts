@@ -65,7 +65,11 @@ export class Mark {
   setParents(parents: Mark[])  { this.parents = parents; }
   setId(id: string)            { this.id = id;           }
   setKind(kind: string)        { this.kind = kind;       }
-  setEnabled(enabled: boolean) { this.enabled = enabled; }
+  setEnabled(enabled: boolean) { 
+    if (this.kind == 'ClassDeclaration' && !settings.includeClasses)
+      enabled = false;
+    this.enabled = enabled; 
+  }
   getFsPath() {
     if (this.fsPath === undefined) 
         this.fsPath = this.document.uri.fsPath;
@@ -217,14 +221,18 @@ export function getMarkAtLine( fsPath: string,
   return match;
 }
 
-// filters by includeSubFunctions
+// filters by includeClasses && includeSubFunctions
 export function getMarksBetweenLines(fsPath: string, 
-                      startLine: number, endLine: number) : Mark[] {
-  let marks = getSortedMarks({fsPath, 
-                              includeClasses: settings.includeClasses});
+                                  startLine: number, endLine: number, 
+                                  overRideClassChk: boolean = false) : Mark[] {
+  let marks = getSortedMarks({fsPath});
+                              // includeClasses: settings.includeClasses});
   if (marks.length === 0) return [];
   let matches: Mark[] = [];
   for(const mark of marks) {
+    const isClass = mark.kind === 'ClassDeclaration';
+    if(isClass && !(overRideClassChk && mark.enabled) && 
+       !settings.includeClasses) continue;
     const markStartLine = mark.getStartLine();
     if(markStartLine > endLine) break;
     if(markStartLine >= startLine) matches.push(mark);
