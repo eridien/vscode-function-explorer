@@ -71,19 +71,19 @@ export class Mark {
   }
   setParents(parents: Mark[]) { 
     this.parents = parents; 
-    setMarkInMapAndSet(this);
+    setMarkInMaps(this);
   }
   setId(id: string) {
     this.id = id;           
-    setMarkInMapAndSet(this);
+    setMarkInMaps(this);
   }
   setKind(kind: string) { 
    this.kind = kind;       
-    setMarkInMapAndSet(this);
+    setMarkInMaps(this);
   }
   setEnabled(enabled: boolean) { 
     this.enabled = enabled; 
-    setMarkInMapAndSet(this);
+    setMarkInMaps(this);
   }
   getFsPath() {
     if (this.fsPath === undefined) 
@@ -122,19 +122,21 @@ export class Mark {
   }
 }
 
-let marksById:       Map<string, Mark>      = new Map();
-let markSetByFsPath: Map<string, Set<Mark>> = new Map();
+let marksById:     Map<string, Mark> = new Map();
+let marksByFsPath: Map<string, Map<string, Mark>> = new Map();
 
 // does not filter
-function setMarkInMapAndSet(mark: Mark) {
-  const fsPath = mark.getFsPath();
+function setMarkInMaps(mark: Mark) {
+  const fsPath  = mark.getFsPath();
+  const oldMark = marksById.get(mark.id!);
+  if(oldMark) mark.enabled = oldMark.enabled; 
   marksById.set(mark.id!, mark);
-  let markSet = markSetByFsPath.get(fsPath);
-  if (!markSet) {
-    markSet = new Set();
-    markSetByFsPath.set(fsPath, markSet);
+  let markMap = marksByFsPath.get(fsPath);
+  if (!markMap) {
+    markMap = new Map<string, Mark>();
+    marksByFsPath.set(fsPath, markMap);
   }
-  markSet.add(mark);
+  markMap.set(mark.id!, mark);
 }
 
 // does not filter
@@ -171,7 +173,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
       id += parent.name + "\x00" + parent.kind + "\x00";
     id += mark.getFsPath();
     mark.setId(id);
-    setMarkInMapAndSet(mark);
+    setMarkInMaps(mark);
   }
   await saveMarkStorage();
   end('updateMarksInFile', false);
@@ -182,9 +184,9 @@ export function getMarks(p: any | {} = {}) : Mark[] {
   const {enabledOnly = false, fsPath} = p;
   let marks;
   if(fsPath) {
-    const fileMarkSet = markSetByFsPath.get(fsPath);
-    if (!fileMarkSet) return [];
-    marks = Array.from(fileMarkSet);
+    const fileMarkMap = marksByFsPath.get(fsPath);
+    if (!fileMarkMap) return [];
+    marks = Array.from(fileMarkMap.values());
   }
   else marks = [...marksById.values()];
   if(enabledOnly) marks = marks.filter(mark => mark.enabled);
@@ -256,7 +258,7 @@ async function loadMarkStorage() {
       Object.assign(mark, markObj);
       mark.document =
         await vscode.workspace.openTextDocument(mark.getFsPath());
-      setMarkInMapAndSet(mark);
+      setMarkInMaps(mark);
     }
   }
   await saveMarkStorage();
@@ -279,10 +281,10 @@ export async function saveMarkStorage() {
 }
 
 function deleteMarkFromFileSet(mark: Mark) {
-  let markSet = markSetByFsPath.get(mark.getFsPath());
-  if (markSet) {
-    markSet.delete(mark);
-    if(markSet.size === 0) markSetByFsPath.delete(mark.getFsPath());
+  let markMap = marksByFsPath.get(mark.getFsPath());
+  if (markMap) {
+    markMap.delete(mark.id!);
+    if(markMap.size === 0) marksByFsPath.delete(mark.getFsPath());
   }
 }
 
