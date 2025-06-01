@@ -225,7 +225,7 @@ export function getMarkAtLine( fsPath: string,
 // filters by includeSubFunctions
 export function getMarksBetweenLines(fsPath: string, 
                                   startLine: number, endLine: number, 
-                                  overRideClassChk: boolean = false) : Mark[] {
+                                  overRideSubChk: boolean = false) : Mark[] {
   let marks = getSortedMarks({fsPath});
   if (marks.length === 0) return [];
   let matches: Mark[] = [];
@@ -243,7 +243,8 @@ export function getMarksBetweenLines(fsPath: string,
     const subMarks = [];
     for(const mark of matches) {
       const depth = mark.parents!.length;
-      if(depth == minDepth) subMarks.push(mark);
+      if(depth == minDepth ||
+        (overRideSubChk && mark.enabled)) subMarks.push(mark);
     }
     return subMarks;
   }
