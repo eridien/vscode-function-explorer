@@ -226,13 +226,12 @@ export function getMarksBetweenLines(fsPath: string,
                                   startLine: number, endLine: number, 
                                   overRideClassChk: boolean = false) : Mark[] {
   let marks = getSortedMarks({fsPath});
-                              // includeClasses: settings.includeClasses});
   if (marks.length === 0) return [];
   let matches: Mark[] = [];
   for(const mark of marks) {
-    const isClass = mark.kind === 'ClassDeclaration';
-    if(isClass && !(overRideClassChk && mark.enabled) && 
-       !settings.includeClasses) continue;
+    if(mark.kind === 'ClassDeclaration' && 
+       !settings.includeClasses         &&
+       !(overRideClassChk && mark.enabled))  continue;
     const markStartLine = mark.getStartLine();
     if(markStartLine > endLine) break;
     if(markStartLine >= startLine) matches.push(mark);
