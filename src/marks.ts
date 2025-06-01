@@ -32,6 +32,13 @@ export function waitForInit() {
   });
 }
 
+export async function initMarks() {
+  const activeEditor = vscode.window.activeTextEditor;
+  if (activeEditor)
+    await updateMarksInFile(activeEditor.document);
+}
+
+
 export class Mark {
   document:       vscode.TextDocument;
   name:           string;
@@ -65,11 +72,7 @@ export class Mark {
   setParents(parents: Mark[])  { this.parents = parents; }
   setId(id: string)            { this.id = id;           }
   setKind(kind: string)        { this.kind = kind;       }
-  setEnabled(enabled: boolean) { 
-    if (this.kind == 'ClassDeclaration' && !settings.includeClasses)
-      enabled = false;
-    this.enabled = enabled; 
-  }
+  setEnabled(enabled: boolean) { this.enabled = enabled; }
   getFsPath() {
     if (this.fsPath === undefined) 
         this.fsPath = this.document.uri.fsPath;
@@ -164,21 +167,9 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
   end('updateMarksInFile', false);
 }
 
-export async function updateAllMarks() {
-  start('updateAllMarks');
-  const documents = vscode.workspace.textDocuments;
-  for(const document of documents) {
-    if(document.uri.scheme !== 'file') continue;
-    if(document.languageId !== 'javascript' && 
-       document.languageId !== 'typescript') continue;
-    await updateMarksInFile(document);
-  }
-  end('updateAllMarks', false);
-}
-
 // filters
 export function getMarks(p: any | {} = {}) : Mark[] {
-  const {enabledOnly = false, includeClasses = true, fsPath} = p;
+  const {enabledOnly = false, fsPath} = p;
   let marks;
   if(fsPath) {
     const fileMarkSet = markSetByFsPath.get(fsPath);
@@ -187,8 +178,6 @@ export function getMarks(p: any | {} = {}) : Mark[] {
   }
   else marks = [...marksById.values()];
   if(enabledOnly)      marks = marks.filter(mark => mark.enabled);
-  if(!includeClasses)  marks = marks.filter(
-                       mark => mark.kind !== 'ClassDeclaration');
   return marks;
 }
 
@@ -221,7 +210,7 @@ export function getMarkAtLine( fsPath: string,
   return match;
 }
 
-// filters by includeClasses && includeSubFunctions
+// filters by includeSubFunctions
 export function getMarksBetweenLines(fsPath: string, 
                                   startLine: number, endLine: number, 
                                   overRideClassChk: boolean = false) : Mark[] {
@@ -229,9 +218,6 @@ export function getMarksBetweenLines(fsPath: string,
   if (marks.length === 0) return [];
   let matches: Mark[] = [];
   for(const mark of marks) {
-    if(mark.kind === 'ClassDeclaration' && 
-       !settings.includeClasses         &&
-       !(overRideClassChk && mark.enabled))  continue;
     const markStartLine = mark.getStartLine();
     if(markStartLine > endLine) break;
     if(markStartLine >= startLine) matches.push(mark);

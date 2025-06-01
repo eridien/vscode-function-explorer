@@ -93,12 +93,6 @@
           "default": false,
           "description": 
              "Include nested functions when marking with a selection."
-        },
-        "function-marks.includeClasses": {
-          "type": "boolean",
-          "default": true,
-          "description": 
-             "Mark classes when marking with a selection."
         }
       }
     }

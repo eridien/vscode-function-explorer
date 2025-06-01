@@ -6,14 +6,12 @@ const {log} = utils.getLog('sett');
 interface FunctionMarksSettings {
   fileWrap:            boolean;
   includeSubFunctions: boolean;
-  includeClasses:      boolean;
 }
 
 export let settings: FunctionMarksSettings = {
   fileWrap:            true,
   includeSubFunctions: false,
-  includeClasses:      true,
-};
+}; 
 
 export function activate() {
   settings = getFunctionMarksSettings();
@@ -29,7 +27,6 @@ function getFunctionMarksSettings(): FunctionMarksSettings {
   return {
     fileWrap:            config.get('fileWrap',            true),
     includeSubFunctions: config.get('includeSubFunctions', false),
-    includeClasses:      config.get('includeClasses',      true),
   };
 }
 
