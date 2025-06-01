@@ -69,10 +69,22 @@ export class Mark {
     this.id        = '';
     this.enabled   = false;
   }
-  setParents(parents: Mark[])  { this.parents = parents; }
-  setId(id: string)            { this.id = id;           }
-  setKind(kind: string)        { this.kind = kind;       }
-  setEnabled(enabled: boolean) { this.enabled = enabled; }
+  setParents(parents: Mark[]) { 
+    this.parents = parents; 
+    setMarkInMapAndSet(this);
+  }
+  setId(id: string) {
+    this.id = id;           
+    setMarkInMapAndSet(this);
+  }
+  setKind(kind: string) { 
+   this.kind = kind;       
+    setMarkInMapAndSet(this);
+  }
+  setEnabled(enabled: boolean) { 
+    this.enabled = enabled; 
+    setMarkInMapAndSet(this);
+  }
   getFsPath() {
     if (this.fsPath === undefined) 
         this.fsPath = this.document.uri.fsPath;
@@ -114,9 +126,7 @@ let marksById:       Map<string, Mark>      = new Map();
 let markSetByFsPath: Map<string, Set<Mark>> = new Map();
 
 // does not filter
-function addMarkToMapAndSet(mark: Mark) {
-  const oldMark = marksById.get(mark.id!);
-  if (oldMark) mark.setEnabled(oldMark.enabled);
+function setMarkInMapAndSet(mark: Mark) {
   const fsPath = mark.getFsPath();
   marksById.set(mark.id!, mark);
   let markSet = markSetByFsPath.get(fsPath);
@@ -161,7 +171,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
       id += parent.name + "\x00" + parent.kind + "\x00";
     id += mark.getFsPath();
     mark.setId(id);
-    addMarkToMapAndSet(mark);
+    setMarkInMapAndSet(mark);
   }
   await saveMarkStorage();
   end('updateMarksInFile', false);
@@ -177,7 +187,7 @@ export function getMarks(p: any | {} = {}) : Mark[] {
     marks = Array.from(fileMarkSet);
   }
   else marks = [...marksById.values()];
-  if(enabledOnly)      marks = marks.filter(mark => mark.enabled);
+  if(enabledOnly) marks = marks.filter(mark => mark.enabled);
   return marks;
 }
 
@@ -246,7 +256,7 @@ async function loadMarkStorage() {
       Object.assign(mark, markObj);
       mark.document =
         await vscode.workspace.openTextDocument(mark.getFsPath());
-      addMarkToMapAndSet(mark);
+      setMarkInMapAndSet(mark);
     }
   }
   await saveMarkStorage();
