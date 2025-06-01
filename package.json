@@ -20,37 +20,41 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [ 
+    "commands": [
       {
         "command": "vscode-function-marks.toggle",
-        "title":   "Toggle Function Marks",
-        "when":    "editorTextFocus"
-      },{
+        "title": "Toggle Function Marks",
+        "when": "editorTextFocus"
+      },
+      {
         "command": "vscode-function-marks.prev",
-        "title":   "Previous Function Mark",
-        "when":    "editorTextFocus"
-      },{
+        "title": "Previous Function Mark",
+        "when": "editorTextFocus"
+      },
+      {
         "command": "vscode-function-marks.next",
-        "title":   "Next Function Mark",
-        "when":    "editorTextFocus"
+        "title": "Next Function Mark",
+        "when": "editorTextFocus"
       }
     ],
-     "keybindings": [
+    "keybindings": [
       {
         "command": "vscode-function-marks.toggle",
-        "key":     "ctrl+alt+\\",
-        "mac":     "cmd+alt+\\",
-        "when":    "editorTextFocus"
-      },{
+        "key": "ctrl+alt+\\",
+        "mac": "cmd+alt+\\",
+        "when": "editorTextFocus"
+      },
+      {
         "command": "vscode-function-marks.prev",
-        "key":     "ctrl+alt+[",
-        "mac":     "cmd+alt+[",
-        "when":    "editorTextFocus"
-      },{
+        "key": "ctrl+alt+[",
+        "mac": "cmd+alt+[",
+        "when": "editorTextFocus"
+      },
+      {
         "command": "vscode-function-marks.next",
-        "key":     "ctrl+alt+]",
-        "mac":     "cmd+alt+]",
-        "when":    "editorTextFocus"
+        "key": "ctrl+alt+]",
+        "mac": "cmd+alt+]",
+        "when": "editorTextFocus"
       }
     ],
     "viewsContainers": {
@@ -72,10 +76,11 @@
       ]
     },
     "menus": {
-      "editor/context": [ {
+      "editor/context": [
+        {
           "command": "vscode-function-marks.toggle",
-          "when":    "editorTextFocus",
-          "group":   "1_modification"
+          "when": "editorTextFocus",
+          "group": "1_modification"
         }
       ]
     },
@@ -85,14 +90,12 @@
         "function-marks.fileWrap": {
           "type": "boolean",
           "default": true,
-          "description": 
-             "Next/Prev steps across all files."
+          "description": "Next/Prev steps across all files."
         },
         "function-marks.includeSubFunctions": {
           "type": "boolean",
           "default": false,
-          "description": 
-             "Include nested functions when marking with a selection."
+          "description": "Include nested functions when marking with a selection."
         }
       }
     }
@@ -106,14 +109,17 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.100.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/vscode": "^1.100.0",
     "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^8.28.0",
-    "eslint": "^9.23.0",
-    "typescript": "^5.8.2",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.23.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "typescript-parser": "^2.6.1"
   }
 }

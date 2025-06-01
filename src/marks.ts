@@ -4,6 +4,12 @@ import {settings}  from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 
+// https://github.com/babel/babel/tree/main/packages/babel-parser
+//  @babel/traverse
+
+// https://github.com/acornjs/acorn
+// acorn-walk
+
 const LOAD_MARKS_ON_START = true;
 // const LOAD_MARKS_ON_START = false;
 
@@ -147,6 +153,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
                               ts.ScriptTarget.Latest, true);
   const marks: Mark[] = [];
   function traverse(node: ts.Node) {
+    // log('traverse', ts.SyntaxKind[node.kind], node.getStart());
     if((ts.isFunctionDeclaration(node) ||
         ts.isClassDeclaration(node)    ||
         ts.isMethodDeclaration(node)) && node.name)
@@ -205,8 +212,8 @@ export function getSortedMarks(p: any | {} = {}) : Mark[] {
       return 0;
     });
   } 
-  return marks.sort((a, b) => reverse? b.start - a.start 
-                                     : a.start - b.start);
+  return marks.sort((a, b) => 
+    reverse? b.start - a.start : a.start - b.start);
 }
 
 // does not filter
