@@ -7,7 +7,6 @@ import {settings}  from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 
-
 const code = `
 class cname {
   constructor() {}
@@ -24,23 +23,49 @@ const ast = parse(code, { errorRecovery: true,
   plugins: ['typescript'], sourceType: "module",
   tokens: false,
 });
-
 traverse(ast, {
   enter(path) {
     if (path.isFunctionDeclaration()) {
-      const name  = path.node.id!.name;
+      const name  = (path.node.id as any).name;
+      const type  = 'FunctionDeclaration';
       const start = path.node.start;
       const end   = path.node.end;
-      console.log('name:', name, '  start:', start, '  end:', end);
+      console.log('name:', name,'  type:', type, '  start:', start, '  end:', end);
+      return;
     }
     if (path.isAssignmentExpression() &&
         path.node.right.type.indexOf('Function') !== -1) {
       const left  = path.node.left;
       const right = path.node.right;
       const name  = code.slice(left.start!, left.end!);
+      const type  = 'FunctionExpression';
       const start = left.start;
       const end   = right.end;
-      console.log('name:', name, '  start:', start, '  end:', end);
+      console.log('name:', name,'  type:', type, '  start:', start, '  end:', end);
+      return;
+    }
+    if (path.isClassMethod()) {
+      let name:string;
+      let type:string;
+      if(path.node.kind == 'constructor') {
+        let parentPath:any = path;
+        while((parentPath = parentPath.parentPath) &&
+              !parentPath.isClassDeclaration());
+        if (!parentPath || !parentPath.isClassDeclaration()) {
+          log('err', 'constructor without class declaration');
+          return;
+        }
+        name = parentPath.node.id.name;
+        type = 'Constructor';
+      }
+      else {
+       name = (path.node.key as any).name;
+       type = 'Method';
+      }
+      const start = path.node.start;
+      const end   = path.node.end;
+      console.log('name:', name,'  type:', type, '  start:', start, '  end:', end);
+      return;
     }
   },
 });
