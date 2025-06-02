@@ -7,7 +7,7 @@ export async function activate(context: vscode.ExtensionContext) {
   sett.activate();
   await mrks.activate(context);
   await mrks.waitForInit();
-  await mrks.initMarks();
+  mrks.initMarks();
   gutt.activate(context);
   
 	const toggle = vscode.commands.registerCommand(
@@ -25,8 +25,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		cmds.next();
 	});
 
-  const editorChg = vscode.window.onDidChangeActiveTextEditor(async editor => {
-    if(editor) await cmds.editorChg(editor);
+  const editorChg = vscode.window.onDidChangeActiveTextEditor(editor => {
+    if(editor) cmds.editorChg(editor);
   });
 
   const refreshSettings = vscode.workspace

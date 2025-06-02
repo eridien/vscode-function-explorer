@@ -1,10 +1,49 @@
+// @@ts-nocheck
+
 import vscode      from 'vscode';
-import fs          from "fs";
-import * as path   from 'path';
-import ts          from "typescript";
+import { parse }   from "@babel/parser";
+import traverse    from "@babel/traverse";
 import {settings}  from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
+
+
+const code = `
+class cname {
+  constructor() {}
+  mname() {}
+}
+function fname(){};
+fexpr   = function(){};
+fexpr.b = function(){};
+arr   = () => {};
+arr.b = () => {};
+`;
+const ast = parse(code, { errorRecovery: true, 
+  createImportExpressions: true,
+  plugins: ['typescript'], sourceType: "module",
+  tokens: false,
+});
+
+traverse(ast, {
+  enter(path) {
+    if (path.isFunctionDeclaration()) {
+      const name  = path.node.id!.name;
+      const start = path.node.start;
+      const end   = path.node.end;
+      console.log('name:', name, '  start:', start, '  end:', end);
+    }
+    if (path.isAssignmentExpression() &&
+        path.node.right.type.indexOf('Function') !== -1) {
+      const left  = path.node.left;
+      const right = path.node.right;
+      const name  = code.slice(left.start!, left.end!);
+      const start = left.start;
+      const end   = right.end;
+      console.log('name:', name, '  start:', start, '  end:', end);
+    }
+  },
+});
 
 const LOAD_MARKS_ON_START = true;
 // const LOAD_MARKS_ON_START = false;
@@ -34,10 +73,10 @@ export function waitForInit() {
   });
 }
 
-export async function initMarks() {
+export function initMarks() {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor)
-    await updateMarksInFile(activeEditor.document);
+    updateMarksInFile(activeEditor.document);
 }
 
 
@@ -58,11 +97,11 @@ export class Mark {
   endKey?:        string;
   fsPath?:        string;
   enabled:        boolean;
-  constructor(node: ts.Node,
-              document: vscode.TextDocument, kindIn?: string) {
+  constructor(node: any,
+              document: vscode.TextDocument, kindIn: string) {
     this.document  = document;
     this.name      = (node as any).name.text;
-    this.kind      = kindIn ?? ts.SyntaxKind[node.kind];
+    this.kind      = kindIn;
     this.start     = node.getStart();
     this.nameStart = (node as any).name.getStart();
     this.nameEnd   = (node as any).name.getEnd();
@@ -141,217 +180,23 @@ function setMarkInMaps(mark: Mark) {
   markMap.set(mark.id!, mark);
 }
 
-// function stringifyCircular(obj:any): string {
-//     const seen = new WeakSet();
-//     return JSON.stringify(obj, (key, value) => {
-//         if (typeof value === "object" && value !== null) {
-//             if (seen.has(value)) {
-//                 return "[Circular]";
-//             }
-//             seen.add(value);
-//         }
-//         return value;
-//     }, 2); 
-// }
-
 // does not filter
-export async function updateMarksInFile(document: vscode.TextDocument) {
+export function updateMarksInFile(document: vscode.TextDocument) {
   start('updateMarksInFile');
-  const sourceFile = ts.createSourceFile(
-                              document.fileName, document.getText(), 
-                              ts.ScriptTarget.Latest, true);
-  const marks: Mark[] = [];
-  function traverse(node: ts.Node) {
-    // if(node.pos >= 114 && node.pos <= 229) {
-    //   const NODE:any = (node as any);
-    //   const obj = {
-    //     nameEscText: NODE?.name?.escapedText, 
-    //     exprEscText: NODE?.expression?.escapedText
-    //   };
-    //   if(ts.SyntaxKind[NODE.kind] === 'ArrowFunction' ) {
-    //     log('ArrowFunction Params', NODE.parameters);
-    //   }
-    //   log('traverse', ts.SyntaxKind[node.kind], node.getStart(), obj);
-    // }
-    /*
-    ts.isArrayBindingElement(node)
-ts.isArrayBindingPattern(node)
-ts.isArrayLiteralExpression(node)
-ts.isArrowFunction(node)
-ts.isAsExpression(node)
-ts.isAssertionExpression(node)
-ts.isAwaitExpression(node)
-ts.isBinaryExpression(node)
-ts.isBindingElement(node)
-ts.isBindingName(node)
-ts.isBlock(node)
-ts.isBreakOrContinueStatement(node)
-ts.isBreakStatement(node)
-ts.isCallExpression(node)
-ts.isCallSignatureDeclaration(node)
-ts.isCaseBlock(node)
-ts.isCaseClause(node)
-ts.isCatchClause(node)
-ts.isClassDeclaration(node)
-ts.isClassElement(node)
-ts.isClassExpression(node)
-ts.isClassLike(node)
-ts.isCommaListExpression(node)
-ts.isComputedPropertyName(node)
-ts.isConditionalExpression(node)
-ts.isConstructorDeclaration(node)
-ts.isConstructorTypeNode(node)
-ts.isContinueStatement(node)
-ts.isDebuggerStatement(node)
-ts.isDecorator(node)
-ts.isDefaultClause(node)
-ts.isDeleteExpression(node)
-ts.isDoStatement(node)
-ts.isElementAccessExpression(node)
-ts.isEmptyStatement(node)
-ts.isEndOfFileToken(node)
-ts.isEnumDeclaration(node)
-ts.isEnumMember(node)
-ts.isExportAssignment(node)
-ts.isExportDeclaration(node)
-ts.isExportSpecifier(node)
-ts.isExpression(node)
-ts.isExpressionStatement(node)
-ts.isExpressionWithTypeArguments(node)
-ts.isExternalModuleReference(node)
-ts.isForInStatement(node)
-ts.isForOfStatement(node)
-ts.isForStatement(node)
-ts.isFunctionDeclaration(node)
-ts.isFunctionExpression(node)
-ts.isFunctionLike(node)
-ts.isFunctionTypeNode(node)
-ts.isGetAccessorDeclaration(node)
-ts.isHeritageClause(node)
-ts.isIdentifier(node)
-ts.isIfStatement(node)
-ts.isImportClause(node)
-ts.isImportDeclaration(node)
-ts.isImportEqualsDeclaration(node)
-ts.isImportSpecifier(node)
-ts.isIndexedAccessTypeNode(node)
-ts.isIndexSignatureDeclaration(node)
-ts.isInferTypeNode(node)
-ts.isInterfaceDeclaration(node)
-ts.isIntersectionTypeNode(node)
-ts.isJsxAttribute(node)
-ts.isJsxAttributes(node)
-ts.isJsxClosingElement(node)
-ts.isJsxClosingFragment(node)
-ts.isJsxElement(node)
-ts.isJsxExpression(node)
-ts.isJsxFragment(node)
-ts.isJsxOpeningElement(node)
-ts.isJsxOpeningFragment(node)
-ts.isJsxSelfClosingElement(node)
-ts.isJsxSpreadAttribute(node)
-ts.isJsxText(node)
-ts.isLabeledStatement(node)
-ts.isLiteralExpression(node)
-ts.isMappedTypeNode(node)
-ts.isMetaProperty(node)
-ts.isMethodDeclaration(node)
-ts.isMethodSignature(node)
-ts.isModuleBlock(node)
-ts.isModuleDeclaration(node)
-ts.isNamedExports(node)
-ts.isNamedImports(node)
-ts.isNamespaceExport(node)
-ts.isNamespaceExportDeclaration(node)
-ts.isNamespaceImport(node)
-ts.isNewExpression(node)
-ts.isNoSubstitutionTemplateLiteral(node)
-ts.isNonNullExpression(node)
-ts.isNumericLiteral(node)
-ts.isObjectBindingPattern(node)
-ts.isObjectLiteralExpression(node)
-ts.isOmittedExpression(node)
-ts.isOptionalTypeNode(node)
-ts.isParameter(node)
-ts.isParenthesizedExpression(node)
-ts.isPostfixUnaryExpression(node)
-ts.isPrefixUnaryExpression(node)
-ts.isPropertyAccessExpression(node)
-ts.isPropertyAssignment(node)
-ts.isPropertyDeclaration(node)
-ts.isPropertySignature(node)
-ts.isQualifiedName(node)
-ts.isRegularExpressionLiteral(node)
-ts.isReturnStatement(node)
-ts.isSetAccessorDeclaration(node)
-ts.isShorthandPropertyAssignment(node)
-ts.isSourceFile(node)
-ts.isSpreadAssignment(node)
-ts.isSpreadElement(node)
-ts.isStringLiteral(node)
-ts.isSuperExpression(node)
-ts.isSwitchStatement(node)
-ts.isSyntaxList(node)
-ts.isTaggedTemplateExpression(node)
-ts.isTemplateExpression(node)
-ts.isTemplateHead(node)
-ts.isTemplateLiteral(node)
-ts.isTemplateMiddle(node)
-ts.isTemplateSpan(node)
-ts.isTemplateTail(node)
-ts.isThisTypeNode(node)
-ts.isThisExpression(node)
-ts.isThrowStatement(node)
-ts.isTryStatement(node)
-ts.isTupleTypeNode(node)
-ts.isTypeAliasDeclaration(node)
-ts.isTypeAssertion(node)
-ts.isTypeLiteralNode(node)
-ts.isTypeNode(node)
-ts.isTypeOfExpression(node)
-ts.isTypeOperatorNode(node)
-ts.isTypeParameterDeclaration(node)
-ts.isTypePredicateNode(node)
-ts.isTypeQueryNode(node)
-ts.isTypeReferenceNode(node)
-ts.isUnionTypeNode(node)
-ts.isVariableDeclaration(node)
-ts.isVariableDeclarationList(node)
-ts.isVariableStatement(node)
-ts.isVoidExpression(node)
-ts.isWhileStatement(node)
-ts.isWithStatement(node)
-ts.isYieldExpression(node)
-*/
-    if((ts.isFunctionDeclaration(node) ||
-        ts.isClassDeclaration(node)    ||
-        ts.isMethodDeclaration(node)) && node.name)
-      marks.push(new Mark(node, document));
-    else if (ts.isVariableDeclaration(node) && node.initializer) {
-      if (ts.isFunctionExpression(node.initializer))
-        marks.push(new Mark(node, document, 'FunctionExpression'));
-      else if (ts.isArrowFunction(node.initializer))
-        marks.push(new Mark(node, document, 'ArrowFunction'));
-    }
-    ts.forEachChild(node, traverse);
-  }
-  traverse(sourceFile);
-  for(const mark of marks) {
-    const parents: Mark[] = [];
-    for(const parentMark of marks) {
-      if(parentMark === mark) continue;
-      if(parentMark.start > mark.start) break;
-      if(parentMark.end  >= mark.end) parents.unshift(parentMark);
-    }
-    mark.setParents(parents);
-    let id = mark.name  + "\x00" + mark.kind   + "\x00";
-    for(let parent of parents) 
-      id += parent.name + "\x00" + parent.kind + "\x00";
-    id += mark.getFsPath();
-    mark.setId(id);
-    setMarkInMaps(mark);
-  }
-  await saveMarkStorage();
+
+  const ast = parse(document.getText(), { 
+    errorRecovery: true, createImportExpressions: true,
+    plugins: ['typescript'], sourceType: "module", tokens: false,
+  });
+
+  traverse(ast, {
+    enter(path:any) {
+      if (path.isIdentifier({ name: "n" })) {
+        path.node.name = "x";
+      }
+    },
+  });
+
   end('updateMarksInFile', false);
 }
 
