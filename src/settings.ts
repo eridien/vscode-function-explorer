@@ -15,7 +15,7 @@ export let settings: FunctionMarksSettings = {
 
 export function activate() {
   settings = getFunctionMarksSettings();
-  log('Settings activated:', settings);
+  // log('Settings activated:', settings);
 }
 
 function mm(val: number, max: number, min: number = 0): number {

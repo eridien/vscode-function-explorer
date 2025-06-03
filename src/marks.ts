@@ -134,7 +134,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
       sourceType: "module", tokens: false,
     });
   } catch (err) {
-    log('errMsg', err, 'Function Marks: Parse error');
+    log('err', 'parse error', (err as any).message);
     return;
   }
   const marks: Mark[] = [];
@@ -229,7 +229,7 @@ export function getMarks(p: any | {} = {}) : Mark[] {
 }
 
 // filters
-export function getSortedMarks(p: any | {} = {}) : Mark[] {
+export function getSortedMarks(p: any = {}) : Mark[] {
   const {fsPath, reverse = false} = p;
   const marks = getMarks(p);
   if(marks.length === 0) return [];
