@@ -21,15 +21,15 @@ export function activate() {
 //   return Math.max(min, Math.min(max, val));
 // }
 
-let includeFiles: string[] = ["**/*.js", "**/*.ts"];
-let excludeFiles: string[] = ["!node_modules/**"];
+let filesToInclude: string[] = ["**/*.js", "**/*.ts"];
+let filesToExclude: string[] = ["node_modules/**"];
 
 function getFunctionMarksSettings(): FunctionMarksSettings {
   const config = vscode.workspace.getConfiguration('function-marks');
-  includeFiles = config.get<string>(
-      "includeFiles", "**/*.js, **/*.ts").split(",").map(p => p.trim());
-  excludeFiles = config.get<string>(
-      "excludeFiles", "!node_modules/**").split(",").map(p => p.trim());
+  filesToInclude = config.get<string>(
+      "filesToInclude", "**/*.js, **/*.ts").split(",").map(p => p.trim());
+  filesToExclude = config.get<string>(
+      "filesToExclude", "node_modules/**").split(",").map(p => p.trim());
   return {
     fileWrap:            config.get('fileWrap',            true),
     includeSubFunctions: config.get('includeSubFunctions', false),
@@ -42,8 +42,8 @@ export function refreshSettings() {
 
 export function includeDocument(fsPath: string): boolean {
   const filePath = vscode.workspace.asRelativePath(fsPath);
-  const isInc    = includeFiles.some(pattern => minimatch(filePath, pattern));
-  const isExc    = excludeFiles.some(pattern => minimatch(filePath, pattern));
+  const isInc    = filesToInclude.some(pattern => minimatch(filePath, pattern));
+  const isExc    = filesToExclude.some(pattern => minimatch(filePath, pattern));
   return isInc && !isExc;
 }
 
