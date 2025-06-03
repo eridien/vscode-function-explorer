@@ -1,8 +1,9 @@
 // @@ts-nocheck
 
 import vscode      from 'vscode';
-import { parse }   from "@babel/parser";
-import traverse    from "@babel/traverse";
+import * as acorn  from "acorn-loose";
+import * as walk   from 'acorn-walk';
+
 import {settings}  from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
@@ -59,9 +60,9 @@ export class Mark {
   fsPath?:        string;
   enabled:        boolean;
   constructor(p:any) {
-    const {document, name, type, start, end} = p;
+    const {document, nodeName, type, start, end} = p;
     this.document  = document;
-    this.name      = name;
+    this.name      = nodeName;
     this.type      = type;
     this.start     = start;
     this.end       = end;
@@ -129,71 +130,63 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
   if (!docText || docText.length === 0) return;
   let ast: any;
   try{
-    ast = parse(docText, { 
-      errorRecovery: true, plugins: ['typescript'], 
-      sourceType: "module", tokens: false,
-    });
+      ast = acorn.parse(docText, { ecmaVersion: 2020 });
   } catch (err) {
     log('err', 'parse error', (err as any).message);
     return;
   }
   const marks: Mark[] = [];
-  traverse(ast, {
-    enter(path) {
-      if (path.isVariableDeclarator() &&
-          path.node.init && 
-          path.node.init.type.indexOf('Function') !== -1) {
-        const start = path.node.start;
-        const idEnd = path.node.id.end;
-        const end   = path.node.end;
-        const name  = docText.slice(start!, idEnd!);
-        const type  = path.node.init.type;
-        marks.push(new Mark({document, name, type, start, end}));
-        return;
+  walk.ancestor(ast, {
+    VariableDeclarator(node) {
+      if(node.init && (
+         node.init.type === 'ArrowFunctionExpression' ||
+         node.init.type === 'FunctionExpression')) {
+        const start = node.start;
+        const idEnd = node.id.end;
+        const end   = node.end;
+        const nodeName = docText.slice(start!, idEnd!);
+        const type  = node.init.type;
+        marks.push(new Mark({document, nodeName, type, start, end}));
       }
-      if (path.isFunctionDeclaration()) {
-        const name  = (path.node.id as any).name;
-        const type  = 'FunctionDeclaration';
-        const start = path.node.start;
-        const end   = path.node.end;
-        marks.push(new Mark({document, name, type, start, end}));
-        return;
-      }
-      if (path.isAssignmentExpression() &&
-          path.node.right.type.indexOf('Function') !== -1) {
-        const left  = path.node.left;
-        const right = path.node.right;
-        const name  = docText.slice(left.start!, left.end!);
-        const type  = right.type;
-        const start = left.start;
-        const end   = right.end;
-        marks.push(new Mark({document, name, type, start, end}));
-        return;
-      }
-      if (path.isClassMethod()) {
-        let type:string;
-        let parentPath:any = path;
-        while((parentPath = parentPath.parentPath) &&
-              !parentPath.isClassDeclaration());
-        if (!parentPath || !parentPath.isClassDeclaration()) {
-          log('err', 'method without class declaration');
-          return;
-        }
-        let name = parentPath.node.id.name + '.';
-        if(path.node.kind == 'constructor') {
-          name += 'constructor';
-          type  = 'Constructor';
-        }
-        else {
-          name += (path.node.key as any).name;
-          type  = 'Method';
-        }
-        const start = path.node.start;
-        const end   = path.node.end;
-        marks.push(new Mark({document, name, type, start, end}));
-        return;
-      }
+      return;
     },
+    FunctionDeclaration(node) {
+      const start = node.id!.start;
+      const idEnd = node.id!.end;
+      const end   = node.end;
+      const nodeName = docText.slice(start!, idEnd!);
+      const type  = 'FunctionDeclaration';
+      marks.push(new Mark({document, nodeName, type, start, end}));
+      return;
+    },
+    AssignmentExpression(node) {
+      const start = node.start;
+      const end   = node.end;
+      const left  = node.left;
+      const right = node.right;
+      const nodeName = docText.slice(left.start!, left.end!);
+      const type  = right.type;
+      marks.push(new Mark({document, nodeName, type, start, end}));
+      return;
+    },
+    MethodDefinition(node, _state, ancestors) {
+      let type:string;
+      const classDecNode = ancestors.find(
+                            cn => cn.type === 'ClassDeclaration');
+      let nodeName = (classDecNode as any).id.name + '.';
+      if(node.kind == 'constructor') {
+        nodeName += 'constructor';
+        type  = 'Constructor';
+      }
+      else {
+        nodeName += (node.key as any).name;
+        type  = 'Method';
+      }
+      const start = node.start;
+      const end   = node.end;
+      marks.push(new Mark({document, nodeName, type, start, end}));
+      return;
+    }
   });
   for(const mark of marks) {
     const parents: Mark[] = [];
