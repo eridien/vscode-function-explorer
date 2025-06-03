@@ -7,20 +7,8 @@ import {settings}  from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 
-const code = `
-class cname {
-  constructor() {}
-  mname() {}
-}
-function fname(){};
-fexpr   = function(){};
-fexpr.b = function(){};
-arr   = () => {};
-arr.b = () => {};
-`;
-
-const LOAD_MARKS_ON_START = true;
-// const LOAD_MARKS_ON_START = false;
+// const LOAD_MARKS_ON_START = true;
+const LOAD_MARKS_ON_START = false;
 
 const VERIFY_MARKS_IN_DUMP = true;
 // const VERIFY_MARKS_IN_DUMP = false;
@@ -47,12 +35,11 @@ export function waitForInit() {
   });
 }
 
-export function initMarks() {
+export async function initMarks() {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor)
-    updateMarksInFile(activeEditor.document);
+    await updateMarksInFile(activeEditor.document);
 }
-
 
 export class Mark {
   document:       vscode.TextDocument;
@@ -76,14 +63,6 @@ export class Mark {
     this.start     = start;
     this.end       = end;
     this.enabled   = false;
-  }
-  setParents(parents: Mark[]) { 
-    this.parents = parents; 
-    setMarkInMaps(this);
-  }
-  setId(id: string) {
-    this.id = id;           
-    setMarkInMaps(this);
   }
   setEnabled(enabled: boolean) { 
     this.enabled = enabled; 
@@ -141,15 +120,27 @@ function setMarkInMaps(mark: Mark) {
 let lastMarkName: Mark | null = null;
 
 // does not filter
-export function updateMarksInFile(document: vscode.TextDocument) {
+export async function updateMarksInFile(document: vscode.TextDocument) {
   start('updateMarksInFile');
-  const ast = parse(document.getText(), { 
+  const docText = document.getText();
+  const ast = parse(docText, { 
     errorRecovery: true, plugins: ['typescript'], 
     sourceType: "module", tokens: false,
   });
   const marks: Mark[] = [];
   traverse(ast, {
     enter(path) {
+      if (path.isVariableDeclarator() &&
+          path.node.init && 
+          path.node.init.type.indexOf('Function') !== -1) {
+        const start = path.node.start;
+        const idEnd = path.node.id.end;
+        const end   = path.node.end;
+        const name  = docText.slice(start!, idEnd!);
+        const type  = path.node.init!.type ?? 'FunctionExpression';
+        marks.push(new Mark({document, name, type, start, end}));
+        return;
+      }
       if (path.isFunctionDeclaration()) {
         const name  = (path.node.id as any).name;
         const type  = 'FunctionDeclaration';
@@ -162,7 +153,7 @@ export function updateMarksInFile(document: vscode.TextDocument) {
           path.node.right.type.indexOf('Function') !== -1) {
         const left  = path.node.left;
         const right = path.node.right;
-        const name  = code.slice(left.start!, left.end!);
+        const name  = docText.slice(left.start!, left.end!);
         const type  = right.type;
         const start = left.start;
         const end   = right.end;
@@ -194,6 +185,22 @@ export function updateMarksInFile(document: vscode.TextDocument) {
       }
     },
   });
+  for(const mark of marks) {
+    const parents: Mark[] = [];
+    for(const parentMark of marks) {
+      if(parentMark === mark) continue;
+      if(parentMark.start > mark.start) break;
+      if(parentMark.end  >= mark.end) parents.unshift(parentMark);
+    }
+    mark.parents = parents;
+    let id = mark.name  + "\x00" + mark.type   + "\x00";
+    for(let parent of parents) 
+      id += parent.name + "\x00" + parent.type + "\x00";
+    id += mark.getFsPath();
+    mark.id = id;
+    setMarkInMaps(mark);
+  }
+  await saveMarkStorage();
   end('updateMarksInFile', false);
 }
 
