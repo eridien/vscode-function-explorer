@@ -79,15 +79,15 @@ export class Mark {
   getStartLine() {
     if (this.startLine === undefined) 
         this.startLine = this.document.positionAt(this.start).line;
-    return this.startLine;
+    return this.startLine+1;
   }
   getEndLine() {
     if (this.endLine === undefined) {
       const endPos = this.document.positionAt(this.end);
       this.endLine = endPos.line;
-      if (endPos.character > 0) this.endLine++;
+      if (endPos.character > 0) this.endLine+1;
     }
-    return this.endLine;
+    return this.endLine+1;
   }
   getStartKey() {
     if (this.startKey === undefined) 
