@@ -18,57 +18,6 @@ fexpr.b = function(){};
 arr   = () => {};
 arr.b = () => {};
 `;
-const ast = parse(code, { errorRecovery: true, 
-  createImportExpressions: true,
-  plugins: ['typescript'], sourceType: "module",
-  tokens: false,
-});
-traverse(ast, {
-  enter(path) {
-    if (path.isFunctionDeclaration()) {
-      const name  = (path.node.id as any).name;
-      const type  = 'FunctionDeclaration';
-      const start = path.node.start;
-      const end   = path.node.end;
-      console.log('name:', name,'  type:', type, '  start:', start, '  end:', end);
-      return;
-    }
-    if (path.isAssignmentExpression() &&
-        path.node.right.type.indexOf('Function') !== -1) {
-      const left  = path.node.left;
-      const right = path.node.right;
-      const name  = code.slice(left.start!, left.end!);
-      const type  = 'FunctionExpression';
-      const start = left.start;
-      const end   = right.end;
-      console.log('name:', name,'  type:', type, '  start:', start, '  end:', end);
-      return;
-    }
-    if (path.isClassMethod()) {
-      let name:string;
-      let type:string;
-      if(path.node.kind == 'constructor') {
-        let parentPath:any = path;
-        while((parentPath = parentPath.parentPath) &&
-              !parentPath.isClassDeclaration());
-        if (!parentPath || !parentPath.isClassDeclaration()) {
-          log('err', 'constructor without class declaration');
-          return;
-        }
-        name = parentPath.node.id.name;
-        type = 'Constructor';
-      }
-      else {
-       name = (path.node.key as any).name;
-       type = 'Method';
-      }
-      const start = path.node.start;
-      const end   = path.node.end;
-      console.log('name:', name,'  type:', type, '  start:', start, '  end:', end);
-      return;
-    }
-  },
-});
 
 const LOAD_MARKS_ON_START = true;
 // const LOAD_MARKS_ON_START = false;
@@ -108,31 +57,24 @@ export function initMarks() {
 export class Mark {
   document:       vscode.TextDocument;
   name:           string;
-  kind:           string;
+  type:           string;
   start:          number;
-  nameStart:      number;
-  nameEnd:        number;
   end:            number;
   parents?:       Mark[];
   id?:            string;
   startLine?:     number;
-  nameStartLine?: number;
   endLine?:       number;
   startKey?:      string;
   endKey?:        string;
   fsPath?:        string;
   enabled:        boolean;
-  constructor(node: any,
-              document: vscode.TextDocument, kindIn: string) {
+  constructor(p:any) {
+    const {document, name, type, start, end} = p;
     this.document  = document;
-    this.name      = (node as any).name.text;
-    this.kind      = kindIn;
-    this.start     = node.getStart();
-    this.nameStart = (node as any).name.getStart();
-    this.nameEnd   = (node as any).name.getEnd();
-    this.end       = node.getEnd();
-    this.parents   = [];
-    this.id        = '';
+    this.name      = name;
+    this.type      = type;
+    this.start     = start;
+    this.end       = end;
     this.enabled   = false;
   }
   setParents(parents: Mark[]) { 
@@ -141,10 +83,6 @@ export class Mark {
   }
   setId(id: string) {
     this.id = id;           
-    setMarkInMaps(this);
-  }
-  setKind(kind: string) { 
-   this.kind = kind;       
     setMarkInMaps(this);
   }
   setEnabled(enabled: boolean) { 
@@ -160,11 +98,6 @@ export class Mark {
     if (this.startLine === undefined) 
         this.startLine = this.document.positionAt(this.start).line;
     return this.startLine;
-  }
-  getNameStartLine() {
-    if (this.nameStartLine === undefined) 
-        this.nameStartLine = this.document.positionAt(this.nameStart).line;
-    return this.nameStartLine;
   }
   getEndLine() {
     if (this.endLine === undefined) {
@@ -205,23 +138,62 @@ function setMarkInMaps(mark: Mark) {
   markMap.set(mark.id!, mark);
 }
 
+let lastMarkName: Mark | null = null;
+
 // does not filter
 export function updateMarksInFile(document: vscode.TextDocument) {
   start('updateMarksInFile');
-
   const ast = parse(document.getText(), { 
-    errorRecovery: true, createImportExpressions: true,
-    plugins: ['typescript'], sourceType: "module", tokens: false,
+    errorRecovery: true, plugins: ['typescript'], 
+    sourceType: "module", tokens: false,
   });
-
+  const marks: Mark[] = [];
   traverse(ast, {
-    enter(path:any) {
-      if (path.isIdentifier({ name: "n" })) {
-        path.node.name = "x";
+    enter(path) {
+      if (path.isFunctionDeclaration()) {
+        const name  = (path.node.id as any).name;
+        const type  = 'FunctionDeclaration';
+        const start = path.node.start;
+        const end   = path.node.end;
+        marks.push(new Mark({document, name, type, start, end}));
+        return;
+      }
+      if (path.isAssignmentExpression() &&
+          path.node.right.type.indexOf('Function') !== -1) {
+        const left  = path.node.left;
+        const right = path.node.right;
+        const name  = code.slice(left.start!, left.end!);
+        const type  = right.type;
+        const start = left.start;
+        const end   = right.end;
+        marks.push(new Mark({document, name, type, start, end}));
+        return;
+      }
+      if (path.isClassMethod()) {
+        let type:string;
+        let parentPath:any = path;
+        while((parentPath = parentPath.parentPath) &&
+              !parentPath.isClassDeclaration());
+        if (!parentPath || !parentPath.isClassDeclaration()) {
+          log('err', 'method without class declaration');
+          return;
+        }
+        let name = parentPath.node.id.name + '.';
+        if(path.node.kind == 'constructor') {
+          name += 'constructor';
+          type  = 'Constructor';
+        }
+        else {
+          name += (path.node.key as any).name;
+          type  = 'Method';
+        }
+        const start = path.node.start;
+        const end   = path.node.end;
+        marks.push(new Mark({document, name, type, start, end}));
+        return;
       }
     },
   });
-
   end('updateMarksInFile', false);
 }
 
@@ -353,22 +325,22 @@ async function deleteAllMarksFromFile(fsPath: string, update = true) {
 
 function verifyMark(mark: Mark): boolean {
   const document      = mark.document;
-  const nameStartLine = mark.getNameStartLine();
+  const startLine = mark.getStartLine();
   const numLines      = document.lineCount;
-  if(nameStartLine < 0 || nameStartLine >= numLines) {
+  if(startLine < 0 || startLine >= numLines) {
     log('err', 'verifyMark, line number out of range',
-                mark.getFsPath(), nameStartLine);
+                mark.getFsPath(), startLine);
     return false;
   }
-  const lineText = document.lineAt(nameStartLine).text;
+  const lineText = document.lineAt(startLine).text;
   if(!lineText) {
     log('err', 'verifyMark, line text is empty',
-                mark.getFsPath(), nameStartLine);
+                mark.getFsPath(), startLine);
     return false;
   }
   if(!lineText.includes(mark.name)) {
     log('err', 'verifyMark, line text does not include mark name',
-                mark.getFsPath(), nameStartLine, mark.name);
+                mark.getFsPath(), startLine, mark.name);
     return false;
   }
   return true;
