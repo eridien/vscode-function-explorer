@@ -37,7 +37,10 @@ export function waitForInit() {
 
 export async function initMarks() {
   const activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor)
+  if (activeEditor &&
+      activeEditor.document.uri.scheme === 'file' &&
+     (activeEditor.document.languageId === 'javascript' || 
+      activeEditor.document.languageId === 'typescript'))
     await updateMarksInFile(activeEditor.document);
 }
 
@@ -123,10 +126,17 @@ let lastMarkName: Mark | null = null;
 export async function updateMarksInFile(document: vscode.TextDocument) {
   start('updateMarksInFile');
   const docText = document.getText();
-  const ast = parse(docText, { 
-    errorRecovery: true, plugins: ['typescript'], 
-    sourceType: "module", tokens: false,
-  });
+  if (!docText || docText.length === 0) return;
+  let ast: any;
+  try{
+    ast = parse(docText, { 
+      errorRecovery: true, plugins: ['typescript'], 
+      sourceType: "module", tokens: false,
+    });
+  } catch (err) {
+    log('errMsg', err, 'Function Marks: Parse error');
+    return;
+  }
   const marks: Mark[] = [];
   traverse(ast, {
     enter(path) {
@@ -137,7 +147,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
         const idEnd = path.node.id.end;
         const end   = path.node.end;
         const name  = docText.slice(start!, idEnd!);
-        const type  = path.node.init!.type ?? 'FunctionExpression';
+        const type  = path.node.init.type;
         marks.push(new Mark({document, name, type, start, end}));
         return;
       }

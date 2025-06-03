@@ -57,12 +57,12 @@ export function next() {
   log('next');
 }
 
-export function editorChg(editor: vscode.TextEditor) {
+export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
      (document.languageId !== 'javascript' && 
       document.languageId !== 'typescript'))
     return;
-  mrks.updateMarksInFile(document);
+  await mrks.updateMarksInFile(document);
   gutt.updateGutter(editor);
 }
