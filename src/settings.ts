@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {minimatch} from 'minimatch';
-import glob        from "glob";
+import {glob}      from "glob";
 import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 
@@ -14,27 +14,19 @@ export let settings: FunctionMarksSettings = {
   includeSubFunctions: false,
 };
 
-export function activate() {
-  settings = getFunctionMarksSettings();
-}
-
 let filesToInclude: string[] = ["**/*.js", "**/*.ts"];
 let filesToExclude: string[] = ["node_modules/**"];
 
-function getFunctionMarksSettings(): FunctionMarksSettings {
+export function loadSettings() {
   const config = vscode.workspace.getConfiguration('function-marks');
+  settings = {
+    fileWrap:            config.get('fileWrap',            true),
+    includeSubFunctions: config.get('includeSubFunctions', false),
+  };
   filesToInclude = config.get<string>("filesToInclude", 
                        "**/*.js, **/*.ts").split(",").map(p => p.trim());
   filesToExclude = config.get<string>("filesToExclude", 
                         "node_modules/**").split(",").map(p => p.trim());
-  return {
-    fileWrap:            config.get('fileWrap',            true),
-    includeSubFunctions: config.get('includeSubFunctions', false),
-  };
-}
-
-export function refreshSettings() {
-  settings = getFunctionMarksSettings();
 }
 
 export function includeFile(fsPath: string): boolean {
@@ -44,14 +36,14 @@ export function includeFile(fsPath: string): boolean {
   return isInc && !isExc;
 }
 
-export function getAllFiles(): string[] {
+export async function getAllFiles(): Promise<string[]> {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders) return [];
   const allMatches: string[] = [];
   for (const folder of workspaceFolders) {
     const folderPath = folder.uri.fsPath;
     for (const pattern of filesToInclude) {
-      const matches = glob.sync(pattern, {
+      const matches = await glob(pattern, {
         cwd: folderPath,
         ignore: filesToExclude,
         absolute: true

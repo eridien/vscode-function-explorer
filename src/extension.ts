@@ -4,7 +4,7 @@ import * as mrks   from './marks';
 import * as gutt   from './gutter';
 import * as sett   from './settings';
 export async function activate(context: vscode.ExtensionContext) {
-  sett.activate();
+  sett.loadSettings();
   await mrks.activate(context);
   await mrks.waitForInit();
   await mrks.initMarks();
@@ -28,15 +28,15 @@ export async function activate(context: vscode.ExtensionContext) {
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
 
-  const refreshSettings = vscode.workspace
+  const loadSettings = vscode.workspace
                     .onDidChangeConfiguration(event => {
       if (event.affectsConfiguration('function-marks'))
-        sett.refreshSettings();
+        sett.loadSettings();
     }
   );
 
 	context.subscriptions.push(
-    toggle, prev, next, refreshSettings, editorChg);
+    toggle, prev, next, loadSettings, editorChg);
 }
 
 export function deactivate() {}
