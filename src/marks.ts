@@ -126,12 +126,11 @@ let lastMarkName: Mark | null = null;
 // does not filter
 export async function updateMarksInFile(document: vscode.TextDocument) {
   start('updateMarksInFile');
-  const docMarks = marksByFsPath.get(document.uri.fsPath);
-  for (const mark of docMarks ? docMarks.values() : []) 
-    mark.missing = true;
-
   const docText = document.getText();
   if (!docText || docText.length === 0) return;
+  const docMarks = marksByFsPath.get(document.uri.fsPath);
+  for (const mark of (docMarks ? docMarks.values() : [])) 
+    mark.missing = true;
   let ast: any;
   try{
       ast = acorn.parse(docText, { ecmaVersion: 'latest' });
@@ -317,7 +316,7 @@ async function loadMarkStorage() {
 
 export async function revealMark(mark: Mark, selection = false) {
   const editor = await vscode.window.showTextDocument(
-                          mark.document, { preview: !selection });
+                          mark.document, { preview: true });
   const position = mark.document.positionAt(mark.start);
   const range = new vscode.Range(position.line, 0, position.line, 0);
   editor.revealRange( range, settings.scrollPosition );
