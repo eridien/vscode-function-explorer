@@ -28,15 +28,21 @@ export async function activate(context: vscode.ExtensionContext) {
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
 
-  const loadSettings = vscode.workspace
-                    .onDidChangeConfiguration(event => {
+  const loadSettings = vscode.workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration('function-marks'))
         sett.loadSettings();
     }
   );
 
+const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
+  if (vscode.window.activeTextEditor &&
+      event.document === vscode.window.activeTextEditor.document) {
+    await cmds.textChg(event);
+  }
+});
+
 	context.subscriptions.push(
-    toggle, prev, next, loadSettings, editorChg);
+    toggle, prev, next, loadSettings, textChg, editorChg);
 }
 
 export function deactivate() {}

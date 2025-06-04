@@ -11,6 +11,7 @@ export async function toggle() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
   const document = editor.document;
+  await mrks.updateMarksInFile(document);
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
   let enable:        boolean | null = null;
@@ -62,4 +63,12 @@ export async function editorChg(editor: vscode.TextEditor) {
      !sett.includeFile(document.uri.fsPath)) return;
   await mrks.updateMarksInFile(document);
   gutt.updateGutter(editor);
+}
+
+export async function textChg(event :vscode.TextDocumentChangeEvent) {
+  const document = event.document;
+  if (document.uri.scheme !== 'file' ||
+     !sett.includeFile(document.uri.fsPath)) return;
+  await mrks.updateMarksInFile(document);
+  gutt.updateGutter(vscode.window.activeTextEditor!);
 }

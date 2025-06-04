@@ -60,6 +60,7 @@ export class Mark {
   endKey?:        string;
   fsPath?:        string;
   enabled:        boolean;
+  missing:        boolean;
   constructor(p:any) {
     const {document, name, type, start, end} = p;
     this.document  = document;
@@ -68,6 +69,7 @@ export class Mark {
     this.start     = start;
     this.end       = end;
     this.enabled   = false;
+    this.missing   = false;
   }
   setEnabled(enabled: boolean) { 
     this.enabled = enabled; 
@@ -84,12 +86,9 @@ export class Mark {
     return this.startLine;
   }
   getEndLine() {
-    if (this.endLine === undefined) {
-      const endPos = this.document.positionAt(this.end);
-      this.endLine = endPos.line;
-      if (endPos.character > 0) this.endLine;
-    }
-    return this.endLine+1;
+    if (this.endLine === undefined)
+      this.endLine = this.document.positionAt(this.end).line;
+    return this.endLine;
   }
   getStartKey() {
     if (this.startKey === undefined) 
@@ -127,6 +126,10 @@ let lastMarkName: Mark | null = null;
 // does not filter
 export async function updateMarksInFile(document: vscode.TextDocument) {
   start('updateMarksInFile');
+  const docMarks = marksByFsPath.get(document.uri.fsPath);
+  for (const mark of docMarks ? docMarks.values() : []) 
+    mark.missing = true;
+
   const docText = document.getText();
   if (!docText || docText.length === 0) return;
   let ast: any;
@@ -235,7 +238,8 @@ export function getMarks(p: any | {} = {}) : Mark[] {
     marks = Array.from(fileMarkMap.values());
   }
   else marks = [...marksById.values()];
-  if(enabledOnly) marks = marks.filter(mark => mark.enabled);
+  if(enabledOnly) marks = marks.filter(
+                          mark => mark.enabled && !mark.missing);
   return marks;
 }
 
