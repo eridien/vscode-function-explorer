@@ -60,9 +60,9 @@ export class Mark {
   fsPath?:        string;
   enabled:        boolean;
   constructor(p:any) {
-    const {document, nodeName, type, start, end} = p;
+    const {document, name, type, start, end} = p;
     this.document  = document;
-    this.name      = nodeName;
+    this.name      = name;
     this.type      = type;
     this.start     = start;
     this.end       = end;
@@ -138,15 +138,14 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
   const marks: Mark[] = [];
   walk.ancestor(ast, {
     VariableDeclarator(node) {
-      if(node.init && (
-         node.init.type === 'ArrowFunctionExpression' ||
-         node.init.type === 'FunctionExpression')) {
-        const start = node.start;
-        const idEnd = node.id.end;
-        const end   = node.end;
-        const nodeName = docText.slice(start!, idEnd!);
-        const type  = node.init.type;
-        marks.push(new Mark({document, nodeName, type, start, end}));
+      const {id, start, end, init} = node;
+      if (init && (
+        init.type === 'ArrowFunctionExpression' ||
+        init.type === 'FunctionExpression')) {
+        const idEnd = id.end;
+        const name = docText.slice(start!, idEnd!);
+        const type  = init.type;
+        marks.push(new Mark({document, name, type, start, end}));
       }
       return;
     },
@@ -154,37 +153,35 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
       const start = node.id!.start;
       const idEnd = node.id!.end;
       const end   = node.end;
-      const nodeName = docText.slice(start!, idEnd!);
+      const name  = docText.slice(start!, idEnd!);
       const type  = 'FunctionDeclaration';
-      marks.push(new Mark({document, nodeName, type, start, end}));
+      marks.push(new Mark({document, name, type, start, end}));
       return;
     },
     AssignmentExpression(node) {
-      const start = node.start;
-      const end   = node.end;
-      const left  = node.left;
-      const right = node.right;
-      const nodeName = docText.slice(left.start!, left.end!);
+      const {start, end, left, right} = node;
+      const name = docText.slice(left.start!, left.end!);
       const type  = right.type;
-      marks.push(new Mark({document, nodeName, type, start, end}));
+      marks.push(new Mark({document, name, type, start, end}));
       return;
     },
     MethodDefinition(node, _state, ancestors) {
       let type:string;
       const classDecNode = ancestors.find(
                             cn => cn.type === 'ClassDeclaration');
-      let nodeName = (classDecNode as any).id.name + '.';
+      let className = (classDecNode as any).id.name ;
+      let name: string;
       if(node.kind == 'constructor') {
-        nodeName += 'constructor';
-        type  = 'Constructor';
+        name = className + '.constructor';
+        type = 'Constructor';
       }
       else {
-        nodeName += (node.key as any).name;
-        type  = 'Method';
+        name = (node.key as any).name + ' @ ' + className;
+        type = 'Method';
       }
       const start = node.start;
       const end   = node.end;
-      marks.push(new Mark({document, nodeName, type, start, end}));
+      marks.push(new Mark({document, name, type, start, end}));
       return;
     }
   });
