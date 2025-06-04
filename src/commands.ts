@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as mrks   from './marks';
 import * as gutt   from './gutter';
 import {Mark}      from './marks';
+import * as sett   from './settings';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
@@ -11,9 +12,7 @@ export async function toggle() {
   if (!editor) return;
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
-     (document.languageId !== 'javascript' && 
-      document.languageId !== 'typescript'))
-    return;
+     !sett.includeFile(document.uri.fsPath)) return;
   let enable:        boolean | null = null;
   let firstMark:     Mark    | null = null;
   let minMarkStart = Number.MAX_SAFE_INTEGER;
@@ -60,9 +59,7 @@ export function next() {
 export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
-     (document.languageId !== 'javascript' && 
-      document.languageId !== 'typescript'))
-    return;
+     !sett.includeFile(document.uri.fsPath)) return;
   await mrks.updateMarksInFile(document);
   gutt.updateGutter(editor);
 }

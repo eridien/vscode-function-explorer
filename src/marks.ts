@@ -1,10 +1,11 @@
 // @@ts-nocheck
+// https://github.com/acornjs/acorn/tree/master/acorn-loose/
+// https://github.com/acornjs/acorn/tree/master/acorn-walk/
 
 import vscode      from 'vscode';
 import * as acorn  from "acorn-loose";
 import * as walk   from 'acorn-walk';
-
-import {settings}  from './settings';
+import * as sett   from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 
@@ -38,10 +39,9 @@ export function waitForInit() {
 
 export async function initMarks() {
   const activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor &&
+  if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
-     (activeEditor.document.languageId === 'javascript' || 
-      activeEditor.document.languageId === 'typescript'))
+      sett.includeFile(activeEditor.document.uri.fsPath))
     await updateMarksInFile(activeEditor.document);
 }
 
@@ -215,6 +215,13 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
   }
   await saveMarkStorage();
   end('updateMarksInFile', false);
+}
+
+export async function updateMarksInAllFiles() {
+  for (const file of await sett.getAllFiles()) {
+    const document = await vscode.workspace.openTextDocument(file);
+    await updateMarksInFile(document);
+  }
 }
 
 // filters
