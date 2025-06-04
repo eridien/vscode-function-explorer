@@ -5,6 +5,7 @@
 import vscode      from 'vscode';
 import * as acorn  from "acorn-loose";
 import * as walk   from 'acorn-walk';
+import {settings}  from './settings';
 import * as sett   from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
@@ -142,7 +143,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
        type != 'ArrowFunctionExpression' &&
        type != 'Constructor'             &&
        type != 'Method') {
-      log('err', 'addMark, non-function type', type, ', with name', name);
+      // log('err', 'addMark, non-function type', type, ', with name', name);
       return;
     }
     marks.push(new Mark({document, name, type, start, end}));
