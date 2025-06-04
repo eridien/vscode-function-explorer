@@ -46,6 +46,10 @@ export async function initMarks() {
     await updateMarksInFile(activeEditor.document);
 }
 
+export function createSortKey(fsPath: string, lineNumber: number): string {
+  return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
+}
+
 export class Mark {
   document:       vscode.TextDocument;
   name:           string;
@@ -92,14 +96,14 @@ export class Mark {
   }
   getStartKey() {
     if (this.startKey === undefined) 
-        this.startKey = this.document.uri.fsPath + "\x00" + 
-                        this.getStartLine().toString().padStart(6, '0');
+        this.startKey = createSortKey(
+                        this.getFsPath(), this.getStartLine());
     return this.startKey;
   }
   getEndKey() {
     if (this.endKey === undefined) 
-        this.endKey = this.document.uri.fsPath + "\x00" + 
-                      this.getEndLine().toString().padStart(6, '0');
+        this.endKey = createSortKey(
+                        this.getFsPath(), this.getEndLine());
     return this.endKey;
   }
 }

@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as mrks   from './marks';
-import * as gutt   from './gutter';
 import {Mark}      from './marks';
 import * as sett   from './settings';
+import {settings}  from './settings';
+import * as gutt   from './gutter';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
@@ -48,31 +49,41 @@ export async function toggle() {
   await mrks.saveMarkStorage();
   if(firstMark) await mrks.revealMark(firstMark);
 }
-
+// getStartKey() 
 async function prevNext(next: boolean) {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath)) {
-    const fsPath = activeEditor.document.uri.fsPath;
-    const marks = mrks.getSortedMarks({enabledOnly:true, fsPath});
+    const fsPath   = activeEditor.document.uri.fsPath;
+    const fileWrap = settings.fileWrap;
+    const sortArgs = {enabledOnly: true};
+    if(!fileWrap) (sortArgs as any).fsPath = fsPath;
+    const marks = mrks.getSortedMarks(sortArgs);
     if(marks.length == 0) return;
-    const selLine = activeEditor.selection.active.line;
+    const selFsPath = (fileWrap ? fsPath : '');
+    const selKey = mrks.createSortKey(
+          selFsPath, activeEditor.selection.active.line);
     let mark: Mark;
     for(let i = (next? 0 : marks.length-1); 
            (next? (i < marks.length) : (i >= 0)); 
             i += (next? 1 : -1)) {
       mark = marks[i];
-      const markLine = mark.getStartLine();
+      const markFsPath = (fileWrap ? mark.getFsPath() : '');
+      if(next ? (markFsPath < selFsPath) 
+              : (markFsPath > selFsPath)) continue;
+      if(markFsPath !== selFsPath) break;
+      const markKey = mrks.createSortKey(
+            markFsPath, mark.getStartLine());
       if(next) {
-        if(selLine < markLine) break;
+        if(selKey < markKey) break;
         else if(i == marks.length-1) {
           mark = marks[0];
           break;
         }
       }
       else {
-        if(selLine > markLine) break;
+        if(selKey > markKey) break;
         else if(i == 0) {
           mark = marks[marks.length-1];
           break;
