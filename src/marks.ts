@@ -113,6 +113,7 @@ let marksByFsPath: Map<string, Map<string, Mark>> = new Map();
 
 // does not filter
 function setMarkInMaps(mark: Mark) {
+  mark.missing = false; 
   const fsPath  = mark.getFsPath();
   const oldMark = marksById.get(mark.id!);
   if(oldMark) mark.enabled = oldMark.enabled; 
