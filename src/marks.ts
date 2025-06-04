@@ -205,6 +205,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
       return;
     }
   });
+  marks.sort((a, b) => a.start - b.start);
   for(const mark of marks) {
     const parents: Mark[] = [];
     for(const parentMark of marks) {
