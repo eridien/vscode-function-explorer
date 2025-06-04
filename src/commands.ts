@@ -53,8 +53,27 @@ export function prev() {
   log('prev');
 }
 
-export function next() {
-  log('next');
+export async function next() {
+  const activeEditor = vscode.window.activeTextEditor;
+  if (activeEditor && 
+      activeEditor.document.uri.scheme === 'file' &&
+      sett.includeFile(activeEditor.document.uri.fsPath)) {
+    const fsPath = activeEditor.document.uri.fsPath;
+    const marks = mrks.getSortedMarks({enabledOnly:true, fsPath});
+    if(marks.length == 0) return;
+    const selLine = activeEditor.selection.active.line;
+    let mark: Mark;
+    for(let i = 0; i < marks.length; i++) {
+      mark = marks[i];
+      const markLine = mark.getStartLine();
+      if(selLine < markLine) break;
+      else if(i == marks.length-1) {
+        mark = marks[0];
+        break;
+      }
+    }
+    await mrks.revealMark(mark!, true);
+  }
 }
 
 export async function editorChg(editor: vscode.TextEditor) {
