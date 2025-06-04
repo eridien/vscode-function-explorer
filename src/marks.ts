@@ -80,13 +80,13 @@ export class Mark {
   getStartLine() {
     if (this.startLine === undefined) 
         this.startLine = this.document.positionAt(this.start).line;
-    return this.startLine+1;
+    return this.startLine;
   }
   getEndLine() {
     if (this.endLine === undefined) {
       const endPos = this.document.positionAt(this.end);
       this.endLine = endPos.line;
-      if (endPos.character > 0) this.endLine+1;
+      if (endPos.character > 0) this.endLine;
     }
     return this.endLine+1;
   }
@@ -130,45 +130,58 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
   if (!docText || docText.length === 0) return;
   let ast: any;
   try{
-      ast = acorn.parse(docText, { ecmaVersion: 2020 });
+      ast = acorn.parse(docText, { ecmaVersion: 'latest' });
   } catch (err) {
     log('err', 'parse error', (err as any).message);
     return;
   }
   const marks: Mark[] = [];
+  function addMark(name: string, type: string, start: number, end: number) {
+    if(type != 'FunctionDeclaration'     && 
+       type != 'FunctionExpression'      &&
+       type != 'ArrowFunctionExpression' &&
+       type != 'Constructor'             &&
+       type != 'Method') {
+      log('err', 'addMark, non-function type', type, ', with name', name);
+      return;
+    }
+    marks.push(new Mark({document, name, type, start, end}));
+  }
   walk.ancestor(ast, {
     VariableDeclarator(node) {
       const {id, start, end, init} = node;
-      if (init && (
-        init.type === 'ArrowFunctionExpression' ||
-        init.type === 'FunctionExpression')) {
-        const idEnd = id.end;
-        const name = docText.slice(start!, idEnd!);
+      if (init &&
+         (init.type === 'ArrowFunctionExpression' ||
+          init.type === 'FunctionExpression')) {
+        const name = docText.slice(start, id.end!);
         const type  = init.type;
-        marks.push(new Mark({document, name, type, start, end}));
+        addMark(name, type, start, end);
       }
       return;
     },
     FunctionDeclaration(node) {
       const start = node.id!.start;
-      const idEnd = node.id!.end;
       const end   = node.end;
-      const name  = docText.slice(start!, idEnd!);
+      const name  = docText.slice(start, node.id!.end!);
       const type  = 'FunctionDeclaration';
-      marks.push(new Mark({document, name, type, start, end}));
+      addMark(name, type, start, end);
       return;
     },
     AssignmentExpression(node) {
       const {start, end, left, right} = node;
       const name = docText.slice(left.start!, left.end!);
       const type  = right.type;
-      marks.push(new Mark({document, name, type, start, end}));
+      addMark(name, type, start, end);
       return;
     },
     MethodDefinition(node, _state, ancestors) {
       let type:string;
       const classDecNode = ancestors.find(
-                            cn => cn.type === 'ClassDeclaration');
+                    cn => cn.type === 'ClassDeclaration');
+      if (!classDecNode) {
+        log('err', 'Method without Class');
+        return;
+      }
       let className = (classDecNode as any).id.name ;
       let name: string;
       if(node.kind == 'constructor') {
@@ -181,7 +194,7 @@ export async function updateMarksInFile(document: vscode.TextDocument) {
       }
       const start = node.start;
       const end   = node.end;
-      marks.push(new Mark({document, name, type, start, end}));
+      addMark(name, type, start, end);
       return;
     }
   });
