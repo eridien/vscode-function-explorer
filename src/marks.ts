@@ -10,8 +10,8 @@ import * as sett   from './settings';
 import * as utils  from './utils.js';
 const {log, start, end} = utils.getLog('mrks');
 
-// const LOAD_MARKS_ON_START = true;
-const LOAD_MARKS_ON_START = false;
+const LOAD_MARKS_ON_START = true;
+// const LOAD_MARKS_ON_START = false;
 
 const VERIFY_MARKS_IN_DUMP = true;
 // const VERIFY_MARKS_IN_DUMP = false;

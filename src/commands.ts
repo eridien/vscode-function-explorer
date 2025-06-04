@@ -49,11 +49,7 @@ export async function toggle() {
   if(firstMark) await mrks.revealMark(firstMark);
 }
 
-export function prev() {
-  log('prev');
-}
-
-export async function next() {
+async function prevNext(next: boolean) {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
@@ -63,18 +59,33 @@ export async function next() {
     if(marks.length == 0) return;
     const selLine = activeEditor.selection.active.line;
     let mark: Mark;
-    for(let i = 0; i < marks.length; i++) {
+    for(let i = (next? 0 : marks.length-1); 
+           (next? (i < marks.length) : (i >= 0)); 
+            i += (next? 1 : -1)) {
       mark = marks[i];
       const markLine = mark.getStartLine();
-      if(selLine < markLine) break;
-      else if(i == marks.length-1) {
-        mark = marks[0];
-        break;
+      if(next) {
+        if(selLine < markLine) break;
+        else if(i == marks.length-1) {
+          mark = marks[0];
+          break;
+        }
+      }
+      else {
+        if(selLine > markLine) break;
+        else if(i == 0) {
+          mark = marks[marks.length-1];
+          break;
+        }
       }
     }
     await mrks.revealMark(mark!, true);
   }
 }
+
+export async function prev() { await prevNext(false); }
+
+export async function next() { await prevNext(true); }
 
 export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;
