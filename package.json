@@ -93,22 +93,41 @@
           "order": 1,
           "description": "Next and previous wrap around all files instead of just active file."
         },
+        "function-marks.scrollPosition": {
+          "type": "string",
+          "order": 2,
+          "default": "At Top",
+          "enum": [
+            "Minimal Scrolling",
+            "In Center",
+            "In Center If Needed",
+            "At Top"
+          ],
+          "enumDescriptions": [
+            "Reveal with minimal scrolling",
+            "Reveal in the center of the viewport",
+            "Center only if not visible",
+            "Reveal at the top of the viewport"
+          ],
+          "description": "Controls the scroll position when revealing a function mark."
+ 
+        },
         "function-marks.includeSubFunctions": {
           "type": "boolean",
           "default": false,
-          "order": 2,
+          "order": 3,
           "description": "Include nested functions when marking with a selection."
         },
         "function-marks.filesToInclude": {
           "type": "string",
           "default": "**/*.js, **/*.ts",
-          "order": 3,
+          "order": 4,
           "description": "Files to include in the Function Marks explorer. Separate glob patterns with commas."
         },
         "function-marks.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
-          "order": 4,
+          "order": 5,
           "description": "Files to exclude in the Function Marks explorer. Separate glob patterns with commas."
         }
       }

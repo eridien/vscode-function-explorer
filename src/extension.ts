@@ -16,13 +16,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const prev = vscode.commands.registerCommand(
-                   'vscode-function-marks.prev', () => {
-		cmds.prev();
+                   'vscode-function-marks.prev', async () => {
+		await cmds.prev();
 	});
 
 	const next = vscode.commands.registerCommand(
-                   'vscode-function-marks.next', () => {
-		cmds.next();
+                   'vscode-function-marks.next', async () => {
+		await cmds.next();
 	});
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(

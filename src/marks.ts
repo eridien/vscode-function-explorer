@@ -317,14 +317,12 @@ async function loadMarkStorage() {
 
 export async function revealMark(mark: Mark, selection = false) {
   const editor = await vscode.window.showTextDocument(
-                          mark.document, { preview: false });
+                          mark.document, { preview: !selection });
   const position = mark.document.positionAt(mark.start);
-  editor.revealRange(
-    new vscode.Range(position, position),
-        vscode.TextEditorRevealType.Default
-  );
+  const range = new vscode.Range(position.line, 0, position.line, 0);
+  editor.revealRange( range, settings.scrollPosition );
   if(selection) 
-    editor.selection = new vscode.Selection(position, position);
+    editor.selection = new vscode.Selection(range.start, range.end);
 }
 
 export async function saveMarkStorage() {
