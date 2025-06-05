@@ -51,6 +51,7 @@ export function createSortKey(fsPath: string, lineNumber: number): string {
 }
 
 export class Mark {
+  wsFolder?:      vscode.WorkspaceFolder;
   document:       vscode.TextDocument;
   name:           string;
   type:           string;
@@ -79,33 +80,18 @@ export class Mark {
     this.enabled = enabled; 
     setMarkInMaps(this);
   }
-  getFsPath() {
-    if (this.fsPath === undefined) 
-        this.fsPath = this.document.uri.fsPath;
-    return this.fsPath;
-  }
-  getStartLine() {
-    if (this.startLine === undefined) 
-        this.startLine = this.document.positionAt(this.start).line;
-    return this.startLine;
-  }
-  getEndLine() {
-    if (this.endLine === undefined)
-      this.endLine = this.document.positionAt(this.end).line;
-    return this.endLine;
-  }
-  getStartKey() {
-    if (this.startKey === undefined) 
-        this.startKey = createSortKey(
-                        this.getFsPath(), this.getStartLine());
-    return this.startKey;
-  }
-  getEndKey() {
-    if (this.endKey === undefined) 
-        this.endKey = createSortKey(
-                        this.getFsPath(), this.getEndLine());
-    return this.endKey;
-  }
+  getWsFolder()  { return this.wsFolder  ??= 
+             vscode.workspace.getWorkspaceFolder(this.document.uri);   }
+  getFsPath()    { return this.fsPath    ??= 
+                          this.document.uri.fsPath;                    }
+  getStartLine() { return this.startLine ??= 
+                          this.document.positionAt(this.start).line;   }
+  getEndLine()   { return this.endLine   ??= 
+                          this.document.positionAt(this.end).line;     }
+  getStartKey()  { return this.startKey  ??= createSortKey( 
+                          this.getFsPath(), this.getStartLine());      }
+  getEndKey()    { return this.endKey    ??= createSortKey(
+                          this.getFsPath(), this.getEndLine());        }
 }
 
 let marksById:     Map<string, Mark> = new Map();
@@ -406,4 +392,8 @@ function dumpMarks(caller: string, list: boolean, dump: boolean) {
     }
     log(caller, str);
   }
+}
+
+export function markItemClick(item:any) {
+  log('markItemClick', item);
 }

@@ -5,6 +5,17 @@ function timeInSecs(ms: number): string {
   return (ms / 1000).toFixed(2);
 }
 
+export async function fileExists(path:string) {
+  try {
+    await vscode.workspace.fs.stat(vscode.Uri.file(path));
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
+
+export function updateSide() {};
+
 const outputChannel = vscode.window.createOutputChannel('function-marks');
 
 export function getLog(module: string) : {
