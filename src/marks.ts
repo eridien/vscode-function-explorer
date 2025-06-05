@@ -229,7 +229,7 @@ export async function updateMarksInAllFiles() {
 
 // filters
 export function getMarks(p: any | {} = {}) : Mark[] {
-  const {enabledOnly = false, fsPath} = p;
+  const {enabledOnly = false, includeMissing = false, fsPath} = p;
   let marks;
   if(fsPath) {
     const fileMarkMap = marksByFsPath.get(fsPath);
@@ -237,8 +237,8 @@ export function getMarks(p: any | {} = {}) : Mark[] {
     marks = Array.from(fileMarkMap.values());
   }
   else marks = [...marksById.values()];
-  if(enabledOnly) marks = marks.filter(
-                          mark => mark.enabled && !mark.missing);
+  if(enabledOnly)     marks = marks.filter(mark =>  mark.enabled);
+  if(!includeMissing) marks = marks.filter(mark => !mark.missing);
   return marks;
 }
 
