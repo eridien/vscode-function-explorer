@@ -10,7 +10,6 @@ const {log, start, end} = utils.getLog('side');
 
 const showPointers   = true;
 let itemTree         = [];
-const closedFolders  = new Set();
 let   treeView : vscode.TreeView<Item>;
 
 export function init(treeViewIn: vscode.TreeView<Item>) {
@@ -20,7 +19,6 @@ export function init(treeViewIn: vscode.TreeView<Item>) {
 class Item extends vscode.TreeItem {
   wsFolder?:   vscode.WorkspaceFolder;
   mark?:       mrks.Mark;
-  type?:      'folder' | 'file' | 'mark';
   children?:   Item[];
 }
 
@@ -72,44 +70,41 @@ export function setBusy(busy: boolean, blinking = false) {
   }
 }
 
-let uniqueItemIdNum = 0;
-function getUniqueIdStr() { return (++uniqueItemIdNum).toString(); }
-
-function getNewFolderItem(mark: mrks.Mark | null, 
-                          wsFolder: vscode.WorkspaceFolder) {
-  const id        = getUniqueIdStr();
-  const label     = '📂 ' +  wsFolder.name;
-  const item      = new Item(
-                       label, vscode.TreeItemCollapsibleState.None);
-  Object.assign(item, {id, type:'folder', contextValue:'folder', label});
+function getNewWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
+  const id      = wsFolder.uri.fsPath;
+  const label   = wsFolder.name;
+  const item    = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
+  const iconPath = new vscode.ThemeIcon('root-folder');
+  Object.assign(item, {id, contextValue:'wsFolder', iconPath, label});
   item.command = {
     command:   'vscode-function.itemClickCmd',
     title:     'Item Clicked',
     arguments: [item],
   };
-  if(!mark) {
-    item.iconPath = new vscode.ThemeIcon("chevron-down");
-    item.wsFolder = wsFolder;
-    return item;
-  }
-  item.mark     = mark;
-  item.wsFolder = mark.getWsFolder();
-  if(closedFolders.has(mark.getWsFolder()!.uri.fsPath))
-    item.iconPath = new vscode.ThemeIcon("chevron-right");
-  else
-    item.iconPath = new vscode.ThemeIcon("chevron-down");
   return item;
 }     
 
-function getNewFileItem(mark: mrks.Mark, 
-                        children: Item[]) { 
-  const relPath = path.relative(mark.getWsFolder().uri.fsPath, 
-                                mark.getFsPath());
-  const label =  '📄 ' + relPath;
-  const item  = new Item(label,
-                    vscode.TreeItemCollapsibleState.Expanded);
-  item.id = getUniqueIdStr();
-  Object.assign(item, {type:'file', contextValue:'file', children, mark});
+function getNewFolderItem(wsFolder:  vscode.WorkspaceFolder, 
+                          folderUri: vscode.Uri, children: Item[]) {
+  const label = folderUri.path.split('/').pop() ?? folderUri.path;
+  const item  = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
+  item.id = folderUri.fsPath;
+  const iconPath = new vscode.ThemeIcon('folder');
+  Object.assign(item, {contextValue:'folder', children, iconPath});
+  item.command = {
+    command:   'vscode-function.itemClickCmd',
+    title:     'Item Clicked',
+    arguments: [item],
+  };
+  return item;
+};
+
+function getNewFileItem(fileUri: vscode.Uri, children: Item[]) {
+  const label = fileUri.path.split('/').pop() ?? fileUri.path;
+  const item  = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
+  item.id     = fileUri.fsPath;
+  const iconPath = new vscode.ThemeIcon('file');
+  Object.assign(item, {contextValue:'file', children, iconPath});
   item.command = {
     command:   'vscode-function.itemClickCmd',
     title:     'Item Clicked',
@@ -119,10 +114,8 @@ function getNewFileItem(mark: mrks.Mark,
 };
 
 function getNewMarkItem(mark: mrks.Mark) {
-  const item = new Item(mark.name,
-                   vscode.TreeItemCollapsibleState.None);
-  Object.assign(item, {id:getUniqueIdStr(), type:'mark', 
-                       contextValue:'mark', mark});
+  const item = new Item(mark.name, vscode.TreeItemCollapsibleState.None);
+  Object.assign(item, {id: mark.getFsPath(), contextValue:'mark', mark});
   item.command = {
     command: 'vscode-function.itemClickCmd',
     title:   'Item Clicked',
@@ -130,8 +123,6 @@ function getNewMarkItem(mark: mrks.Mark) {
   };
   return item;
 };
-
-let logIdx = 0;
 
 async function getItemTree() {
   start('getItemTree', true);
@@ -157,7 +148,7 @@ async function getItemTree() {
       lastFldrFsPath = fldrFsPath;
       let wsFolder = null;
       while(wsFolder = wsFolders.shift()) {
-        rootItems.push(getNewFolderItem(mark, wsFolder));
+        rootItems.push(getNewWsFolderItem(mark, wsFolder));
         if(wsFolder.uri.fsPath === fldrFsPath) break;
       }
       if(!wsFolder) { 
@@ -184,7 +175,7 @@ async function getItemTree() {
       for(const item of rootItems) {
         if(!item.mark) continue;
         const fldrFsPath = item.mark.getWsFolder().uri.fsPath;
-        if(item.type === 'file' &&
+        if(item.contextValue === 'file' &&
            item.mark.getFsPath() === editorFsPath &&
            item.children && item.children.length > 0   &&
            !closedFolders.has(fldrFsPath)) {
@@ -204,7 +195,7 @@ async function getItemTree() {
   }
   let wsFolder;
   while(wsFolder = wsFolders.shift()) 
-    rootItems.push(getNewFolderItem(null, wsFolder));
+    rootItems.push(getNewWsFolderItem(null, wsFolder));
   itemTree = rootItems;
   end('getItemTree');
   return itemTree;
@@ -215,10 +206,10 @@ export function toggleFolder(item: Item, forceClose = false, forceOpen = false) 
   if(item.wsFolder) closedFolders.delete(item.wsFolder.uri.fsPath);
   else {
     if(!item.mark) return;
-    const wsFldrFsPath = item.mark.getWsFolder().uri.fsPath;
-    const open = forceOpen || (!forceClose && closedFolders.has(wsFldrFsPath));
-    if(open) closedFolders.delete(wsFldrFsPath);
-    else     closedFolders.add(wsFldrFsPath);
+    const wsFolderFsPath = item.mark.getWsFolder().uri.fsPath;
+    const open = forceOpen || (!forceClose && closedFolders.has(wsFolderFsPath));
+    if(open) closedFolders.delete(wsFolderFsPath);
+    else     closedFolders.add(wsFolderFsPath);
   }
   utils.updateSide();
 }
@@ -230,7 +221,7 @@ export async function itemClick(item: Item) {
     if (!item) { log('info err', 'No Bookmark Selected'); return; }
   }
   // text.clearDecoration();
-  switch(item.type) {
+  switch(item.contextValue) {
     case 'folder': toggleFolder(item); break;
     case 'file':
       if(!item.mark) return;
