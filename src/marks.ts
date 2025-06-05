@@ -293,13 +293,13 @@ export function getMarksBetweenLines(fsPath: string,
     let minDepth = 1e9;
     for(const mark of matches) {
       const depth = mark.parents!.length;
-      if(depth < minDepth) minDepth = depth;
+      if(!mark.missing && depth < minDepth) minDepth = depth;
     }
     const subMarks = [];
     for(const mark of matches) {
       const depth = mark.parents!.length;
-      if(depth == minDepth ||
-        (overRideSubChk && mark.enabled)) subMarks.push(mark);
+      if(!mark.missing && (depth == minDepth ||
+        (overRideSubChk && mark.enabled))) subMarks.push(mark);
     }
     return subMarks;
   }
