@@ -124,7 +124,7 @@ async function getFolderItem(folderFsPath: string) {
 };
 
 function getFileItem(fsPath: string) {
-  const children = mrks.getSortedMarks({fsPath})
+  const children = mrks.getSortedMarks({fsPath, alpha:true})
                        .map(mark => getMarkItem(mark));  
   if(children.length === 0) return null;
   const fileUri  = vscode.Uri.file(fsPath);

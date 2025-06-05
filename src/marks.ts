@@ -244,18 +244,29 @@ export function getMarks(p: any | {} = {}) : Mark[] {
 
 // filters
 export function getSortedMarks(p: any = {}) : Mark[] {
-  const {fsPath, reverse = false} = p;
+  const {fsPath, reverse = false, alpha = false} = p;
   const marks = getMarks(p);
   if(marks.length === 0) return [];
   if (!fsPath) {
+    if (alpha) {
+      if(reverse)
+        return marks.sort((a, b) => b.name.localeCompare(a.name));
+      return marks.sort((a, b) => a.name.localeCompare(b.name));
+    }
     return marks.sort((a, b) => {
       if (a.getStartKey() > b.getStartKey()) return reverse? -1 : +1;
       if (a.getStartKey() < b.getStartKey()) return reverse? +1 : -1;
       return 0;
     });
   } 
-  return marks.sort((a, b) => 
-    reverse? b.start - a.start : a.start - b.start);
+  if (alpha) {
+    if(reverse)
+      return marks.sort((a, b) => b.name.localeCompare(a.name));
+    return marks.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return marks.sort((a, b) => {
+    reverse? b.start - a.start : a.start - b.start;
+  });
 }
 
 // does not filter
