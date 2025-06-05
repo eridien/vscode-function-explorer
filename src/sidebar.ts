@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @@ts-nocheck
 
 import vscode      from 'vscode';
 import * as path   from 'path';
@@ -11,36 +11,38 @@ const {log, start, end} = utils.getLog('side');
 const showPointers   = true;
 let itemTree         = [];
 const closedFolders  = new Set();
-let   treeView;
+let   treeView : vscode.TreeView<vscode.TreeItem>;
 
-export function init(treeViewIn) {
+export function init(treeViewIn: vscode.TreeView<vscode.TreeItem>) {
   treeView = treeViewIn;
 }
 
 export class SidebarProvider {
+  onDidChangeTreeData:          vscode.Event<vscode.TreeItem>;
+  private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem>;
   constructor() {
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
   }
-  getTreeItem(item) {
+  getTreeItem(item: vscode.TreeItem): vscode.TreeItem {
     return item;
   }
 
-  async getChildren(item) {
+  async getChildren(item: vscode.TreeItem): Promise<vscode.TreeItem[]> {
     if (showingBusy) return [];
     if(!item) {
       await mrks.waitForInit();
       return await getItemTree();
     }
-    return item.children ?? [];
+    return (item as any).children ?? [];
   }
 }
 
-let intervalId  = null;
-let timeoutId   = null;
+let intervalId: NodeJS.Timeout | null = null;
+let timeoutId:  NodeJS.Timeout | null = null;
 let showingBusy = false;
 
-export function setBusy(busy, blinking = false) {
+export function setBusy(busy: boolean, blinking = false) {
   if (treeView) 
       treeView.message = busy ? '⟳ Processing Bookmarks ...' : '';
   utils.updateSide();
@@ -55,8 +57,8 @@ export function setBusy(busy, blinking = false) {
   }
   if(!busy && showingBusy) {
     showingBusy = false;
-    clearInterval(intervalId);
-    clearTimeout(timeoutId);
+    if(intervalId) clearInterval(intervalId);
+    if(timeoutId)  clearTimeout(timeoutId);
     intervalId = null;
     timeoutId  = null;
     setBusy(false, true);
@@ -66,7 +68,8 @@ export function setBusy(busy, blinking = false) {
 let uniqueItemIdNum = 0;
 function getUniqueIdStr() { return (++uniqueItemIdNum).toString(); }
 
-function getNewFolderItem(mark, wsFolder) {
+function getNewFolderItem(mark: mrks.Mark | null, 
+                          wsFolder: vscode.WorkspaceFolder) {
   const id        = getUniqueIdStr();
   const label     = '📂 ' +  wsFolder.name;
   const item      = new vscode.TreeItem(
@@ -79,19 +82,20 @@ function getNewFolderItem(mark, wsFolder) {
   };
   if(!mark) {
     item.iconPath = new vscode.ThemeIcon("chevron-down");
-    item.wsFolder = wsFolder;
+    (item as any).wsFolder = wsFolder;
     return item;
   }
-  item.mark     = mark;
-  item.wsFolder = mark.getWsFolder();
-  if(closedFolders.has(mark.getWsFolder().uri.fsPath))
+  (item as any).mark     = mark;
+  (item as any).wsFolder = mark.getWsFolder();
+  if(closedFolders.has(mark.getWsFolder()!.uri.fsPath))
     item.iconPath = new vscode.ThemeIcon("chevron-right");
   else
     item.iconPath = new vscode.ThemeIcon("chevron-down");
   return item;
 }     
 
-function getNewFileItem(mark, children) { 
+function getNewFileItem(mark: mrks.Mark, 
+                        children: vscode.TreeItem[]) { 
   const relPath = path.relative(mark.getWsFolder().uri.fsPath, 
                                 mark.getFsPath());
   const label =  '📄 ' + relPath;
@@ -107,7 +111,7 @@ function getNewFileItem(mark, children) {
   return item;
 };
 
-function getNewMarkItem(mark) {
+function getNewMarkItem(mark: mrks.Mark) {
   const item = new vscode.TreeItem(mark.name,
                    vscode.TreeItemCollapsibleState.None);
   Object.assign(item, {id:getUniqueIdStr(), type:'mark', 
@@ -125,14 +129,15 @@ let logIdx = 0;
 async function getItemTree() {
   start('getItemTree', true);
   // log('getItemTree', logIdx++);
-  const allWsFolders = vscode.workspace.workspaceFolders;
-  if (!allWsFolders) {
+  const wsFolders = vscode.workspace.workspaceFolders 
+              ? [...vscode.workspace.workspaceFolders] : null;
+  if (!wsFolders) {
     log('err', 'getItemTree, No folders in workspace');
     return [];
   }
   const rootItems   = [];
   const marksArray  = mrks.getSortedMarks({enabledOnly:false});
-  let marks;
+  let marks: vscode.TreeItem[] = [];
   let lastFldrFsPath = null, lastFileFsPath;
   for(const mark of marksArray) {
     const fldrFsPath = mark.getWsFolder().uri.fsPath;
@@ -144,7 +149,7 @@ async function getItemTree() {
     if(fldrFsPath !== lastFldrFsPath) {
       lastFldrFsPath = fldrFsPath;
       let wsFolder = null;
-      while(wsFolder = allWsFolders.shift()) {
+      while(wsFolder = wsFolders.shift()) {
         rootItems.push(getNewFolderItem(mark, wsFolder));
         if(wsFolder.uri.fsPath === fldrFsPath) break;
       }
@@ -154,7 +159,7 @@ async function getItemTree() {
       }
       lastFileFsPath = null;
     }
-    if(mark.fileFsPath() !== lastFileFsPath) {
+    if(mark.getFsPath() !== lastFileFsPath) {
       lastFileFsPath = mark.getFsPath();
       marks = [];
       rootItems.push(getNewFileItem(mark, marks));
@@ -170,12 +175,12 @@ async function getItemTree() {
       let itemMatch = null;
       itemLoop:
       for(const item of rootItems) {
-        const fldrFsPath = item.mark.getWsFolder().uri.fsPath;
-        if(item.type === 'file' &&
-           item.mark.getFsPath() === editorFsPath &&
-           item.children && item.children.length > 0   &&
+        const fldrFsPath = (item as any).mark.getWsFolder().uri.fsPath;
+        if((item as any).type === 'file' &&
+           (item as any).mark.getFsPath() === editorFsPath &&
+           (item as any).children && (item as any).children.length > 0   &&
            !closedFolders.has(fldrFsPath)) {
-          for (const childItem of item.children) {
+          for (const childItem of (item as any).children) {
             const markLine = childItem.mark.getStartLine();
             if(editorLine === markLine) {
               itemMatch = childItem;
@@ -188,21 +193,19 @@ async function getItemTree() {
          itemMatch.iconPath = new vscode.ThemeIcon("triangle-right");
     }
   }
-  let wsFolder = allWsFolders.shift();
-  while(wsFolder) {
+  let wsFolder;
+  while(wsFolder = wsFolders.shift()) 
     rootItems.push(getNewFolderItem(null, wsFolder));
-    wsFolder = allWsFolders.shift();
-  }
   itemTree = rootItems;
   end('getItemTree');
   return itemTree;
 }
 
-export function toggleFolder(item, forceClose = false, forceOpen = false) {
+export function toggleFolder(item: vscode.TreeItem, forceClose = false, forceOpen = false) {
   log('toggleFolder');
-  if(item.wsFolder) closedFolders.delete(item.wsFolder.uri.fsPath);
+  if((item as any).wsFolder) closedFolders.delete((item as any).wsFolder.uri.fsPath);
   else {
-    const wsFldrFsPath = item.mark.getWsFolder().uri.fsPath;
+    const wsFldrFsPath = (item as any).mark.getWsFolder().uri.fsPath;
     const open = forceOpen || (!forceClose && closedFolders.has(wsFldrFsPath));
     if(open) closedFolders.delete(wsFldrFsPath);
     else     closedFolders.add(wsFldrFsPath);
@@ -210,18 +213,18 @@ export function toggleFolder(item, forceClose = false, forceOpen = false) {
   utils.updateSide();
 }
 
-export async function itemClick(item) {
+export async function itemClick(item: vscode.TreeItem) {
   log('itemClick');
   if(item === undefined) {
     item = treeView.selection[0];
     if (!item) { log('info err', 'No Bookmark Selected'); return; }
   }
   // text.clearDecoration();
-  switch(item.type) {
+  switch((item as any).type) {
     case 'folder': toggleFolder(item); break;
     case 'file':
       await vscode.window.showTextDocument(
-                               item.mark.document, {preview: false});
+                               (item as any).mark.document, {preview: false});
       break;
     case 'mark': mrks.markItemClick(item); break;
   }

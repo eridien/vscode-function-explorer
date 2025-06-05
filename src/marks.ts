@@ -80,8 +80,16 @@ export class Mark {
     this.enabled = enabled; 
     setMarkInMaps(this);
   }
-  getWsFolder()  { return this.wsFolder  ??= 
-             vscode.workspace.getWorkspaceFolder(this.document.uri);   }
+  getWsFolder()  { 
+    this.wsFolder ??= vscode.workspace
+                            .getWorkspaceFolder(this.document.uri);
+    if(!this.wsFolder) {
+      log('err', 'getWsFolder, mark has no workspace folder', 
+                    this.name, this.getFsPath());
+      throw new Error('Mark has no workspace folder');
+    }
+    return this.wsFolder;
+  }
   getFsPath()    { return this.fsPath    ??= 
                           this.document.uri.fsPath;                    }
   getStartLine() { return this.startLine ??= 
