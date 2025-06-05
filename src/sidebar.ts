@@ -112,7 +112,7 @@ async function getFolderItem(folderFsPath: string) {
   const folderUri = vscode.Uri.file(folderFsPath);
   const label     = folderUri.path.split('/').pop() ?? folderUri.path;
   const item      = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
-  item.id         = folderUri.fsPath;
+  item.id         = folderFsPath;
   const iconPath  = new vscode.ThemeIcon('folder');
   Object.assign(item, {contextValue:'folder', children, iconPath});
   item.command = {
@@ -130,7 +130,7 @@ function getFileItem(fsPath: string) {
   const fileUri  = vscode.Uri.file(fsPath);
   const label    = fileUri.path.split('/').pop() ?? fileUri.path;
   const item     = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
-  item.id        = fileUri.fsPath;
+  item.id        = fsPath;
   const iconPath = new vscode.ThemeIcon('file');
   Object.assign(item, {contextValue:'file', children, iconPath});
   item.command = {
@@ -143,7 +143,7 @@ function getFileItem(fsPath: string) {
 
 function getMarkItem(mark: mrks.Mark) {
   const item = new Item(mark.name, vscode.TreeItemCollapsibleState.None);
-  Object.assign(item, {id: mark.getFsPath(), contextValue:'mark', mark});
+  Object.assign(item, {id: mark.id, contextValue:'mark', mark});
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor                                        && 
     activeEditor.document.uri.scheme === 'file'           &&
