@@ -4,8 +4,12 @@ import * as mrks    from './marks';
 import * as sidebar from './sidebar';
 import * as gutt    from './gutter';
 import * as sett    from './settings';
+import * as utils   from './utils';
+const {log, start, end} = utils.getLog('extn');
 
 export async function activate(context: vscode.ExtensionContext) {
+  start('extension');
+  
 	const toggle = vscode.commands.registerCommand(
            'vscode-function-marks.toggle', async () => {
 		await cmds.toggle();
@@ -51,6 +55,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg);
+
+  end('extension');
 }
 
-export function deactivate() {}
+export function deactivate() {
+  log('extension deactivated');
+}

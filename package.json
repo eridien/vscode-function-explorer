@@ -88,30 +88,8 @@
           "when": "editorTextFocus",
           "group": "1_modification"
         }
-      ]
+      ],
       "view/item/context": [
-        {
-          "command": "vscode-function.moveFolderUpCmd",
-          "when": "view == sidebarView && viewItem == file",
-          "group": "inline@1"
-        },{
-          "command": "vscode-function.moveFolderDownCmd",
-          "when": "view == sidebarView && viewItem == file",
-          "group": "inline@1"
-        },{
-          "command": "vscode-function.eraseCmd",
-          "when": "view == sidebarView && viewItem == bookmark",
-          "group": "inline@1"
-        },{
-          "command": "vscode-function.nameCmd",
-          "when": "view == sidebarView && viewItem == bookmark",
-          "group": "inline@2"
-        },
-        {
-          "command": "vscode-function.deleteIconCmd",
-          "when": "view == sidebarView",
-          "group": "inline@4"
-        }
       ]
     },
     "configuration": {
