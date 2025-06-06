@@ -16,7 +16,6 @@ export function activate(contextIn: vscode.ExtensionContext) {
   gutDecDrkUri = vscode.Uri.file(path.join( 
                   context.extensionPath, 'images', 'gutter-icon-drk.svg'));
   gutterDec = getGutterDec();
-  updateGutter();
 }
 
 function getGutterDec() {

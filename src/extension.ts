@@ -25,14 +25,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.next();
 	});
 
+  const loadSettings = vscode.workspace.onDidChangeConfiguration(event => {
+    if (event.affectsConfiguration('function-marks')) {
+      sett.loadSettings();
+      sidebar.updateSidebar();
+    }
+  });
+
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
-
-  const loadSettings = vscode.workspace.onDidChangeConfiguration(event => {
-      if (event.affectsConfiguration('function-marks'))
-        sett.loadSettings();
-    }
-  );
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
     if (vscode.window.activeTextEditor &&
@@ -41,17 +42,13 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  const sidebarProvider = new sidebar.SidebarProvider();
-  const treeView = vscode.window.createTreeView('sidebarView', {
-    treeDataProvider: sidebarProvider,
-  });
-
   sett.loadSettings();
   await mrks.activate(context);
   await mrks.waitForInit();
   await mrks.initMarks();
+  sidebar.init();
   gutt.activate(context);
-  sidebar.init(treeView);
+  cmds.updateSide();
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg);

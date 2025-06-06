@@ -8,12 +8,14 @@ interface FunctionMarksSettings {
   scrollPosition:      vscode.TextEditorRevealType;
   fileWrap:            boolean;
   includeSubFunctions: boolean;
+  alphaSortMarks?:     boolean; 
 }
 
 export let settings: FunctionMarksSettings = {
   scrollPosition:      vscode.TextEditorRevealType.AtTop,
   fileWrap:            true,
   includeSubFunctions: false,
+  alphaSortMarks:      true,
 };
 
 let filesToInclude: string[] = ["**/*.js", "**/*.ts"];
@@ -40,6 +42,7 @@ export function loadSettings() {
     scrollPosition:      scrollPos,
     fileWrap:            config.get('fileWrap',            true),
     includeSubFunctions: config.get('includeSubFunctions', false),
+    alphaSortMarks:      config.get('alphaSortMarks',      true)
   };
   filesToInclude = config.get<string>("filesToInclude", 
                        "**/*.js, **/*.ts").split(",").map(p => p.trim());

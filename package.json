@@ -118,7 +118,6 @@
             "Reveal at the top of the viewport"
           ],
           "description": "Controls the scroll position when revealing a function mark."
- 
         },
         "function-marks.includeSubFunctions": {
           "type": "boolean",
@@ -126,16 +125,22 @@
           "order": 3,
           "description": "Include nested functions when marking with a selection."
         },
+        "function-marks.alphaSortMarks": {
+          "type": "boolean",
+          "default": true,
+          "order": 4,
+          "description": "Sort functions in the file alphabetically instead of by position."
+        },
         "function-marks.filesToInclude": {
           "type": "string",
           "default": "**/*.js, **/*.ts",
-          "order": 4,
+          "order": 5,
           "description": "Files to include in the Function Marks explorer. Separate glob patterns with commas."
         },
         "function-marks.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
-          "order": 5,
+          "order": 6,
           "description": "Files to exclude in the Function Marks explorer. Separate glob patterns with commas."
         }
       }

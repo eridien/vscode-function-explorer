@@ -24,8 +24,6 @@ export function getRelPath(wsFolder: vscode.WorkspaceFolder,
   return relPath;
 }
 
-export function updateSide() {};
-
 const outputChannel = vscode.window.createOutputChannel('function-marks');
 
 export function getLog(module: string) : {

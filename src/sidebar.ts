@@ -1,6 +1,7 @@
 // @@ts-nocheck
 
 import vscode      from 'vscode';
+import { Dirent }  from 'fs';
 import * as fs     from 'fs/promises';
 import * as path   from 'path';
 import * as mrks   from './marks';
@@ -8,14 +9,17 @@ import * as sett   from './settings';
 import {settings}  from './settings';
 import * as utils  from './utils.js';
 import { get } from 'http';
+import { Dir } from 'fs';
 const {log, start, end} = utils.getLog('side');
 
-const showPointers   = true;
-let itemTree         = [];
-let   treeView : vscode.TreeView<Item>;
+let treeView     : vscode.TreeView<Item>;
+let sidebarProvider: SidebarProvider;
 
-export function init(treeViewIn: vscode.TreeView<Item>) {
-  treeView = treeViewIn;
+export function init() {
+  sidebarProvider = new SidebarProvider();
+  treeView = vscode.window.createTreeView('sidebarView', {
+    treeDataProvider: sidebarProvider,
+  });
 }
 
 class Item extends vscode.TreeItem {
@@ -51,7 +55,8 @@ let showingBusy = false;
 export function setBusy(busy: boolean, blinking = false) {
   if (treeView) 
       treeView.message = busy ? '⟳ Processing Bookmarks ...' : '';
-  utils.updateSide();
+  // @ts-ignore
+  sidebarProvider._onDidChangeTreeData!.fire();
   if(blinking) return;
   if(busy && !showingBusy) {
     showingBusy = true;
@@ -71,28 +76,35 @@ export function setBusy(busy: boolean, blinking = false) {
   }
 }
 
+async function addFolderOrFile(entry:  Dirent, 
+                               fsPath: string, children: Item[]) {
+  if (entry.isDirectory()) {
+    const folderItem = await getFolderItem(fsPath);
+    if (folderItem !== null) children.push(folderItem);
+  }
+  if (entry.isFile()) {
+    const uri = vscode.Uri.file(fsPath);
+    if(uri.scheme !== 'file' || 
+      !sett.includeFile(fsPath)) return;
+    const fileItem = getFileItem(fsPath);
+    if(fileItem !== null) children.push(fileItem);
+  }
+}
+
 async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
   const id      = wsFolder.uri.fsPath;
   const label   = wsFolder.name;
   const item    = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
   const iconPath = new vscode.ThemeIcon('root-folder');
+  const children: Item[] = [];
   const entries = await fs.readdir(
                         wsFolder.uri.fsPath, { withFileTypes: true });
-  let children: Item[] = [];
   for (const entry of entries) {
-    if(entry.isDirectory()) {
-      const folderItem = await getFolderItem(
-                                 path.join(wsFolder.uri.fsPath, entry.name));
-      if(folderItem === null) continue;
-      children.push(folderItem);
-    }
-    if(entry.isFile()) {
-      const fileItem = getFileItem(path.join(wsFolder.uri.fsPath, entry.name));
-      if(fileItem === null) continue;
-      children.push(fileItem);
-    }
+    const fsPath = path.join(wsFolder.uri.fsPath, entry.name);
+    await addFolderOrFile(entry, fsPath, children);
   }
-  Object.assign(item, {id, contextValue:'wsFolder', iconPath, label, children});
+  Object.assign(item, {id, contextValue:'wsFolder', 
+                       iconPath, label, children});
   item.command = {
     command:   'vscode-function.itemClickCmd',
     title:     'Item Clicked',
@@ -102,12 +114,12 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
 }     
 
 async function getFolderItem(folderFsPath: string) {
+  const children: Item[] = [];
   const entries = await fs.readdir(folderFsPath, {withFileTypes: true});
-  const children = entries.filter(entry => {
-    const fileFsPath = path.join(folderFsPath, entry.name);
-    return (entry.isFile() && sett.includeFile(fileFsPath));
-  }).map(entry => getFileItem(path.join(folderFsPath, entry.name))
-  ).filter(item => item !== null);
+  for (const entry of entries) {
+    const fsPath = path.join(folderFsPath, entry.name);
+    await addFolderOrFile(entry, fsPath, children);
+  }
   if(children.length === 0) return null;
   const folderUri = vscode.Uri.file(folderFsPath);
   const label     = folderUri.path.split('/').pop() ?? folderUri.path;
@@ -124,12 +136,12 @@ async function getFolderItem(folderFsPath: string) {
 };
 
 function getFileItem(fsPath: string) {
-  const children = mrks.getSortedMarks({fsPath, alpha:true})
+  const children = mrks.getSortedMarks({fsPath, alpha:settings.alphaSortMarks})
                        .map(mark => getMarkItem(mark));  
   if(children.length === 0) return null;
   const fileUri  = vscode.Uri.file(fsPath);
   const label    = fileUri.path.split('/').pop() ?? fileUri.path;
-  const item     = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
+  const item     = new Item(label, vscode.TreeItemCollapsibleState.Collapsed);
   item.id        = fsPath;
   const iconPath = new vscode.ThemeIcon('file');
   Object.assign(item, {contextValue:'file', children, iconPath});
@@ -169,6 +181,7 @@ async function getItemTree() {
     return await getWsFolderItem(wsFolder);
   });
   const rootTree = await Promise.all(promises);
+  end('getItemTree');
   return rootTree;
 }
 
@@ -188,4 +201,9 @@ export function itemClick(item: Item) {
   //     break;
   //   case 'mark': mrks.markItemClick(item); break;
   // }
+}
+
+export function updateSidebar() {
+  // @ts-ignore
+  sidebarProvider._onDidChangeTreeData!.fire();
 }

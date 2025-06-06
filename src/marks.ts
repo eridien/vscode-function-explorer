@@ -43,7 +43,7 @@ export async function initMarks() {
   if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath))
-    await updateMarksInFile(activeEditor.document);
+    await updateMarksInFile();
 }
 
 export function createSortKey(fsPath: string, lineNumber: number): string {
@@ -122,9 +122,17 @@ function setMarkInMaps(mark: Mark) {
 
 let lastMarkName: Mark | null = null;
 
-// does not filter
-export async function updateMarksInFile(document: vscode.TextDocument) {
+export async function updateMarksInFile(
+                document: vscode.TextDocument | null = null) {
   start('updateMarksInFile');
+  if(!document) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if(activeEditor) document = activeEditor.document;
+  }
+  if(!document) return;
+  const uri = document.uri;
+  if(uri.scheme !== 'file' || 
+    !sett.includeFile(uri.fsPath)) return;
   const docText = document.getText();
   if (!docText || docText.length === 0) return;
   const docMarks = marksByFsPath.get(document.uri.fsPath);
@@ -227,7 +235,6 @@ export async function updateMarksInAllFiles() {
   }
 }
 
-// filters
 export function getMarks(p: any | {} = {}) : Mark[] {
   const {enabledOnly = false, includeMissing = false, fsPath} = p;
   let marks;
@@ -242,16 +249,21 @@ export function getMarks(p: any | {} = {}) : Mark[] {
   return marks;
 }
 
-// filters
+function sortKeyAlpha(a: Mark) {
+  return a.getFsPath() + "\x00" + a.name;
+}
+
 export function getSortedMarks(p: any = {}) : Mark[] {
   const {fsPath, reverse = false, alpha = false} = p;
   const marks = getMarks(p);
   if(marks.length === 0) return [];
   if (!fsPath) {
     if (alpha) {
-      if(reverse)
-        return marks.sort((a, b) => b.name.localeCompare(a.name));
-      return marks.sort((a, b) => a.name.localeCompare(b.name));
+      return marks.sort((a, b) => {
+        if (sortKeyAlpha(a) > sortKeyAlpha(b)) return reverse? -1 : +1;
+        if (sortKeyAlpha(a) < sortKeyAlpha(b)) return reverse? +1 : -1;
+        return 0;
+      });
     }
     return marks.sort((a, b) => {
       if (a.getStartKey() > b.getStartKey()) return reverse? -1 : +1;
@@ -264,12 +276,11 @@ export function getSortedMarks(p: any = {}) : Mark[] {
       return marks.sort((a, b) => b.name.localeCompare(a.name));
     return marks.sort((a, b) => a.name.localeCompare(b.name));
   }
-  return marks.sort((a, b) => {
-    reverse? b.start - a.start : a.start - b.start;
-  });
+  return marks.sort((a, b) =>
+    reverse? b.start - a.start : a.start - b.start
+  );
 }
 
-// does not filter
 export function getMarkAtLine( fsPath: string, 
                                lineNumber: number) : Mark | null {
   const marks = getSortedMarks({fsPath});
@@ -282,7 +293,6 @@ export function getMarkAtLine( fsPath: string,
   return match;
 }
 
-// filters by includeSubFunctions
 export function getMarksBetweenLines(fsPath: string, 
                                   startLine: number, endLine: number, 
                                   overRideSubChk: boolean = false) : Mark[] {
@@ -345,22 +355,6 @@ function deleteMarkFromFileSet(mark: Mark) {
     markMap.delete(mark.id!);
     if(markMap.size === 0) marksByFsPath.delete(mark.getFsPath());
   }
-}
-
-async function deleteMark(mark: Mark, save = true, update = true) {
-  marksById.delete(mark.id!);
-  deleteMarkFromFileSet(mark);
-  if(save) await saveMarkStorage();
-  // if(update) utils.updateSide(); 
-  // await dumpMarks('deleteMark');
-}
-
-async function deleteAllMarksFromFile(fsPath: string, update = true) {
-  const marks = getMarks({fsPath});
-  if(marks.length === 0) return;
-  for (const mark of marks) await deleteMark(mark);
-  await saveMarkStorage();
-  // if(update) utils.updateSide();
 }
 
 function verifyMark(mark: Mark): boolean {

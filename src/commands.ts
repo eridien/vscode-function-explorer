@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
+import * as side   from './sidebar';
+import * as gutt   from './gutter';
 import * as mrks   from './marks';
 import {Mark}      from './marks';
 import * as sett   from './settings';
 import {settings}  from './settings';
-import * as gutt   from './gutter';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
@@ -45,7 +46,7 @@ export async function toggle() {
       }
     });
   }
-  gutt.updateGutter(editor);
+  updateSide();
   await mrks.saveMarkStorage();
   if(firstMark) await mrks.revealMark(firstMark);
 }
@@ -103,7 +104,7 @@ export async function editorChg(editor: vscode.TextEditor) {
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
   await mrks.updateMarksInFile(document);
-  gutt.updateGutter(editor);
+  updateSide();
 }
 
 export async function textChg(event :vscode.TextDocumentChangeEvent) {
@@ -111,5 +112,11 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
   await mrks.updateMarksInFile(document);
-  gutt.updateGutter(vscode.window.activeTextEditor!);
+  updateSide();
 }
+
+export function updateSide() {
+  side.updateSidebar();
+  gutt.updateGutter();
+};
+
