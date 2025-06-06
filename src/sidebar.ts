@@ -80,33 +80,35 @@ export function setBusy(busy: boolean, blinking = false) {
   }
 }
 
-async function addFolderOrFile(entry:  Dirent, 
-                               fsPath: string, children: Item[]) {
+async function addFolderOrFile(entry:  Dirent, fsPath: string, 
+                               folders: Item[], files: Item[]) {
   if (entry.isDirectory()) {
     const folderItem = await getFolderItem(fsPath);
-    if (folderItem !== null) children.push(folderItem);
+    if (folderItem !== null) folders.push(folderItem);
   }
   if (entry.isFile()) {
     const uri = vscode.Uri.file(fsPath);
     if(uri.scheme !== 'file' || 
       !sett.includeFile(fsPath)) return;
     const fileItem = getFileItem(fsPath);
-    if(fileItem !== null) children.push(fileItem);
+    if(fileItem !== null) files.push(fileItem);
   }
 }
 
 async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
-  const id      = wsFolder.uri.fsPath;
-  const label   = wsFolder.name;
-  const item    = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
+  const id       = wsFolder.uri.fsPath;
+  const label    = wsFolder.name;
+  const item     = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
   const iconPath = new vscode.ThemeIcon('root-folder');
-  const children: Item[] = [];
+  const folders:  Item[] = [];
+  const files:    Item[] = [];
   const entries = await fs.readdir(
                         wsFolder.uri.fsPath, { withFileTypes: true });
   for (const entry of entries) {
     const fsPath = path.join(wsFolder.uri.fsPath, entry.name);
-    await addFolderOrFile(entry, fsPath, children);
+    await addFolderOrFile(entry, fsPath, folders, files);
   }
+  const children = [...folders, ...files];
   Object.assign(item, {id, contextValue:'wsFolder', 
                        iconPath, label, children});
   item.command = {
@@ -118,12 +120,14 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
 }     
 
 async function getFolderItem(folderFsPath: string) {
-  const children: Item[] = [];
+  const folders:  Item[] = [];
+  const files:    Item[] = [];
   const entries = await fs.readdir(folderFsPath, {withFileTypes: true});
   for (const entry of entries) {
     const fsPath = path.join(folderFsPath, entry.name);
-    await addFolderOrFile(entry, fsPath, children);
+    await addFolderOrFile(entry, fsPath, folders, files);
   }
+  const children = [...folders, ...files];
   if(children.length === 0) return null;
   const folderUri = vscode.Uri.file(folderFsPath);
   const label     = folderUri.path.split('/').pop() ?? folderUri.path;
@@ -139,10 +143,11 @@ async function getFolderItem(folderFsPath: string) {
   return item;
 };
 
+// fsPath.endsWith('block.js')
 function getFileItem(fsPath: string) {
-  const children = mrks.getSortedMarks({fsPath, alpha:settings.alphaSortMarks})
-                       .map(mark => getMarkItem(mark));  
-  if(children.length === 0) return null;
+  const children = mrks.getSortedMarks(
+                            {fsPath, alpha:settings.alphaSortMarks})
+                      .map(mark => getMarkItem(mark));  
   const fileUri  = vscode.Uri.file(fsPath);
   const label    = fileUri.path.split('/').pop() ?? fileUri.path;
   const item     = new Item(label, vscode.TreeItemCollapsibleState.Collapsed);
