@@ -195,15 +195,28 @@ async function getItemTree() {
 }
 
 export function updatePointer(mark:mrks.Mark, match: boolean) {
-  function walk(item: Item, mark: mrks.Mark, match: boolean) {
-    if (item.id === mark.id && item.pointer !== match) {
-      item.pointer  = !item.pointer;
-      item.iconPath =  item.pointer ? new vscode.ThemeIcon('triangle-right')
-                                    : undefined;
+  function walk(item: Item, mark: mrks.Mark, match: boolean, expand = false) {
+    if (expand) { 
+      item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
       sidebarProvider.refresh(item);
     }
+    else {
+      if (item.id === mark.id) { 
+        if(item.pointer !== match) {
+        item.pointer  = !item.pointer;
+        item.iconPath =  item.pointer 
+              ? new vscode.ThemeIcon('triangle-right') : undefined;
+          if(sideBarVisible && item.pointer) {
+            treeView.reveal(item, {select: true, focus: true});
+            walk(item, mark, true, true);
+            return;
+          }
+        }
+        sidebarProvider.refresh(item);
+      }
+    }
     for (const child of item.children ?? []) {
-      walk(child, mark, match);
+      walk(child, mark, match, expand);
     }
   }
   for (const item of rootTree ?? []) {
@@ -212,17 +225,19 @@ export function updatePointer(mark:mrks.Mark, match: boolean) {
 }
 
 let focusedItem: Item | null = null;
+let sideBarVisible: boolean = false;
 
 export function chgItemFocus(selection: Item | null) {
   focusedItem = selection;
 }
 
 export function chgSidebarVisibility(visible: boolean) {
+  sideBarVisible = visible;
   if(!visible) focusedItem = null;
 }
 
 export async function markClickCmd() { 
-  if (focusedItem?.mark) await mrks.revealMark(focusedItem.mark);
+  if (focusedItem?.mark) await mrks.revealMark(focusedItem.mark, true);
 }
 
 export function updateSidebar() {

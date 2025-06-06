@@ -123,7 +123,6 @@ export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
     !sett.includeFile(fsPath)) return;
   const marks = mrks.getMarks({fsPath});
   for(const selection of event.selections) {
-    if (selection.isEmpty) continue;
     for(const mark of marks) {
       const markLine = mark.getStartLine();
       const match = markLine >= selection.start.line  && 
