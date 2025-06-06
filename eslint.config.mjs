@@ -6,11 +6,12 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // Define __dirname for ES module
 
 export default [{
-    files: ["**/src/*.ts"],
+    files: ["**/src/*.ts", 'package.json'],
     ignores: [
         "**/node_modules/**",
         "**/out/**",
-        "!**/src/*.ts"
+        "!**/src/*.ts",
+        '!package.json'
     ],
     plugins: {
         "@typescript-eslint": typescriptEslint,

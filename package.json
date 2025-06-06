@@ -121,7 +121,7 @@
         },
         "function-marks.includeSubFunctions": {
           "type": "boolean",
-          "default": false,
+          "default": false
           "order": 3,
           "description": "Include nested functions when marking with a selection."
         },

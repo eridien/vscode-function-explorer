@@ -12,19 +12,20 @@ import { get } from 'http';
 import { Dir } from 'fs';
 const {log, start, end} = utils.getLog('side');
 
-let treeView     : vscode.TreeView<Item>;
+let treeView       : vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
+let rootTree       : Item[] | null = null;
 
-export function init() {
-  sidebarProvider = new SidebarProvider();
-  treeView = vscode.window.createTreeView('sidebarView', {
-    treeDataProvider: sidebarProvider,
-  });
+export function init(treeViewIn: vscode.TreeView<Item>, 
+                     sidebarProviderIn: SidebarProvider) {
+  treeView        = treeViewIn;
+  sidebarProvider = sidebarProviderIn;
 }
 
 class Item extends vscode.TreeItem {
   wsFolder?:   vscode.WorkspaceFolder;
   mark?:       mrks.Mark;
+  pointer?:    boolean;
   children?:   Item[];
 }
 
@@ -34,6 +35,10 @@ export class SidebarProvider {
   constructor() {
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
+  }
+  refresh(item?: Item): void {
+    // @ts-ignore
+    this._onDidChangeTreeData.fire(item);
   }
   getTreeItem(item: Item): Item {
     return item;
@@ -55,8 +60,7 @@ let showingBusy = false;
 export function setBusy(busy: boolean, blinking = false) {
   if (treeView) 
       treeView.message = busy ? '⟳ Processing Bookmarks ...' : '';
-  // @ts-ignore
-  sidebarProvider._onDidChangeTreeData!.fire();
+  sidebarProvider.refresh();
   if(blinking) return;
   if(busy && !showingBusy) {
     showingBusy = true;
@@ -157,11 +161,11 @@ function getMarkItem(mark: mrks.Mark) {
   const item = new Item(mark.name, vscode.TreeItemCollapsibleState.None);
   Object.assign(item, {id: mark.id, contextValue:'mark', mark});
   const activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor                                        && 
-    activeEditor.document.uri.scheme === 'file'           &&
-    mark.getFsPath() === activeEditor.document.uri.fsPath &&
-    mark.getStartLine() === activeEditor.selection.active.line) 
-  item.iconPath = new vscode.ThemeIcon('triangle-right');
+  item.pointer = activeEditor                                  && 
+      activeEditor.document.uri.scheme === 'file'              &&
+      mark.getFsPath()    === activeEditor.document.uri.fsPath &&
+      mark.getStartLine() === activeEditor.selection.active.line;
+  if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
   item.command = {
     command: 'vscode-function.itemClickCmd',
     title:   'Item Clicked',
@@ -180,9 +184,26 @@ async function getItemTree() {
   const promises = wsFolders.map(async (wsFolder) => {
     return await getWsFolderItem(wsFolder);
   });
-  const rootTree = await Promise.all(promises);
+  rootTree = await Promise.all(promises);
   end('getItemTree');
   return rootTree;
+}
+
+export function updatePointer(mark:mrks.Mark, match: boolean) {
+  function walk(item: Item, mark: mrks.Mark, match: boolean) {
+    if (item.id === mark.id && item.pointer !== match) {
+      item.pointer  = !item.pointer;
+      item.iconPath =  item.pointer ? new vscode.ThemeIcon('triangle-right')
+                                    : undefined;
+      sidebarProvider.refresh(item);
+    }
+    for (const child of item.children ?? []) {
+      walk(child, mark, match);
+    }
+  }
+  for (const item of rootTree ?? []) {
+    walk(item, mark, match);
+  }
 }
 
 export function itemClick(item: Item) {
@@ -204,6 +225,5 @@ export function itemClick(item: Item) {
 }
 
 export function updateSidebar() {
-  // @ts-ignore
-  sidebarProvider._onDidChangeTreeData!.fire();
+  sidebarProvider.refresh();
 }

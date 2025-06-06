@@ -32,8 +32,22 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  const sidebarProvider = new sidebar.SidebarProvider();
+  const treeView = vscode.window.createTreeView('sidebarView', {
+    treeDataProvider: sidebarProvider,
+  });
+
+  const chgSidebarVisibility = treeView.onDidChangeVisibility(event => {
+    cmds.chgSidebarVisibility(event.visible);
+  });
+
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
+
+  const chgEditorSel = vscode.window.onDidChangeTextEditorSelection(event => {
+    if (event.textEditor?.document.uri.scheme !== 'file') return;
+    cmds.chgEditorSel(event);
+  });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
     if (vscode.window.activeTextEditor &&
@@ -46,12 +60,13 @@ export async function activate(context: vscode.ExtensionContext) {
   await mrks.activate(context);
   await mrks.waitForInit();
   await mrks.initMarks();
-  sidebar.init();
+  sidebar.init(treeView, sidebarProvider);
   gutt.activate(context);
   cmds.updateSide();
 
 	context.subscriptions.push(
-    toggle, prev, next, loadSettings, textChg, editorChg);
+    toggle, prev, next, loadSettings, textChg, editorChg,
+    chgSidebarVisibility, chgEditorSel);
 
   end('extension');
 }
