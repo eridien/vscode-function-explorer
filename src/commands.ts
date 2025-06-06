@@ -133,13 +133,6 @@ export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
   }
 }
 
-export function chgSidebarVisibility(visible: boolean) {
-  if(visible) {
-    // setBusy(true);
-    side.updateSidebar();
-  }
-}
-
 export function updateSide() {
   side.updateSidebar();
   gutt.updateGutter();

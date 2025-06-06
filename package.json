@@ -23,24 +23,33 @@
     "commands": [
       {
         "command": "vscode-function-marks.toggle",
-        "title": "Toggle Function Marks",
+        "title": "Toggle Function Mark(s)",
         "when": "editorTextFocus"
       },
       {
         "command": "vscode-function-marks.prev",
-        "title": "Previous Function Mark",
+        "title": "Jump to previous Function Mark",
         "when": "editorTextFocus"
       },
       {
         "command": "vscode-function-marks.next",
-        "title": "Next Function Mark",
+        "title": "Jump to next Function Mark",
         "when": "editorTextFocus"
       },
       {
-        "command": "vscode-function-marks.itemClickCmd",
-        "title": "Go To Bookmark",
-        "category": "Function Marks",
-        "arguments": [ "sidebar" ]
+        "command": "vscode-function-marks.expandCollapseItems",
+        "title": "Collapse or expand all folders and files below the selected item in the function marks explorer.",
+        "category": "Function Marks"
+      },
+      {
+        "command": "vscode-function-marks.toggleUnmarkedVisibility",
+        "title": "Toggle showing all functions in the explorer file versus just marked functions.",
+        "category": "Function Marks"
+      },
+      {
+        "command": "vscode-function-marks.markClickCmd",
+        "title": "First click opens the file in an editor and jumps to the marked function. Clicks after that toggle the mark.",
+        "category": "Function Marks"
       }
     ],
     "keybindings": [

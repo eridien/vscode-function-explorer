@@ -112,7 +112,7 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
   Object.assign(item, {id, contextValue:'wsFolder', 
                        iconPath, label, children});
   item.command = {
-    command:   'vscode-function.itemClickCmd',
+    command:   'vscode-function.workspaceFolderClickCmd',
     title:     'Item Clicked',
     arguments: [id],
   };
@@ -131,12 +131,12 @@ async function getFolderItem(folderFsPath: string) {
   if(children.length === 0) return null;
   const folderUri = vscode.Uri.file(folderFsPath);
   const label     = folderUri.path.split('/').pop() ?? folderUri.path;
-  const item      = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
+  const item      = new Item(label, vscode.TreeItemCollapsibleState.Collapsed);
   item.id         = folderFsPath;
   const iconPath  = new vscode.ThemeIcon('folder');
   Object.assign(item, {contextValue:'folder', children, iconPath});
   item.command = {
-    command:   'vscode-function.itemClickCmd',
+    command:   'vscode-function.folderClickCmd',
     title:     'Item Clicked',
     arguments: [item.id],
   };
@@ -155,7 +155,7 @@ function getFileItem(fsPath: string) {
   const iconPath = new vscode.ThemeIcon('file');
   Object.assign(item, {contextValue:'file', children, iconPath});
   item.command = {
-    command:   'vscode-function.itemClickCmd',
+    command:   'vscode-function.fileClickCmd',
     title:     'Item Clicked',
     arguments: [item.id],
   };
@@ -172,7 +172,7 @@ function getMarkItem(mark: mrks.Mark) {
       mark.getStartLine() === activeEditor.selection.active.line;
   if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
   item.command = {
-    command: 'vscode-function.itemClickCmd',
+    command: 'vscode-function-marks.markClickCmd',
     title:   'Item Clicked',
     arguments: [item.id],
   };
@@ -211,22 +211,18 @@ export function updatePointer(mark:mrks.Mark, match: boolean) {
   }
 }
 
-export function itemClick(item: Item) {
-  log('itemClick');
-  // if(item === undefined) {
-  //   item = treeView.selection[0];
-  //   if (!item) { log('info err', 'No Bookmark Selected'); return; }
-  // }
-  // // text.clearDecoration();
-  // switch(item.contextValue) {
-  //   case 'folder': toggleFolder(item); break;
-  //   case 'file':
-  //     if(!item.mark) return;
-  //     await vscode.window.showTextDocument(
-  //                              item.mark.document, {preview: false});
-  //     break;
-  //   case 'mark': mrks.markItemClick(item); break;
-  // }
+let focusedItem: Item | null = null;
+
+export function chgItemFocus(selection: Item | null) {
+  focusedItem = selection;
+}
+
+export function chgSidebarVisibility(visible: boolean) {
+  if(!visible) focusedItem = null;
+}
+
+export async function markClickCmd() { 
+  if (focusedItem?.mark) await mrks.revealMark(focusedItem.mark);
 }
 
 export function updateSidebar() {

@@ -25,6 +25,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.next();
 	});
 
+	const markClickCmd = vscode.commands.registerCommand(
+                   'vscode-function-marks.markClickCmd', async () => {
+		await sidebar.markClickCmd();
+	});
+
   const loadSettings = vscode.workspace.onDidChangeConfiguration(event => {
     if (event.affectsConfiguration('function-marks')) {
       sett.loadSettings();
@@ -38,7 +43,13 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const chgSidebarVisibility = treeView.onDidChangeVisibility(event => {
-    cmds.chgSidebarVisibility(event.visible);
+    sidebar.chgSidebarVisibility(event.visible);
+  });
+
+  const chgItemFocus = treeView.onDidChangeSelection(event => {
+    if (event.selection.length > 0) {
+      sidebar.chgItemFocus(event.selection[0]);
+    }
   });
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
@@ -66,7 +77,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg,
-    chgSidebarVisibility, chgEditorSel);
+    chgSidebarVisibility, chgItemFocus, chgEditorSel, markClickCmd);
 
   end('extension');
 }
