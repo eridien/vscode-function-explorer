@@ -1,10 +1,11 @@
 import * as vscode       from 'vscode';
 import * as cmds         from './commands';
 import * as mrks         from './marks';
-import * as side      from './sidebar';
+import * as file         from './files';
+import * as side         from './sidebar';
+import {SidebarProvider} from './sidebar';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
-import {SidebarProvider} from './classes';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
 
@@ -31,10 +32,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		await side.markClickCmd();
 	});
 
-  const loadSettings = vscode.workspace.onDidChangeConfiguration(event => {
+  const loadSettings = vscode.workspace
+                             .onDidChangeConfiguration(async event => {
     if (event.affectsConfiguration('function-marks')) {
       sett.loadSettings();
-      side.refreshItems();
+      file.setFileWatcher();
+      await cmds.updateSide();
     }
   });
 
@@ -70,18 +73,24 @@ export async function activate(context: vscode.ExtensionContext) {
 
 /*
 loadSettings 
-side.activate
-mrks.activate
+gutt.activate(context);
+file.setFileWatcher
+marks activate
   loadMarkStorage
+sidebar activate
+cmds.activate
   updateSide
+    updateMarksInFile
     refreshItems()
     updateGutter
 */
 
   sett.loadSettings();
   gutt.activate(context);
-  side.activate(treeView, sidebarProvider);
+  file.setFileWatcher();
   await mrks.activate(context);
+  side.activate(treeView, sidebarProvider);
+  await cmds.activate();
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg,

@@ -61,31 +61,3 @@ export class Item extends vscode.TreeItem {
   pointer?:    boolean;
   children?:   Item[];
 }
-
-let rootTree : Item[] | null = null;
-export function setRootTree(tree: Item[] | null) {
-  rootTree = tree;
-}
-
-export class SidebarProvider {
-  onDidChangeTreeData:               vscode.Event<Item        | undefined>;
-  private _onDidChangeTreeData = new vscode.EventEmitter<Item | undefined>();
-
-  constructor() {
-    this._onDidChangeTreeData = new vscode.EventEmitter();
-    this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
-  }
-  
-  refresh(item: Item | undefined): void {
-    this._onDidChangeTreeData.fire(item);
-  }
-
-  getTreeItem(item: Item): Item {
-    return item;
-  }
-
-  getChildren(item: Item): Item[] {
-    if(!item) return rootTree ?? [];
-    return item.children      ?? [];
-  }
-}

@@ -9,7 +9,6 @@ import {settings}   from './settings';
 import * as sett    from './settings';
 import {Mark, Item} from './classes';
 import * as utils   from './utils.js';
-import { updateSide } from './commands';
 const {log, start, end} = utils.getLog('mrks');
 
 const LOAD_MARKS_ON_START = true;
@@ -24,11 +23,6 @@ export async function activate(contextIn: vscode.ExtensionContext) {
   start('activate marks');
   context = contextIn;
   await loadMarkStorage();
-  const activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor && 
-      activeEditor.document.uri.scheme === 'file' &&
-      sett.includeFile(activeEditor.document.uri.fsPath))
-    await updateSide({forceRefreshAll: true});
   end('activate marks');
 }
 
@@ -36,7 +30,7 @@ let marksById:     Map<string, Mark> = new Map();
 let marksByFsPath: Map<string, Map<string, Mark>> = new Map();
 
 export function setMarkInMaps(mark: Mark): boolean {
-  mark.missing = false; 
+  mark.missing  = false; 
   const fsPath  = mark.getFsPath();
   const oldMark = marksById.get(mark.id!);
   if(oldMark) mark.enabled = oldMark.enabled; 
@@ -50,11 +44,8 @@ export function setMarkInMaps(mark: Mark): boolean {
   return !oldMark || !mark.equalsPos(oldMark);
 }
 
-let lastMarkName: Mark | null = null;
-
 export async function updateMarksInFile(
-                document: vscode.TextDocument | null = null) :
-                Promise<Mark[] | undefined> {
+        document: vscode.TextDocument|null = null): Promise<Mark[]> {
   start('updateMarksInFile');
   const updatedMarks: Mark[] = [];
   if(!document) {
@@ -63,8 +54,7 @@ export async function updateMarksInFile(
   }
   if(!document) return [];
   const uri = document.uri;
-  if(uri.scheme !== 'file' || 
-    !sett.includeFile(uri.fsPath)) return [];
+  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return [];
   const docText = document.getText();
   if (!docText || docText.length === 0) return [];
   const docMarks = marksByFsPath.get(document.uri.fsPath);
@@ -75,7 +65,7 @@ export async function updateMarksInFile(
       ast = acorn.parse(docText, { ecmaVersion: 'latest' });
   } catch (err) {
     log('err', 'parse error', (err as any).message);
-    return undefined;
+    return [];
   }
   const marks: Mark[] = [];
   function addMark(name: string, type: string, start: number, end: number) {
@@ -157,26 +147,17 @@ export async function updateMarksInFile(
     if(setMarkInMaps(mark)) updatedMarks.push(mark);
   }
   await saveMarkStorage();
-  const indexesToRemove = new Set<number>();
-  for(const mark1 of updatedMarks) {
-    updatedMarks.forEach((mark2, idx) => {
-      if(mark1.id !== mark2.id &&
-         mark2.getFsPath().startsWith(mark1.getFsPath())) 
-        indexesToRemove.add(idx);
-    });
-  }
-  const idxs = Array.from(indexesToRemove);
-  idxs.sort((a, b) => b - a);
-  for(const idx of idxs) updatedMarks.splice(idx, 1);
   end('updateMarksInFile', false);
   return updatedMarks;
 }
 
-export async function updateMarksInAllFiles() {
+export async function updateMarksInAllFiles(): Promise<Mark[]> {
+  let updatedMarks: Mark[] = [];
   for (const file of await sett.getAllFiles()) {
     const document = await vscode.workspace.openTextDocument(file);
-    await updateMarksInFile(document);
+    updatedMarks = updatedMarks.concat(await updateMarksInFile(document));
   }
+  return updatedMarks;
 }
 
 export function getMarks(p: any | {} = {}) : Mark[] {
@@ -216,9 +197,8 @@ export function getSortedMarks(p: any = {}) : Mark[] {
     });
   } 
   if (alpha) {
-    if(reverse)
-      return marks.sort((a, b) => b.name.localeCompare(a.name));
-    return marks.sort((a, b) => a.name.localeCompare(b.name));
+    if(reverse) return marks.sort((a, b) => b.name.localeCompare(a.name));
+    else        return marks.sort((a, b) => a.name.localeCompare(b.name));
   }
   return marks.sort((a, b) =>
     reverse? b.start - a.start : a.start - b.start
@@ -245,7 +225,7 @@ export function getMarksBetweenLines(fsPath: string,
   let matches: Mark[] = [];
   for(const mark of marks) {
     const markStartLine = mark.getStartLine();
-    if(markStartLine > endLine) break;
+    if(markStartLine >  endLine) break;
     if(markStartLine >= startLine) matches.push(mark);
   }
   if(!settings.includeSubFunctions) {
@@ -257,8 +237,9 @@ export function getMarksBetweenLines(fsPath: string,
     const subMarks = [];
     for(const mark of matches) {
       const depth = mark.parents!.length;
-      if(!mark.missing && (depth == minDepth ||
-        (overRideSubChk && mark.enabled))) subMarks.push(mark);
+      if(!mark.missing && mark.enabled &&
+            (depth == minDepth || overRideSubChk)) 
+        subMarks.push(mark);
     }
     return subMarks;
   }
@@ -283,8 +264,8 @@ export async function revealMark(mark: Mark, selection = false) {
   const editor = await vscode.window.showTextDocument(
                           mark.document, { preview: true });
   const position = mark.document.positionAt(mark.start);
-  const range = new vscode.Range(position.line, 0, position.line, 0);
-  editor.revealRange( range, settings.scrollPosition );
+  const range    = new vscode.Range(position.line, 0, position.line, 0);
+  editor.revealRange(range, settings.scrollPosition);
   if(selection) 
     editor.selection = new vscode.Selection(range.start, range.end);
 }
@@ -302,9 +283,9 @@ function deleteMarkFromFileSet(mark: Mark) {
 }
 
 function verifyMark(mark: Mark): boolean {
-  const document      = mark.document;
+  const document  = mark.document;
   const startLine = mark.getStartLine();
-  const numLines      = document.lineCount;
+  const numLines  = document.lineCount;
   if(startLine < 0 || startLine >= numLines) {
     log('err', 'verifyMark, line number out of range',
                 mark.getFsPath(), startLine);

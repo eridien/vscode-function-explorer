@@ -8,6 +8,14 @@ import {Mark, Item} from './classes';
 import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
+export async function activate() {
+  const activeEditor = vscode.window.activeTextEditor;
+  if (activeEditor && 
+      activeEditor.document.uri.scheme === 'file' &&
+      sett.includeFile(activeEditor.document.uri.fsPath))
+    await updateSide({forceRefreshAll: true});
+}
+
 export async function toggle() {
   log('toggle');
   const editor = vscode.window.activeTextEditor;
