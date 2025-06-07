@@ -2,12 +2,14 @@
 // https://github.com/acornjs/acorn/tree/master/acorn-loose/
 // https://github.com/acornjs/acorn/tree/master/acorn-walk/
 
-import vscode      from 'vscode';
-import * as acorn  from "acorn-loose";
-import * as walk   from 'acorn-walk';
-import {settings}  from './settings';
-import * as sett   from './settings';
-import * as utils  from './utils.js';
+import vscode       from 'vscode';
+import * as acorn   from "acorn-loose";
+import * as walk    from 'acorn-walk';
+import {settings}   from './settings';
+import * as sett    from './settings';
+import {Mark, Item} from './classes';
+import * as utils   from './utils.js';
+import { updateSide } from './commands';
 const {log, start, end} = utils.getLog('mrks');
 
 const LOAD_MARKS_ON_START = true;
@@ -17,44 +19,23 @@ const VERIFY_MARKS_IN_DUMP = true;
 // const VERIFY_MARKS_IN_DUMP = false;
 
 let context: vscode.ExtensionContext;
-let initFinished = false;
 
 export async function activate(contextIn: vscode.ExtensionContext) {
-  start('init marks');
+  start('activate marks');
   context = contextIn;
   await loadMarkStorage();
-  initFinished = true;
-  end('init marks');
-}
-
-export function waitForInit() {
-  if (initFinished) return Promise.resolve();
-  return new Promise((resolve: any) => {
-    const checkInit = () => {
-      if (initFinished) { resolve(); } 
-      else { setTimeout(checkInit, 50); }
-    };
-    checkInit();
-  });
-}
-
-export async function initMarks() {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath))
-    await updateMarksInFile();
-}
-
-export function createSortKey(fsPath: string, lineNumber: number): string {
-  return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
+    await updateSide({forceRefreshAll: true});
+  end('activate marks');
 }
 
 let marksById:     Map<string, Mark> = new Map();
 let marksByFsPath: Map<string, Map<string, Mark>> = new Map();
 
-// does not filter
-export function setMarkInMaps(mark: Mark) {
+export function setMarkInMaps(mark: Mark): boolean {
   mark.missing = false; 
   const fsPath  = mark.getFsPath();
   const oldMark = marksById.get(mark.id!);
@@ -66,23 +47,26 @@ export function setMarkInMaps(mark: Mark) {
     marksByFsPath.set(fsPath, markMap);
   }
   markMap.set(mark.id!, mark);
+  return !oldMark || !mark.equalsPos(oldMark);
 }
 
 let lastMarkName: Mark | null = null;
 
 export async function updateMarksInFile(
-                document: vscode.TextDocument | null = null) {
+                document: vscode.TextDocument | null = null) :
+                Promise<Mark[] | undefined> {
   start('updateMarksInFile');
+  const updatedMarks: Mark[] = [];
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
     if(activeEditor) document = activeEditor.document;
   }
-  if(!document) return;
+  if(!document) return [];
   const uri = document.uri;
   if(uri.scheme !== 'file' || 
-    !sett.includeFile(uri.fsPath)) return;
+    !sett.includeFile(uri.fsPath)) return [];
   const docText = document.getText();
-  if (!docText || docText.length === 0) return;
+  if (!docText || docText.length === 0) return [];
   const docMarks = marksByFsPath.get(document.uri.fsPath);
   for (const mark of (docMarks ? docMarks.values() : [])) 
     mark.missing = true;
@@ -91,7 +75,7 @@ export async function updateMarksInFile(
       ast = acorn.parse(docText, { ecmaVersion: 'latest' });
   } catch (err) {
     log('err', 'parse error', (err as any).message);
-    return;
+    return undefined;
   }
   const marks: Mark[] = [];
   function addMark(name: string, type: string, start: number, end: number) {
@@ -170,10 +154,22 @@ export async function updateMarksInFile(
       id += parent.name + "\x00" + parent.type + "\x00";
     id += mark.getFsPath();
     mark.id = id;
-    setMarkInMaps(mark);
+    if(setMarkInMaps(mark)) updatedMarks.push(mark);
   }
   await saveMarkStorage();
+  const indexesToRemove = new Set<number>();
+  for(const mark1 of updatedMarks) {
+    updatedMarks.forEach((mark2, idx) => {
+      if(mark1.id !== mark2.id &&
+         mark2.getFsPath().startsWith(mark1.getFsPath())) 
+        indexesToRemove.add(idx);
+    });
+  }
+  const idxs = Array.from(indexesToRemove);
+  idxs.sort((a, b) => b - a);
+  for(const idx of idxs) updatedMarks.splice(idx, 1);
   end('updateMarksInFile', false);
+  return updatedMarks;
 }
 
 export async function updateMarksInAllFiles() {

@@ -24,6 +24,10 @@ export function getRelPath(wsFolder: vscode.WorkspaceFolder,
   return relPath;
 }
 
+export function createSortKey(fsPath: string, lineNumber: number): string {
+  return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
+}
+
 const outputChannel = vscode.window.createOutputChannel('function-marks');
 
 export function getLog(module: string) : {

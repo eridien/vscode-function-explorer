@@ -7,21 +7,20 @@ import * as path   from 'path';
 import * as mrks   from './marks';
 import * as sett   from './settings';
 import {settings}  from './settings';
+import {Mark, Item, SidebarProvider, setRootTree} 
+                   from './classes';
 import * as utils  from './utils.js';
-import { get } from 'http';
-import { Dir } from 'fs';
 const {log, start, end} = utils.getLog('side');
 
 let treeView       : vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
 let rootTree       : Item[] | null = null;
 
-export function init(treeViewIn: vscode.TreeView<Item>, 
-                     sidebarProviderIn: SidebarProvider) {
+export function activate(treeViewIn: vscode.TreeView<Item>, 
+                         sidebarProviderIn: SidebarProvider) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
 }
-
 
 let intervalId: NodeJS.Timeout | null = null;
 let timeoutId:  NodeJS.Timeout | null = null;
@@ -30,7 +29,7 @@ export let showingBusy = false;
 export function setBusy(busy: boolean, blinking = false) {
   if (treeView) 
       treeView.message = busy ? '⟳ Processing Bookmarks ...' : '';
-  sidebarProvider.refresh();
+  sidebarProvider.refresh(undefined);
   if(blinking) return;
   if(busy && !showingBusy) {
     showingBusy = true;
@@ -131,7 +130,7 @@ function getFileItem(fsPath: string) {
   return item;
 };
 
-function getMarkItem(mark: mrks.Mark) {
+export function getMarkItem(mark: Mark) {
   const item = new Item(mark.name, vscode.TreeItemCollapsibleState.None);
   mark.item = item;
   Object.assign(item, {id: mark.id, contextValue:'mark', mark});
@@ -160,17 +159,14 @@ export async function getItemTree() {
     return await getWsFolderItem(wsFolder);
   });
   rootTree = await Promise.all(promises);
+  setRootTree(rootTree);
   end('getItemTree');
   return rootTree;
 }
 
-export function findItemInTree(id: string): Item | null {
-
-}
-
-export function updatePointer(mark:mrks.Mark, match: boolean) {
+export function updatePointer(mark:Mark, match: boolean) {
   let firstItemExpanded:Item | null = null;
-  function walk(item: Item, mark: mrks.Mark, match: boolean, expand = false) {
+  function walk(item: Item, mark: Mark, match: boolean, expand = false) {
     if (expand) { 
       if(!firstItemExpanded &&
           item.collapsibleState !== vscode.TreeItemCollapsibleState.Expanded) {
@@ -226,7 +222,7 @@ export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
       const match = markLine >= selection.start.line  && 
                     markLine <= selection.end.line;
       updatePointer(mark, match);
-      if(match) continue selLoop;
+      // if(match) continue selLoop;
     }
   }
 }
@@ -247,6 +243,10 @@ export async function markClickCmd() {
   if (focusedItem?.mark) await mrks.revealMark(focusedItem.mark, true);
 }
 
-export function updateSidebar() {
-  sidebarProvider.refresh();
+export function refreshItems(items: Item[] | undefined) {
+  if (items) {
+    for (const item of items) sidebarProvider.refresh(item);
+    return;
+  }
+  sidebarProvider.refresh(undefined);
 }

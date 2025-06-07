@@ -1,10 +1,11 @@
-import * as vscode  from 'vscode';
-import * as cmds    from './commands';
-import * as mrks    from './marks';
-import * as sidebar from './sidebar';
-import * as gutt    from './gutter';
-import * as sett    from './settings';
-import * as utils   from './utils';
+import * as vscode       from 'vscode';
+import * as cmds         from './commands';
+import * as mrks         from './marks';
+import * as side      from './sidebar';
+import * as gutt         from './gutter';
+import * as sett         from './settings';
+import {SidebarProvider} from './classes';
+import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -27,28 +28,28 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const markClickCmd = vscode.commands.registerCommand(
                    'vscode-function-marks.markClickCmd', async () => {
-		await sidebar.markClickCmd();
+		await side.markClickCmd();
 	});
 
   const loadSettings = vscode.workspace.onDidChangeConfiguration(event => {
     if (event.affectsConfiguration('function-marks')) {
       sett.loadSettings();
-      sidebar.updateSidebar();
+      side.refreshItems();
     }
   });
 
-  const sidebarProvider = new sidebar.SidebarProvider();
+  const sidebarProvider = new SidebarProvider();
   const treeView = vscode.window.createTreeView('sidebarView', {
     treeDataProvider: sidebarProvider,
   });
 
   const chgSidebarVisibility = treeView.onDidChangeVisibility(event => {
-    sidebar.chgSidebarVisibility(event.visible);
+    side.chgSidebarVisibility(event.visible);
   });
 
   const chgItemFocus = treeView.onDidChangeSelection(event => {
     if (event.selection.length > 0) {
-      sidebar.chgItemFocus(event.selection[0]);
+      side.chgItemFocus(event.selection[0]);
     }
   });
 
@@ -57,7 +58,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const chgEditorSel = vscode.window.onDidChangeTextEditorSelection(event => {
     if (event.textEditor?.document.uri.scheme !== 'file') return;
-    cmds.chgEditorSel(event);
+    side.chgEditorSel(event);
   });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
@@ -67,13 +68,20 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+/*
+loadSettings 
+side.activate
+mrks.activate
+  loadMarkStorage
+  updateSide
+    refreshItems()
+    updateGutter
+*/
+
   sett.loadSettings();
-  await mrks.activate(context);
-  await mrks.waitForInit();
-  await mrks.initMarks();
-  sidebar.init(treeView, sidebarProvider);
   gutt.activate(context);
-  cmds.updateSide();
+  side.activate(treeView, sidebarProvider);
+  await mrks.activate(context);
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg,

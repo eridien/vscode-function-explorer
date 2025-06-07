@@ -1,7 +1,4 @@
 import * as vscode from 'vscode';
-import * as side   from './sidebar';
-import * as gutt   from './gutter';
-import * as mrks   from './marks';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
@@ -32,10 +29,6 @@ export class Mark {
     this.enabled   = false;
     this.missing   = false;
   }
-  setEnabled(enabled: boolean) { 
-    this.enabled = enabled; 
-    mrks.setMarkInMaps(this);
-  }
   getWsFolder()  { 
     this.wsFolder ??= vscode.workspace
                             .getWorkspaceFolder(this.document.uri);
@@ -52,10 +45,14 @@ export class Mark {
                           this.document.positionAt(this.start).line;   }
   getEndLine()   { return this.endLine   ??= 
                           this.document.positionAt(this.end).line;     }
-  getStartKey()  { return this.startKey  ??= mrks.createSortKey( 
+  getStartKey()  { return this.startKey  ??= utils.createSortKey( 
                           this.getFsPath(), this.getStartLine());      }
-  getEndKey()    { return this.endKey    ??= mrks.createSortKey(
+  getEndKey()    { return this.endKey    ??= utils.createSortKey(
                           this.getFsPath(), this.getEndLine());        }
+  equalsPos(mark:Mark) { 
+    return (this.start === mark.start &&
+            this.end   === mark.end);
+  }
 }
 
 export class Item extends vscode.TreeItem {
@@ -65,27 +62,30 @@ export class Item extends vscode.TreeItem {
   children?:   Item[];
 }
 
+let rootTree : Item[] | null = null;
+export function setRootTree(tree: Item[] | null) {
+  rootTree = tree;
+}
+
 export class SidebarProvider {
-  onDidChangeTreeData:          vscode.Event<Item>;
-  private _onDidChangeTreeData: vscode.EventEmitter<Item>;
+  onDidChangeTreeData:               vscode.Event<Item        | undefined>;
+  private _onDidChangeTreeData = new vscode.EventEmitter<Item | undefined>();
+
   constructor() {
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
   }
-  refresh(item?: Item): void {
-    // @ts-ignore
+  
+  refresh(item: Item | undefined): void {
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(item: Item): Item {
     return item;
   }
-  async getChildren(item: Item): Promise<Item[]> {
-    if (side.showingBusy) return [];
-    if(!item) {
-      await mrks.waitForInit();
-      return await side.getItemTree() ?? [];
-    }
-    return item.children ?? [];
+
+  getChildren(item: Item): Item[] {
+    if(!item) return rootTree ?? [];
+    return item.children      ?? [];
   }
 }

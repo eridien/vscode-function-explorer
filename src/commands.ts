@@ -1,11 +1,11 @@
-import * as vscode from 'vscode';
-import * as side   from './sidebar';
-import * as gutt   from './gutter';
-import * as mrks   from './marks';
-import {Mark}      from './marks';
-import * as sett   from './settings';
-import {settings}  from './settings';
-import * as utils  from './utils';
+import * as vscode  from 'vscode';
+import * as sbar    from './sidebar';
+import * as gutt    from './gutter';
+import * as mrks    from './marks';
+import * as sett    from './settings';
+import {settings}   from './settings';
+import {Mark, Item} from './classes';
+import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
 export async function toggle() {
@@ -39,18 +39,18 @@ export async function toggle() {
       enable = enabledCount/marks.length < 0.5;
     }
     marks.forEach(mark => {
-      mark.setEnabled(enable!);
+      mark.enabled = !mark.enabled;
       if(enable && mark.start < minMarkStart) {
         minMarkStart = mark.start;
         firstMark    = mark;
       }
     });
   }
-  updateSide();
+  await updateSide({dontUpdateMarks: true});
   await mrks.saveMarkStorage();
   if(firstMark) await mrks.revealMark(firstMark);
 }
-// getStartKey() 
+
 async function prevNext(next: boolean) {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor && 
@@ -63,7 +63,7 @@ async function prevNext(next: boolean) {
     const marks = mrks.getSortedMarks(sortArgs);
     if(marks.length == 0) return;
     const selFsPath = (fileWrap ? fsPath : '');
-    const selKey = mrks.createSortKey(
+    const selKey = utils.createSortKey(
           selFsPath, activeEditor.selection.active.line);
     let mark: Mark;
     for(let i = (next? 0 : marks.length-1); 
@@ -74,7 +74,7 @@ async function prevNext(next: boolean) {
       if(next ? (markFsPath < selFsPath) 
               : (markFsPath > selFsPath)) continue;
       if(markFsPath !== selFsPath) break;
-      const markKey = mrks.createSortKey(
+      const markKey = utils.createSortKey(
             markFsPath, mark.getStartLine());
       if(next) {
         if(selKey < markKey) break;
@@ -103,19 +103,24 @@ export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  await mrks.updateMarksInFile(document);
-  updateSide();
+  await updateSide();
 }
 
 export async function textChg(event :vscode.TextDocumentChangeEvent) {
   const document = event.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  await mrks.updateMarksInFile(document);
-  updateSide();
+  await updateSide({document});
 }
 
-export function updateSide() {
-  side.updateSidebar();
+export async function updateSide( p:any = {}) {
+  const {dontUpdateMarks = false, forceRefreshAll = false, document} = p;
+  let updatedMarks: Mark[] | undefined = undefined;
+  let updatedItems: Item[] | undefined = undefined;
+  if(!dontUpdateMarks)
+    updatedMarks = await mrks.updateMarksInFile(document);
+  if(!forceRefreshAll && updatedMarks) 
+    updatedItems = updatedMarks.map(mark => sbar.getMarkItem(mark));
+  sbar.refreshItems(updatedItems);
   gutt.updateGutter();
 };
