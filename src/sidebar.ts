@@ -22,40 +22,10 @@ export function init(treeViewIn: vscode.TreeView<Item>,
   sidebarProvider = sidebarProviderIn;
 }
 
-class Item extends vscode.TreeItem {
-  wsFolder?:   vscode.WorkspaceFolder;
-  mark?:       mrks.Mark;
-  pointer?:    boolean;
-  children?:   Item[];
-}
-
-export class SidebarProvider {
-  onDidChangeTreeData:          vscode.Event<Item>;
-  private _onDidChangeTreeData: vscode.EventEmitter<Item>;
-  constructor() {
-    this._onDidChangeTreeData = new vscode.EventEmitter();
-    this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
-  }
-  refresh(item?: Item): void {
-    // @ts-ignore
-    this._onDidChangeTreeData.fire(item);
-  }
-  getTreeItem(item: Item): Item {
-    return item;
-  }
-  async getChildren(item: Item): Promise<Item[]> {
-    if (showingBusy) return [];
-    if(!item) {
-      await mrks.waitForInit();
-      return await getItemTree();
-    }
-    return item.children ?? [];
-  }
-}
 
 let intervalId: NodeJS.Timeout | null = null;
 let timeoutId:  NodeJS.Timeout | null = null;
-let showingBusy = false;
+export let showingBusy = false;
 
 export function setBusy(busy: boolean, blinking = false) {
   if (treeView) 
@@ -143,7 +113,6 @@ async function getFolderItem(folderFsPath: string) {
   return item;
 };
 
-// fsPath.endsWith('block.js')
 function getFileItem(fsPath: string) {
   const children = mrks.getSortedMarks(
                             {fsPath, alpha:settings.alphaSortMarks})
@@ -164,6 +133,7 @@ function getFileItem(fsPath: string) {
 
 function getMarkItem(mark: mrks.Mark) {
   const item = new Item(mark.name, vscode.TreeItemCollapsibleState.None);
+  mark.item = item;
   Object.assign(item, {id: mark.id, contextValue:'mark', mark});
   const activeEditor = vscode.window.activeTextEditor;
   item.pointer = activeEditor                                  && 
@@ -179,7 +149,7 @@ function getMarkItem(mark: mrks.Mark) {
   return item;
 };
 
-async function getItemTree() {
+export async function getItemTree() {
   start('getItemTree', true);
   const wsFolders = vscode.workspace.workspaceFolders;
   if (!wsFolders) {
@@ -194,21 +164,31 @@ async function getItemTree() {
   return rootTree;
 }
 
+export function findItemInTree(id: string): Item | null {
+
+}
+
 export function updatePointer(mark:mrks.Mark, match: boolean) {
+  let firstItemExpanded:Item | null = null;
   function walk(item: Item, mark: mrks.Mark, match: boolean, expand = false) {
     if (expand) { 
+      if(!firstItemExpanded &&
+          item.collapsibleState !== vscode.TreeItemCollapsibleState.Expanded) {
+        firstItemExpanded = item;
+      }
       item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-      sidebarProvider.refresh(item);
     }
     else {
       if (item.id === mark.id) { 
         if(item.pointer !== match) {
-        item.pointer  = !item.pointer;
-        item.iconPath =  item.pointer 
-              ? new vscode.ThemeIcon('triangle-right') : undefined;
-          if(sideBarVisible && item.pointer) {
-            treeView.reveal(item, {select: true, focus: true});
-            walk(item, mark, true, true);
+          item.pointer  = !item.pointer;
+          item.iconPath =  item.pointer 
+                ? new vscode.ThemeIcon('triangle-right') : undefined;
+          if(sideBarVisible) {
+            for (const item of rootTree ?? [])
+              walk(item, mark, true, true);
+            if(firstItemExpanded)
+              sidebarProvider.refresh(firstItemExpanded);
             return;
           }
         }
@@ -219,8 +199,35 @@ export function updatePointer(mark:mrks.Mark, match: boolean) {
       walk(child, mark, match, expand);
     }
   }
-  for (const item of rootTree ?? []) {
+  for (const item of rootTree ?? [])
     walk(item, mark, match);
+}
+
+export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
+  const editor   = event.textEditor;
+  const document = editor.document;
+  const fsPath   = document.uri.fsPath;
+  if(document.uri.scheme !== 'file' || 
+    !sett.includeFile(fsPath)) return;
+  const marks = mrks.getMarks({fsPath});
+  for(const mark of marks) {
+    if(mark.item?.pointer) {
+      mark.item.pointer = undefined;
+      break;
+    }
+  }
+
+  findLoop:
+  for(const selection of event.selections) {
+  }
+  for(const selection of event.selections) {
+    for(const mark of marks) {
+      const markLine = mark.getStartLine();
+      const match = markLine >= selection.start.line  && 
+                    markLine <= selection.end.line;
+      updatePointer(mark, match);
+      if(match) continue selLoop;
+    }
   }
 }
 

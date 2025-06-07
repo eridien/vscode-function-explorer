@@ -115,25 +115,7 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
   updateSide();
 }
 
-export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
-  const editor   = event.textEditor;
-  const document = editor.document;
-  const fsPath   = document.uri.fsPath;
-  if(document.uri.scheme !== 'file' || 
-    !sett.includeFile(fsPath)) return;
-  const marks = mrks.getMarks({fsPath});
-  for(const selection of event.selections) {
-    for(const mark of marks) {
-      const markLine = mark.getStartLine();
-      const match = markLine >= selection.start.line  && 
-                    markLine <= selection.end.line;
-      side.updatePointer(mark, match);
-    }
-  }
-}
-
 export function updateSide() {
   side.updateSidebar();
   gutt.updateGutter();
 };
-
