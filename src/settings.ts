@@ -44,18 +44,18 @@ export function loadSettings() {
   };
   includeCfg = '{'+config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                          .split(",").map(p => p.trim()).join(",")+'}';
-  excludeCfg = config.get<string>( "filesToExclude", "node_modules/**")
-                         .split(",").map(p => p.trim()).join(",");
+  excludeCfg = '{'+config.get<string>( "filesToExclude", "node_modules/**")
+                         .split(",").map(p => p.trim()).join(",")+'}';
   filesGlobPattern = `${includeCfg},!${excludeCfg}`;
 }
 
 export function includeFile(fsPath: string, folder?:boolean): boolean {
   const filePath = vscode.workspace.asRelativePath(fsPath);
   const relPath = folder ? filePath + '/' : filePath;
-  log('includeFile', `checking ${relPath} against "${
-                                 excludeCfg}", "${includeCfg}"`,
-                      minimatch(relPath, excludeCfg), 
-                      minimatch(relPath, includeCfg));
+  // log('includeFile', `checking ${relPath} against "${
+  //                                excludeCfg}", "${includeCfg}"`,
+  //                     minimatch(relPath, excludeCfg), 
+  //                     minimatch(relPath, includeCfg));
   if(minimatch(relPath, excludeCfg)) return false;
   return folder || minimatch(relPath, includeCfg);
 }
