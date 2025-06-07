@@ -151,15 +151,6 @@ export async function updateMarksInFile(
   return updatedMarks;
 }
 
-export async function updateMarksInAllFiles(): Promise<Mark[]> {
-  let updatedMarks: Mark[] = [];
-  for (const file of await sett.getAllFiles()) {
-    const document = await vscode.workspace.openTextDocument(file);
-    updatedMarks = updatedMarks.concat(await updateMarksInFile(document));
-  }
-  return updatedMarks;
-}
-
 export function getMarks(p: any | {} = {}) : Mark[] {
   const {enabledOnly = false, includeMissing = false, fsPath} = p;
   let marks;

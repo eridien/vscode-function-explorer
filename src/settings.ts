@@ -19,6 +19,8 @@ export let settings: FunctionMarksSettings = {
 };
 
 export let filesGlobPattern: string;
+let excludeCfg:              string;
+let includeCfg:              string;
 
 export function loadSettings() {
   const config = vscode.workspace.getConfiguration('function-marks');
@@ -40,17 +42,20 @@ export function loadSettings() {
     includeSubFunctions: config.get('includeSubFunctions', false),
     alphaSortMarks:      config.get('alphaSortMarks',      true)
   };
-  let includeCfg = config.get<string>(
-                              "filesToInclude", "**/*.js, **/*.ts");
-  includeCfg = includeCfg.split(",").map(p => p.trim()).join(",");
-  let excludeCfg = config.get<string>(
-                              "filesToExclude", "node_modules/**");
-  excludeCfg = excludeCfg.split(",").map(p => p.trim()).join(",");
-  excludeCfg = excludeCfg.startsWith('!') ? excludeCfg : '!' + excludeCfg;
-  filesGlobPattern = `${includeCfg},${excludeCfg}`;
+  includeCfg = '{'+config.get<string>("filesToInclude", "**/*.js, **/*.ts")
+                         .split(",").map(p => p.trim()).join(",")+'}';
+  excludeCfg = config.get<string>( "filesToExclude", "node_modules/**")
+                         .split(",").map(p => p.trim()).join(",");
+  filesGlobPattern = `${includeCfg},!${excludeCfg}`;
 }
 
-export function includeFile(fsPath: string): boolean {
+export function includeFile(fsPath: string, folder?:boolean): boolean {
   const filePath = vscode.workspace.asRelativePath(fsPath);
-  return minimatch(filePath, filesGlobPattern);
+  const relPath = folder ? filePath + '/' : filePath;
+  log('includeFile', `checking ${relPath} against "${
+                                 excludeCfg}", "${includeCfg}"`,
+                      minimatch(relPath, excludeCfg), 
+                      minimatch(relPath, includeCfg));
+  if(minimatch(relPath, excludeCfg)) return false;
+  return folder || minimatch(relPath, includeCfg);
 }

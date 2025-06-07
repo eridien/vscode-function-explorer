@@ -58,5 +58,6 @@ export class Item extends vscode.TreeItem {
   wsFolder?:   vscode.WorkspaceFolder;
   mark?:       Mark;
   pointer?:    boolean;
+  parentId?:   string;
   children?:   Item[];
 }

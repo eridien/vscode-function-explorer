@@ -78,6 +78,7 @@ file.setFileWatcher
 marks activate
   loadMarkStorage
 sidebar activate
+  getItemTree()
 cmds.activate
   updateSide
     updateMarksInFile
@@ -89,7 +90,7 @@ cmds.activate
   gutt.activate(context);
   file.setFileWatcher();
   await mrks.activate(context);
-  side.activate(treeView, sidebarProvider);
+  await side.activate(treeView, sidebarProvider);
   await cmds.activate();
 
 	context.subscriptions.push(
