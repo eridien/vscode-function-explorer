@@ -16,7 +16,6 @@ export class Mark {
   startKey?:      string;
   endKey?:        string;
   fsPath?:        string;
-  item?:          Item;
   enabled:        boolean;
   missing:        boolean;
   constructor(p:any) {

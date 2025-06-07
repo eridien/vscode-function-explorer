@@ -15,6 +15,28 @@ let treeView       : vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
 let rootTree       : Item[] | null = null;
 
+let itemsById:     Map<string, Item> = new Map();
+let itemsByFsPath: Map<string, Map<string, Item>> = new Map();
+
+export function setItemInMaps(item: Item): boolean {
+  const oldItem = itemsById.get(item.id!);
+  let fsPath: string;
+  if(item.contextValue! in ['wsFolder', 'folder', 'file']) fsPath = item.id!;
+  else fsPath = (item as Mark).getFsPath();
+  itemsById.set(item.id!, item);
+  let itemMap = itemsByFsPath.get(fsPath);
+  if (!itemMap) {
+    itemMap = new Map<string, Item>();
+    itemsByFsPath.set(fsPath, itemMap);
+  }
+  itemMap.set(item.id!, item);
+  return !oldItem ||
+         item.label            !== oldItem.label            ||
+         item.collapsibleState !== oldItem.collapsibleState ||
+         item.children?.length !== oldItem.children?.length ||
+         item.pointer          !== oldItem.pointer;
+}
+
 export function activate(treeViewIn: vscode.TreeView<Item>, 
                          sidebarProviderIn: SidebarProvider) {
   treeView        = treeViewIn;
@@ -84,6 +106,7 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
     title:     'Item Clicked',
     arguments: [id],
   };
+  setItemInMaps(item);
   return item;
 }     
 
@@ -108,6 +131,7 @@ async function getFolderItem(folderFsPath: string) {
     title:     'Item Clicked',
     arguments: [item.id],
   };
+  setItemInMaps(item);
   return item;
 };
 
@@ -126,6 +150,7 @@ function getFileItem(fsPath: string) {
     title:     'Item Clicked',
     arguments: [item.id],
   };
+  setItemInMaps(item);
   return item;
 };
 
@@ -144,6 +169,7 @@ export function getMarkItem(mark: Mark) {
     title:   'Item Clicked',
     arguments: [item.id],
   };
+  setItemInMaps(item);
   return item;
 };
 
@@ -158,7 +184,6 @@ export async function getItemTree() {
     return await getWsFolderItem(wsFolder);
   });
   rootTree = await Promise.all(promises);
-  setRootTree(rootTree);
   end('getItemTree');
   return rootTree;
 }
@@ -274,7 +299,7 @@ export class SidebarProvider {
   }
 
   getTreeItem(item: Item): Item {
-    return item;
+    return itemsById.get(item.id!) ?? item;
   }
 
   getChildren(item: Item): Item[] {
