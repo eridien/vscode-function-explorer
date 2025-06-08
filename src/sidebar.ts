@@ -7,8 +7,7 @@ import * as fs      from 'fs/promises';
 import * as path    from 'path';
 import * as fnct    from './funcs';
 import * as sett    from './settings';
-import {settings}   from './settings';
-import {Func, Item} from './classes';
+import {Item}       from './sidebar-classes';
 import * as utils   from './utils.js';
 const {log, start, end} = utils.getLog('side');
 
@@ -71,118 +70,6 @@ export function setBusy(busy: boolean, blinking = false) {
     setBusy(false, true);
   }
 }
-
-async function addFolderChildren(parentFsPath: string, 
-                                 folders: Item[], files: Item[]) {
-  const entries = await fs.readdir(parentFsPath, { withFileTypes: true });
-  for (const entry of entries) {
-    const fsPath = path.join(parentFsPath, entry.name);
-    if (entry.isDirectory()) {
-      const uri = vscode.Uri.file(fsPath);
-      if(uri.scheme !== 'file' || 
-        !sett.includeFile(fsPath, true)) continue;
-      const folderItem = await getFolderItem(fsPath);
-      if (folderItem !== null) {
-        folderItem.parentId = parentFsPath;
-        folders.push(folderItem);
-      }
-    }
-    if (entry.isFile()) {
-      const uri = vscode.Uri.file(fsPath);
-      if(uri.scheme !== 'file' || 
-        !sett.includeFile(fsPath)) continue;
-      const fileItem = getFileItem(fsPath);
-      if(fileItem !== null) {
-        fileItem.parentId = parentFsPath;
-        files.push(fileItem);
-      }
-    }
-  }
-}
-
-async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
-  const id       = wsFolder.uri.fsPath;
-  const label    = wsFolder.name;
-  const item     = new Item(label, vscode.TreeItemCollapsibleState.Expanded);
-  const iconPath = new vscode.ThemeIcon('root-folder');
-  const folders:  Item[] = [];
-  const files:    Item[] = [];
-  await addFolderChildren(wsFolder.uri.fsPath, folders, files);
-  const children = [...folders, ...files];
-  Object.assign(item, {id, contextValue:'wsFolder', 
-                       iconPath, label, children});
-  item.command = {
-    command:   'vscode-function-explorer.workspaceFolderClickCmd',
-    title:     'Item Clicked',
-    arguments: [id],
-  };
-  setItemInMaps(item);
-  return item;
-}
-
-async function getFolderItem(folderFsPath: string) {
-  const folders:  Item[] = [];
-  const files:    Item[] = [];
-  await addFolderChildren(folderFsPath, folders, files);
-  const children = [...folders, ...files];
-  if(children.length === 0) return null;
-  const folderUri = vscode.Uri.file(folderFsPath);
-  const label     = folderUri.path.split('/').pop() ?? folderUri.path;
-  const item      = new Item(label, vscode.TreeItemCollapsibleState.Collapsed);
-  item.id         = folderFsPath;
-  const iconPath  = new vscode.ThemeIcon('folder');
-  Object.assign(item, {contextValue:'folder', children, iconPath});
-  item.command = {
-    command:   'vscode-function-explorer.folderClickCmd',
-    title:     'Item Clicked',
-    arguments: [item.id],
-  };
-  setItemInMaps(item);
-  return item;
-};
-
-function getFileItem(fsPath: string) {
-  const children = fnct.getSortedFuncs(
-                            {fsPath, alpha:settings.alphaSortFuncs})
-                       .map(func => { 
-                         const item = getFuncItem(func);
-                         item.parentId! = fsPath;
-                         return item;
-                       });
-  const fileUri  = vscode.Uri.file(fsPath);
-  const label    = fileUri.path.split('/').pop() ?? fileUri.path;
-  const item     = new Item(label, vscode.TreeItemCollapsibleState.Collapsed);
-  item.id        = fsPath;
-  const iconPath = new vscode.ThemeIcon('file');
-  Object.assign(item, {contextValue:'file', children, iconPath});
-  item.command = {
-    command:   'vscode-function-explorer.fileClickCmd',
-    title:     'Item Clicked',
-    arguments: [item.id],
-  };
-  setItemInMaps(item);
-  return item;
-};
-
-export function getFuncItem(func: Func) {
-  const label = (func.marked ? '🔖' : '') + func.name;
-  log('getFuncItem', label);
-  const item = new Item(label, vscode.TreeItemCollapsibleState.None);
-  Object.assign(item, {id: func.id, contextValue:'func', func});
-  const activeEditor = vscode.window.activeTextEditor;
-  item.pointer = activeEditor                                  && 
-      activeEditor.document.uri.scheme === 'file'              &&
-      func.getFsPath()    === activeEditor.document.uri.fsPath &&
-      func.getStartLine() === activeEditor.selection.active.line;
-  // if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
-  item.command = {
-    command: 'vscode-function-explorer.funcClickCmd',
-    title:   'Item Clicked',
-    arguments: [item.id],
-  };
-  setItemInMaps(item);
-  return item;
-};
 
 export async function setInitialTree() {
   start('getItemTree', true);

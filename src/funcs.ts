@@ -7,7 +7,6 @@ import * as acorn   from "acorn-loose";
 import * as walk    from 'acorn-walk';
 import {settings}   from './settings';
 import * as sett    from './settings';
-import {Func, Item} from './classes';
 import * as utils   from './utils.js';
 const {log, start, end} = utils.getLog('func');
 
@@ -24,6 +23,58 @@ export async function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
   await loadFuncStorage();
   end('activate funcs');
+}
+
+export class Func {
+  wsFolder?:      vscode.WorkspaceFolder;
+  document:       vscode.TextDocument;
+  name:           string;
+  type:           string;
+  start:          number;
+  end:            number;
+  parents?:       Func[];
+  id?:            string;
+  startLine?:     number;
+  endLine?:       number;
+  startKey?:      string;
+  endKey?:        string;
+  fsPath?:        string;
+  marked:        boolean;
+  missing:        boolean;
+  constructor(p:any) {
+    const {document, name, type, start, end} = p;
+    this.document  = document;
+    this.name      = name;
+    this.type      = type;
+    this.start     = start;
+    this.end       = end;
+    this.marked   = false;
+    this.missing   = false;
+  }
+  getWsFolder()  { 
+    this.wsFolder ??= vscode.workspace
+                            .getWorkspaceFolder(this.document.uri);
+    if(!this.wsFolder) {
+      log('err', 'getWsFolder, func has no workspace folder', 
+                    this.name, this.getFsPath());
+      throw new Error('Func has no workspace folder');
+    }
+    return this.wsFolder;
+  }
+  getFsPath()    { return this.fsPath    ??= 
+                          this.document.uri.fsPath;                    }
+  getStartLine() { return this.startLine ??= 
+                          this.document.positionAt(this.start).line;   }
+  getEndLine()   { return this.endLine   ??= 
+                          this.document.positionAt(this.end).line;     }
+  getStartKey()  { return this.startKey  ??= utils.createSortKey( 
+                          this.getFsPath(), this.getStartLine());      }
+  getEndKey()    { return this.endKey    ??= utils.createSortKey(
+                          this.getFsPath(), this.getEndLine());        }
+  equalsPos(func:Func) { 
+    return (this.start === func.start &&
+            this.end   === func.end);
+  }
 }
 
 let funcsById:     Map<string, Func> = new Map();

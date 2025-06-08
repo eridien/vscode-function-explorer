@@ -4,7 +4,7 @@ import * as gutt    from './gutter';
 import * as fnct    from './funcs';
 import * as sett    from './settings';
 import {settings}   from './settings';
-import {Func, Item} from './classes';
+import {Func}       from './funcs';
 import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
