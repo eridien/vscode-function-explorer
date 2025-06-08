@@ -142,7 +142,11 @@ async function getFolderItem(folderFsPath: string) {
 function getFileItem(fsPath: string) {
   const children = mrks.getSortedMarks(
                             {fsPath, alpha:settings.alphaSortMarks})
-                      .map(mark => getMarkItem(mark));  
+                       .map(mark => { 
+                         const item = getMarkItem(mark);
+                         item.parentId! = fsPath;
+                         return item;
+                       });
   const fileUri  = vscode.Uri.file(fsPath);
   const label    = fileUri.path.split('/').pop() ?? fileUri.path;
   const item     = new Item(label, vscode.TreeItemCollapsibleState.Collapsed);
@@ -195,16 +199,17 @@ export async function setInitialTree() {
 export function updatePointer(mark:Mark, hasPointer: boolean) {
   let item = itemsById.get(mark.id!);
   if(item && item.pointer !== hasPointer) {
-            item.pointer   = hasPointer;
-            item.iconPath  = item.pointer 
+    item.pointer  = hasPointer;
+    item.iconPath = item.pointer 
                 ? new vscode.ThemeIcon('triangle-right') : undefined;
     if(item.pointer && treeView.visible) {
       while(item && item.parentId !== undefined) {
-        item.collapsibleState !== vscode.TreeItemCollapsibleState.Expanded;
+        if(item.contextValue !== 'mark') break;
+          item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         item = itemsById.get(item!.parentId);
       }
-      sidebarProvider.refresh(item);
     }
+    sidebarProvider.refresh(item);
   }
 }
 
