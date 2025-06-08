@@ -204,26 +204,37 @@ export function updatePointer(mark:Mark, hasPointer: boolean) {
     item.pointer  = hasPointer;
     item.iconPath = item.pointer 
                 ? new vscode.ThemeIcon('triangle-right') : undefined;
-    treeView.reveal(item, {expand: true}); 
-            //, select: false, focus: false});
+    treeView.reveal(item, {expand: true, select: false, focus: false});
     sidebarProvider.refresh(item);
   }
 }
 
-export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
-  const editor   = event.textEditor;
+function clearAllPointers() {
+  for (const item of itemsById.values()) {
+    if (item.pointer) {
+      item.pointer = false;
+      item.iconPath = undefined;
+      sidebarProvider.refresh(item);
+    }
+  }
+}
+
+export function updatePointers(editor: vscode.TextEditor) {
+  clearAllPointers();
   const document = editor.document;
   const fsPath   = document.uri.fsPath;
   if(document.uri.scheme !== 'file' || 
     !sett.includeFile(fsPath)) return;
   const marks = mrks.getMarks({fsPath});
-  for(const selection of event.selections) {
-    for(const mark of marks) {
-      const markLine = mark.getStartLine();
-      const hasPointer = markLine >= selection.start.line  && 
-                         markLine <= selection.end.line;
-      updatePointer(mark, hasPointer);
+  for(const mark of marks) {
+    const markLine = mark.getStartLine();
+    let hasPointer = false;
+    for(const selection of editor.selections) {
+      hasPointer = markLine >= selection.start.line  && 
+                   markLine <= selection.end.line;
+      if(hasPointer) break; 
     }
+    updatePointer(mark, hasPointer);
   }
 }
 
@@ -277,18 +288,14 @@ export class SidebarProvider {
   }
   
   refresh(item: Item | undefined): void {
-    if(item?.id) setItemInMaps(item);
-    // log('SidebarProvider.refresh', item?.label);
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(item: Item): Item {
-    // log('SidebarProvider.getTreeItem', item?.label);
     return itemsById.get(item.id!) ?? item;
   }
 
   getParent(item: Item): Item | null {
-    // log('SidebarProvider.getParent', item?.label);
     if(item?.parentId) {
       const parentItem = itemsById.get(item.parentId);
       if(parentItem) return parentItem;
@@ -297,7 +304,6 @@ export class SidebarProvider {
   }
 
   getChildren(item: Item): Item[] {
-    // log('SidebarProvider.getChildren', item?.label);
     if(!item) return treeRoot ?? [];
     return item.children      ?? [];
   }

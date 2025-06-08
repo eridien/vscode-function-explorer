@@ -108,10 +108,15 @@ export async function prev() { await prevNext(false); }
 export async function next() { await prevNext(true); }
 
 export async function editorChg(editor: vscode.TextEditor) {
+  sbar.updatePointers(editor);
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
   await updateSide();
+}
+
+export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
+  sbar.updatePointers(event.textEditor);
 }
 
 export async function textChg(event :vscode.TextDocumentChangeEvent) {

@@ -66,7 +66,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const chgEditorSel = vscode.window.onDidChangeTextEditorSelection(event => {
     if (event.textEditor?.document.uri.scheme !== 'file') return;
-    side.chgEditorSel(event);
+    cmds.chgEditorSel(event);
   });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
