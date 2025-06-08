@@ -165,7 +165,9 @@ function getFileItem(fsPath: string) {
 };
 
 export function getFuncItem(func: Func) {
-  const item = new Item(func.name, vscode.TreeItemCollapsibleState.None);
+  const label = (func.marked ? '🔖' : '') + func.name;
+  log('getFuncItem', label);
+  const item = new Item(label, vscode.TreeItemCollapsibleState.None);
   Object.assign(item, {id: func.id, contextValue:'func', func});
   const activeEditor = vscode.window.activeTextEditor;
   item.pointer = activeEditor                                  && 
