@@ -110,7 +110,7 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
   Object.assign(item, {id, contextValue:'wsFolder', 
                        iconPath, label, children});
   item.command = {
-    command:   'vscode-function.workspaceFolderClickCmd',
+    command:   'vscode-function-marks.workspaceFolderClickCmd',
     title:     'Item Clicked',
     arguments: [id],
   };
@@ -131,7 +131,7 @@ async function getFolderItem(folderFsPath: string) {
   const iconPath  = new vscode.ThemeIcon('folder');
   Object.assign(item, {contextValue:'folder', children, iconPath});
   item.command = {
-    command:   'vscode-function.folderClickCmd',
+    command:   'vscode-function-marks.folderClickCmd',
     title:     'Item Clicked',
     arguments: [item.id],
   };
@@ -150,7 +150,7 @@ function getFileItem(fsPath: string) {
   const iconPath = new vscode.ThemeIcon('file');
   Object.assign(item, {contextValue:'file', children, iconPath});
   item.command = {
-    command:   'vscode-function.fileClickCmd',
+    command:   'vscode-function-marks.fileClickCmd',
     title:     'Item Clicked',
     arguments: [item.id],
   };
@@ -166,7 +166,7 @@ export function getMarkItem(mark: Mark) {
       activeEditor.document.uri.scheme === 'file'              &&
       mark.getFsPath()    === activeEditor.document.uri.fsPath &&
       mark.getStartLine() === activeEditor.selection.active.line;
-  if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
+  // if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
   item.command = {
     command: 'vscode-function-marks.markClickCmd',
     title:   'Item Clicked',
@@ -192,39 +192,20 @@ export async function setInitialTree() {
   return treeRoot;
 }
 
-export function updatePointer(mark:Mark, match: boolean) {
-  let firstItemExpanded:Item | null = null;
-  function walk(item: Item, mark: Mark, match: boolean, expand = false) {
-    if (expand) { 
-      if(!firstItemExpanded &&
-          item.collapsibleState !== vscode.TreeItemCollapsibleState.Expanded) {
-        firstItemExpanded = item;
-      }
-      item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-    }
-    else {
-      if (item.id === mark.id) { 
-        if(item.pointer !== match) {
-          item.pointer  = !item.pointer;
-          item.iconPath =  item.pointer 
+export function updatePointer(mark:Mark, hasPointer: boolean) {
+  let item = itemsById.get(mark.id!);
+  if(item && item.pointer !== hasPointer) {
+            item.pointer   = hasPointer;
+            item.iconPath  = item.pointer 
                 ? new vscode.ThemeIcon('triangle-right') : undefined;
-          if(sideBarVisible) {
-            for (const item of treeRoot ?? [])
-              walk(item, mark, true, true);
-            if(firstItemExpanded)
-              sidebarProvider.refresh(firstItemExpanded);
-            return;
-          }
-        }
-        sidebarProvider.refresh(item);
+    if(item.pointer && treeView.visible) {
+      while(item && item.parentId !== undefined) {
+        item.collapsibleState !== vscode.TreeItemCollapsibleState.Expanded;
+        item = itemsById.get(item!.parentId);
       }
-    }
-    for (const child of item.children ?? []) {
-      walk(child, mark, match, expand);
+      sidebarProvider.refresh(item);
     }
   }
-  for (const item of treeRoot ?? [])
-    walk(item, mark, match);
 }
 
 export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
@@ -234,16 +215,12 @@ export function chgEditorSel(event: vscode.TextEditorSelectionChangeEvent) {
   if(document.uri.scheme !== 'file' || 
     !sett.includeFile(fsPath)) return;
   const marks = mrks.getMarks({fsPath});
-  findLoop:
-  for(const selection of event.selections) {
-  }
   for(const selection of event.selections) {
     for(const mark of marks) {
       const markLine = mark.getStartLine();
-      const match = markLine >= selection.start.line  && 
-                    markLine <= selection.end.line;
-      updatePointer(mark, match);
-      // if(match) continue selLoop;
+      const hasPointer = markLine >= selection.start.line  && 
+                         markLine <= selection.end.line;
+      updatePointer(mark, hasPointer);
     }
   }
 }
@@ -271,7 +248,13 @@ export function chgSidebarVisibility(visible: boolean) {
 }
 
 export async function markClickCmd() { 
-  if (focusedItem?.mark) await mrks.revealMark(focusedItem.mark, true);
+  if (focusedItem?.mark) await mrks.revealMark(null, focusedItem.mark, true);
+}
+
+export async function fileClickCmd(path: string) { 
+  const document = 
+          await vscode.workspace.openTextDocument(vscode.Uri.file(path));
+  await mrks.revealMark(document, null);
 }
 
 export function refreshItems(items: Item[] | undefined) {

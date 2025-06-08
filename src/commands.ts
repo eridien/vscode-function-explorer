@@ -56,7 +56,7 @@ export async function toggle() {
   }
   await updateSide({dontUpdateMarks: true});
   await mrks.saveMarkStorage();
-  if(firstMark) await mrks.revealMark(firstMark);
+  if(firstMark) await mrks.revealMark(null, firstMark);
 }
 
 async function prevNext(next: boolean) {
@@ -99,7 +99,7 @@ async function prevNext(next: boolean) {
         }
       }
     }
-    await mrks.revealMark(mark!, true);
+    await mrks.revealMark(null, mark!, true);
   }
 }
 

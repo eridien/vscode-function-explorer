@@ -32,6 +32,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		await side.markClickCmd();
 	});
 
+	const fileClickCmd = vscode.commands.registerCommand(
+                   'vscode-function-marks.fileClickCmd', async (path) => {
+		await side.fileClickCmd(path);
+	});
+
   const loadSettings = vscode.workspace
                              .onDidChangeConfiguration(async event => {
     if (event.affectsConfiguration('function-marks')) {
@@ -94,7 +99,7 @@ cmds.activate
   await cmds.activate();
 
 	context.subscriptions.push(
-    toggle, prev, next, loadSettings, textChg, editorChg,
+    toggle, prev, next, loadSettings, textChg, editorChg, fileClickCmd,
     chgSidebarVisibility, chgItemFocus, chgEditorSel, markClickCmd);
 
   end('extension');
