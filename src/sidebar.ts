@@ -52,7 +52,7 @@ export let showingBusy = false;
 export function setBusy(busy: boolean, blinking = false) {
   if (treeView) 
       treeView.message = busy ? '⟳ Processing Bookmarks ...' : '';
-  sidebarProvider.refresh(undefined);
+  sidebarProvider.refresh(null);
   if(blinking) return;
   if(busy && !showingBusy) {
     showingBusy = true;
@@ -193,34 +193,38 @@ export async function setInitialTree() {
     return await getWsFolderItem(wsFolder);
   });
   treeRoot = await Promise.all(promises);
-  sidebarProvider.refresh(undefined);
+  sidebarProvider.refresh(null);
   end('getItemTree');
   return treeRoot;
 }
 
-export function updatePointer(mark:Mark, hasPointer: boolean) {
+export function updatePointer(mark:Mark, hasPointer: boolean,
+                              dontRefreshItems = false) {
   let item = itemsById.get(mark.id!);
   if(item && item.pointer !== hasPointer) {
     item.pointer  = hasPointer;
     item.iconPath = item.pointer 
                 ? new vscode.ThemeIcon('triangle-right') : undefined;
     treeView.reveal(item, {expand: true, select: false, focus: false});
-    sidebarProvider.refresh(item);
+    if(!dontRefreshItems) sidebarProvider.refresh(item);
   }
 }
 
-function clearAllPointers() {
+function clearAllPointers(dontRefreshItems = false) {
   for (const item of itemsById.values()) {
     if (item.pointer) {
       item.pointer = false;
       item.iconPath = undefined;
-      sidebarProvider.refresh(item);
+      if(!dontRefreshItems) sidebarProvider.refresh(item);
     }
   }
 }
 
-export function updatePointers(editor: vscode.TextEditor) {
-  clearAllPointers();
+export function updatePointers(editor: vscode.TextEditor | null | undefined, 
+                               dontRefreshItems = false) {
+  editor ??= vscode.window.activeTextEditor;
+  if (!editor) return;
+  clearAllPointers(dontRefreshItems);
   const document = editor.document;
   const fsPath   = document.uri.fsPath;
   if(document.uri.scheme !== 'file' || 
@@ -234,7 +238,7 @@ export function updatePointers(editor: vscode.TextEditor) {
                    markLine <= selection.end.line;
       if(hasPointer) break; 
     }
-    updatePointer(mark, hasPointer);
+    updatePointer(mark, hasPointer, dontRefreshItems);
   }
 }
 
@@ -270,12 +274,12 @@ export async function fileClickCmd(path: string) {
   await mrks.revealMark(document, null);
 }
 
-export function refreshItems(items: Item[] | undefined) {
+export function refreshItems(items: Item[] | null = null) {
   if (items) {
     for (const item of items) sidebarProvider.refresh(item);
     return;
   }
-  sidebarProvider.refresh(undefined);
+  sidebarProvider.refresh(null);
 }
 
 export class SidebarProvider {
@@ -287,8 +291,8 @@ export class SidebarProvider {
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
   }
   
-  refresh(item: Item | undefined): void {
-    this._onDidChangeTreeData.fire(item);
+  refresh(item: Item | null = null): void {
+    this._onDidChangeTreeData.fire(item ?? undefined);
   }
 
   getTreeItem(item: Item): Item {

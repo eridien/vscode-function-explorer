@@ -13,7 +13,7 @@ export async function activate() {
   if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath))
-    await updateSide({forceRefreshAll: true});
+    await updateSide();
 }
 
 export async function toggle() {
@@ -108,7 +108,6 @@ export async function prev() { await prevNext(false); }
 export async function next() { await prevNext(true); }
 
 export async function editorChg(editor: vscode.TextEditor) {
-  sbar.updatePointers(editor);
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
@@ -127,14 +126,12 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
 }
 
 export async function updateSide( p:any = {}) {
-  const {dontUpdateMarks = false, forceRefreshAll = false, document} = p;
+  const {dontUpdateMarks = false, document} = p;
   let updatedMarks: Mark[] | undefined = undefined;
   let updatedItems: Item[] | undefined = undefined;
   if(!dontUpdateMarks)
     updatedMarks = await mrks.updateMarksInFile(document);
-  // if(!forceRefreshAll && updatedMarks) 
-  //   updatedItems = updatedMarks.map(mark => sbar.getMarkItem(mark));
-  // sbar.refreshItems(updatedItems);
+  sbar.updatePointers(null, true);
   sbar.refreshItems(undefined);
   gutt.updateGutter();
 };
