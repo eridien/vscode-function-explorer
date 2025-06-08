@@ -15,7 +15,7 @@ export let settings: FunctionMarksSettings = {
   scrollPosition:      vscode.TextEditorRevealType.AtTop,
   fileWrap:            true,
   includeSubFunctions: false,
-  alphaSortFuncs:      true,
+  alphaSortFuncs:      false,
 };
 
 export let filesGlobPattern: string;
@@ -27,7 +27,7 @@ export function loadSettings() {
   let scrollPos: vscode.TextEditorRevealType;
   switch (config.get('scrollPosition', 'AtTop') as string) {
     case 'Minimal Scrolling':
-      scrollPos = vscode.TextEditorRevealType.Default; break;
+      scrollPos = vscode.TextEditorRevealType.AtTop; break;
     case 'In Center':
       scrollPos = vscode.TextEditorRevealType.InCenter; break;
     case 'In Center If Needed':
@@ -40,7 +40,7 @@ export function loadSettings() {
     scrollPosition:      scrollPos,
     fileWrap:            config.get('fileWrap',            true),
     includeSubFunctions: config.get('includeSubFunctions', false),
-    alphaSortFuncs:      config.get('alphaSortFuncs',      true)
+    alphaSortFuncs:      config.get('alphaSortFuncs',      false)
   };
   includeCfg = '{'+config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                          .split(",").map(p => p.trim()).join(",")+'}';

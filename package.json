@@ -141,7 +141,7 @@
         },
         "function-explorer.alphaSortFuncs": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "order": 4,
           "description": "Sort functions in the file alphabetically instead of by position."
         },
