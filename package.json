@@ -109,13 +109,13 @@
     "configuration": {
       "title": "Function Explorer",
       "properties": {
-        "function-marks.fileWrap": {
+        "function-explorer.fileWrap": {
           "type": "boolean",
           "default": true,
           "order": 1,
           "description": "Next and previous wrap around all files instead of just active file."
         },
-        "function-marks.scrollPosition": {
+        "function-explorer.scrollPosition": {
           "type": "string",
           "order": 2,
           "default": "At Top",
@@ -133,25 +133,25 @@
           ],
           "description": "Controls the scroll position when revealing a function mark."
         },
-        "function-marks.includeSubFunctions": {
+        "function-explorer.includeSubFunctions": {
           "type": "boolean",
           "default": false,
           "order": 3,
           "description": "Include nested functions when marking with a selection."
         },
-        "function-marks.alphaSortFuncs": {
+        "function-explorer.alphaSortFuncs": {
           "type": "boolean",
           "default": true,
           "order": 4,
           "description": "Sort functions in the file alphabetically instead of by position."
         },
-        "function-marks.filesToInclude": {
+        "function-explorer.filesToInclude": {
           "type": "string",
           "default": "**/*.js, **/*.ts",
           "order": 5,
           "description": "Files to include in the Vscode-function-explorer explorer. Separate glob patterns with commas."
         },
-        "function-marks.filesToExclude": {
+        "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
           "order": 6,

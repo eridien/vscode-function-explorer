@@ -39,7 +39,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const loadSettings = vscode.workspace
                              .onDidChangeConfiguration(async event => {
-    if (event.affectsConfiguration('function-marks')) {
+    if (event.affectsConfiguration('function-explorer')) {
       sett.loadSettings();
       file.setFileWatcher();
       await cmds.updateSide();

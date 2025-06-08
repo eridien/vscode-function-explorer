@@ -23,7 +23,7 @@ let excludeCfg:              string;
 let includeCfg:              string;
 
 export function loadSettings() {
-  const config = vscode.workspace.getConfiguration('function-marks');
+  const config = vscode.workspace.getConfiguration('function-explorer');
   let scrollPos: vscode.TextEditorRevealType;
   switch (config.get('scrollPosition', 'AtTop') as string) {
     case 'Minimal Scrolling':

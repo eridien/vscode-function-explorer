@@ -28,7 +28,7 @@ export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
 }
 
-const outputChannel = vscode.window.createOutputChannel('function-marks');
+const outputChannel = vscode.window.createOutputChannel('function-explorer');
 
 export function getLog(module: string) : {
   log:   (...args: any[])                   => void;
