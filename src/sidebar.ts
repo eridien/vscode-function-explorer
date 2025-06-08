@@ -72,8 +72,8 @@ export function setBusy(busy: boolean, blinking = false) {
   }
 }
 
-async function addFoldersAndFiles(parentFsPath: string, 
-                                  folders: Item[], files: Item[]) {
+async function addFolderChildren(parentFsPath: string, 
+                                 folders: Item[], files: Item[]) {
   const entries = await fs.readdir(parentFsPath, { withFileTypes: true });
   for (const entry of entries) {
     const fsPath = path.join(parentFsPath, entry.name);
@@ -85,7 +85,6 @@ async function addFoldersAndFiles(parentFsPath: string,
       if (folderItem !== null) {
         folderItem.parentId = parentFsPath;
         folders.push(folderItem);
-        // await addFoldersAndFiles(fsPath, folders, files);
       }
     }
     if (entry.isFile()) {
@@ -93,7 +92,10 @@ async function addFoldersAndFiles(parentFsPath: string,
       if(uri.scheme !== 'file' || 
         !sett.includeFile(fsPath)) continue;
       const fileItem = getFileItem(fsPath);
-      if(fileItem !== null) files.push(fileItem);
+      if(fileItem !== null) {
+        fileItem.parentId = parentFsPath;
+        files.push(fileItem);
+      }
     }
   }
 }
@@ -105,7 +107,7 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
   const iconPath = new vscode.ThemeIcon('root-folder');
   const folders:  Item[] = [];
   const files:    Item[] = [];
-  await addFoldersAndFiles(wsFolder.uri.fsPath, folders, files);
+  await addFolderChildren(wsFolder.uri.fsPath, folders, files);
   const children = [...folders, ...files];
   Object.assign(item, {id, contextValue:'wsFolder', 
                        iconPath, label, children});
@@ -121,7 +123,7 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
 async function getFolderItem(folderFsPath: string) {
   const folders:  Item[] = [];
   const files:    Item[] = [];
-  await addFoldersAndFiles(folderFsPath, folders, files);
+  await addFolderChildren(folderFsPath, folders, files);
   const children = [...folders, ...files];
   if(children.length === 0) return null;
   const folderUri = vscode.Uri.file(folderFsPath);
@@ -202,13 +204,8 @@ export function updatePointer(mark:Mark, hasPointer: boolean) {
     item.pointer  = hasPointer;
     item.iconPath = item.pointer 
                 ? new vscode.ThemeIcon('triangle-right') : undefined;
-    if(item.pointer && treeView.visible) {
-      while(item && item.parentId !== undefined) {
-        if(item.contextValue !== 'mark') break;
-          item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-        item = itemsById.get(item!.parentId);
-      }
-    }
+    treeView.reveal(item, {expand: true}); 
+            //, select: false, focus: false});
     sidebarProvider.refresh(item);
   }
 }
@@ -280,14 +277,27 @@ export class SidebarProvider {
   }
   
   refresh(item: Item | undefined): void {
+    if(item?.id) setItemInMaps(item);
+    // log('SidebarProvider.refresh', item?.label);
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(item: Item): Item {
+    // log('SidebarProvider.getTreeItem', item?.label);
     return itemsById.get(item.id!) ?? item;
   }
 
+  getParent(item: Item): Item | null {
+    // log('SidebarProvider.getParent', item?.label);
+    if(item?.parentId) {
+      const parentItem = itemsById.get(item.parentId);
+      if(parentItem) return parentItem;
+    }
+    return null;
+  }
+
   getChildren(item: Item): Item[] {
+    // log('SidebarProvider.getChildren', item?.label);
     if(!item) return treeRoot ?? [];
     return item.children      ?? [];
   }

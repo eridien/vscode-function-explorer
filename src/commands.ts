@@ -127,8 +127,9 @@ export async function updateSide( p:any = {}) {
   let updatedItems: Item[] | undefined = undefined;
   if(!dontUpdateMarks)
     updatedMarks = await mrks.updateMarksInFile(document);
-  if(!forceRefreshAll && updatedMarks) 
-    updatedItems = updatedMarks.map(mark => sbar.getMarkItem(mark));
-  sbar.refreshItems(updatedItems);
+  // if(!forceRefreshAll && updatedMarks) 
+  //   updatedItems = updatedMarks.map(mark => sbar.getMarkItem(mark));
+  // sbar.refreshItems(updatedItems);
+  sbar.refreshItems(undefined);
   gutt.updateGutter();
 };
