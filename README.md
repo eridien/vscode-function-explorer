@@ -1,1 +1,1 @@
-# vscode-function-marks
+# vscode-function-explorer

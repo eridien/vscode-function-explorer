@@ -13,27 +13,27 @@ export async function activate(context: vscode.ExtensionContext) {
   start('extension');
   
 	const toggle = vscode.commands.registerCommand(
-           'vscode-function-marks.toggle', async () => {
+           'vscode-function-explorer.toggle', async () => {
 		await cmds.toggle();
 	});
 
 	const prev = vscode.commands.registerCommand(
-                   'vscode-function-marks.prev', async () => {
+                   'vscode-function-explorer.prev', async () => {
 		await cmds.prev();
 	});
 
 	const next = vscode.commands.registerCommand(
-                   'vscode-function-marks.next', async () => {
+                   'vscode-function-explorer.next', async () => {
 		await cmds.next();
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(
-                   'vscode-function-marks.funcClickCmd', async () => {
+                   'vscode-function-explorer.funcClickCmd', async () => {
 		await side.funcClickCmd();
 	});
 
 	const fileClickCmd = vscode.commands.registerCommand(
-                   'vscode-function-marks.fileClickCmd', async (path) => {
+                   'vscode-function-explorer.fileClickCmd', async (path) => {
 		await side.fileClickCmd(path);
 	});
 

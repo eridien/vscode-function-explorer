@@ -112,7 +112,7 @@ async function getWsFolderItem(wsFolder: vscode.WorkspaceFolder) {
   Object.assign(item, {id, contextValue:'wsFolder', 
                        iconPath, label, children});
   item.command = {
-    command:   'vscode-function-marks.workspaceFolderClickCmd',
+    command:   'vscode-function-explorer.workspaceFolderClickCmd',
     title:     'Item Clicked',
     arguments: [id],
   };
@@ -133,7 +133,7 @@ async function getFolderItem(folderFsPath: string) {
   const iconPath  = new vscode.ThemeIcon('folder');
   Object.assign(item, {contextValue:'folder', children, iconPath});
   item.command = {
-    command:   'vscode-function-marks.folderClickCmd',
+    command:   'vscode-function-explorer.folderClickCmd',
     title:     'Item Clicked',
     arguments: [item.id],
   };
@@ -156,7 +156,7 @@ function getFileItem(fsPath: string) {
   const iconPath = new vscode.ThemeIcon('file');
   Object.assign(item, {contextValue:'file', children, iconPath});
   item.command = {
-    command:   'vscode-function-marks.fileClickCmd',
+    command:   'vscode-function-explorer.fileClickCmd',
     title:     'Item Clicked',
     arguments: [item.id],
   };
@@ -174,7 +174,7 @@ export function getFuncItem(func: Func) {
       func.getStartLine() === activeEditor.selection.active.line;
   // if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
   item.command = {
-    command: 'vscode-function-marks.funcClickCmd',
+    command: 'vscode-function-explorer.funcClickCmd',
     title:   'Item Clicked',
     arguments: [item.id],
   };

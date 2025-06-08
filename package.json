@@ -1,7 +1,7 @@
 {
-  "name": "vscode-function-marks",
-  "displayName": "Function Marks",
-  "description": "Bookmarks for functions, classes, and methods.",
+  "name": "vscode-function-explorer",
+  "displayName": "Function Explorer",
+  "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
   "version": "0.0.1",
   "engines": {
@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/eridien/vscode-function-marks"
+    "url": "https://github.com/eridien/vscode-function-explorer"
   },
   "publisher": "eridien",
   "activationEvents": [
@@ -22,56 +22,56 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-function-marks.toggle",
+        "command": "vscode-function-explorer.toggle",
         "title": "Toggle Function Mark(s)",
         "when": "editorTextFocus"
       },
       {
-        "command": "vscode-function-marks.prev",
+        "command": "vscode-function-explorer.prev",
         "title": "Jump to previous Function Mark",
         "when": "editorTextFocus"
       },
       {
-        "command": "vscode-function-marks.next",
+        "command": "vscode-function-explorer.next",
         "title": "Jump to next Function Mark",
         "when": "editorTextFocus"
       },
       {
-        "command": "vscode-function-marks.expandCollapseItems",
-        "title": "Collapse or expand all folders and files below the selected item in the function marks explorer.",
-        "category": "Function Marks"
+        "command": "vscode-function-explorer.expandCollapseItems",
+        "title": "Collapse or expand all folders and files below the selected item in the function explorer.",
+        "category": "Vscode-function-explorer"
       },
       {
-        "command": "vscode-function-marks.toggleUnmarkedVisibility",
+        "command": "vscode-function-explorer.toggleUnmarkedVisibility",
         "title": "Toggle showing all functions in the explorer file versus just marked functions.",
-        "category": "Function Marks"
+        "category": "Vscode-function-explorer"
       },
       {
-        "command": "vscode-function-marks.fileClickCmd",
+        "command": "vscode-function-explorer.fileClickCmd",
         "title": "Open the file without jumping.",
-        "category": "Function Marks"
+        "category": "Vscode-function-explorer"
       },
       {
-        "command": "vscode-function-marks.funcClickCmd",
-        "title": "First click opens the file in an editor and jumps to the marked function. Clicks after that toggle the func.",
-        "category": "Function Marks"
+        "command": "vscode-function-explorer.funcClickCmd",
+        "title": "First click opens the file in an editor and jumps to the function. Clicks after that toggle the mark.",
+        "category": "Vscode-function-explorer"
       }
     ],
     "keybindings": [
       {
-        "command": "vscode-function-marks.toggle",
+        "command": "vscode-function-explorer.toggle",
         "key": "ctrl+alt+\\",
         "mac": "cmd+alt+\\",
         "when": "editorTextFocus"
       },
       {
-        "command": "vscode-function-marks.prev",
+        "command": "vscode-function-explorer.prev",
         "key": "ctrl+alt+[",
         "mac": "cmd+alt+[",
         "when": "editorTextFocus"
       },
       {
-        "command": "vscode-function-marks.next",
+        "command": "vscode-function-explorer.next",
         "key": "ctrl+alt+]",
         "mac": "cmd+alt+]",
         "when": "editorTextFocus"
@@ -81,7 +81,7 @@
       "activitybar": [
         {
           "id": "functionMarks",
-          "title": "Function Marks",
+          "title": "Function Explorer",
           "icon": "images/activity-icon.svg"
         }
       ]
@@ -90,7 +90,7 @@
       "functionMarks": [
         {
           "id": "sidebarView",
-          "name": "Function Marks",
+          "name": "Function Explorer",
           "icon": "images/activity-icon.svg"
         }
       ]
@@ -98,7 +98,7 @@
     "menus": {
       "editor/context": [
         {
-          "command": "vscode-function-marks.toggle",
+          "command": "vscode-function-explorer.toggle",
           "when": "editorTextFocus",
           "group": "1_modification"
         }
@@ -107,7 +107,7 @@
       ]
     },
     "configuration": {
-      "title": "Function Marks",
+      "title": "Function Explorer",
       "properties": {
         "function-marks.fileWrap": {
           "type": "boolean",
@@ -149,13 +149,13 @@
           "type": "string",
           "default": "**/*.js, **/*.ts",
           "order": 5,
-          "description": "Files to include in the Function Marks explorer. Separate glob patterns with commas."
+          "description": "Files to include in the Vscode-function-explorer explorer. Separate glob patterns with commas."
         },
         "function-marks.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
           "order": 6,
-          "description": "Files to exclude in the Function Marks explorer. Separate glob patterns with commas."
+          "description": "Files to exclude in the Vscode-function-explorer explorer. Separate glob patterns with commas."
         }
       }
     }
