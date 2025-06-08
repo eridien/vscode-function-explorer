@@ -52,7 +52,7 @@ export let showingBusy = false;
 export function setBusy(busy: boolean, blinking = false) {
   if (treeView) 
       treeView.message = busy ? '⟳ Processing Bookmarks ...' : '';
-  sidebarProvider.refresh(null);
+  sidebarProvider.refresh();
   if(blinking) return;
   if(busy && !showingBusy) {
     showingBusy = true;
@@ -193,9 +193,14 @@ export async function setInitialTree() {
     return await getWsFolderItem(wsFolder);
   });
   treeRoot = await Promise.all(promises);
-  sidebarProvider.refresh(null);
+  sidebarProvider.refresh();
   end('getItemTree');
   return treeRoot;
+}
+
+export function updateItemsFromMarks(updatedMarks: Mark[]) {
+  for (const mark of updatedMarks) getMarkItem(mark);
+  sidebarProvider.refresh();
 }
 
 export function updatePointer(mark:Mark, hasPointer: boolean,
@@ -205,7 +210,7 @@ export function updatePointer(mark:Mark, hasPointer: boolean,
     item.pointer  = hasPointer;
     item.iconPath = item.pointer 
                 ? new vscode.ThemeIcon('triangle-right') : undefined;
-    treeView.reveal(item, {expand: true, select: false, focus: false});
+    treeView.reveal(item, {expand: true, select: true, focus: false});
     if(!dontRefreshItems) sidebarProvider.refresh(item);
   }
 }
@@ -274,12 +279,8 @@ export async function fileClickCmd(path: string) {
   await mrks.revealMark(document, null);
 }
 
-export function refreshItems(items: Item[] | null = null) {
-  if (items) {
-    for (const item of items) sidebarProvider.refresh(item);
-    return;
-  }
-  sidebarProvider.refresh(null);
+export function updateTree() {
+  sidebarProvider.refresh();
 }
 
 export class SidebarProvider {
@@ -291,8 +292,8 @@ export class SidebarProvider {
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
   }
   
-  refresh(item: Item | null = null): void {
-    this._onDidChangeTreeData.fire(item ?? undefined);
+  refresh(item?: Item): void {
+    this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(item: Item): Item {

@@ -76,21 +76,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-/*
-loadSettings 
-gutt.activate(context);
-file.setFileWatcher
-marks activate
-  loadMarkStorage
-sidebar activate
-  getItemTree()
-cmds.activate
-  updateSide
-    updateMarksInFile
-    refreshItems()
-    updateGutter
-*/
-
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();

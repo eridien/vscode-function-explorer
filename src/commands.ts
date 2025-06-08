@@ -127,11 +127,11 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
 
 export async function updateSide( p:any = {}) {
   const {dontUpdateMarks = false, document} = p;
-  let updatedMarks: Mark[] | undefined = undefined;
-  let updatedItems: Item[] | undefined = undefined;
-  if(!dontUpdateMarks)
-    updatedMarks = await mrks.updateMarksInFile(document);
+  if(!dontUpdateMarks) {
+    const updatedMarks = await mrks.updateMarksInFile(document);
+    sbar.updateItemsFromMarks(updatedMarks);
+  }
   sbar.updatePointers(null, true);
-  sbar.refreshItems(undefined);
+  sbar.updateTree();
   gutt.updateGutter();
 };
