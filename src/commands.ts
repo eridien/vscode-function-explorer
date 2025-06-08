@@ -1,10 +1,10 @@
 import * as vscode  from 'vscode';
 import * as sbar    from './sidebar';
 import * as gutt    from './gutter';
-import * as mrks    from './marks';
+import * as fnct    from './funcs';
 import * as sett    from './settings';
 import {settings}   from './settings';
-import {Mark, Item} from './classes';
+import {Func, Item} from './classes';
 import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
@@ -21,42 +21,42 @@ export async function toggle() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
   const document = editor.document;
-  await mrks.updateMarksInFile(document);
+  await fnct.updateFuncsInFile(document);
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
   let enable:        boolean | null = null;
-  let firstMark:     Mark    | null = null;
-  let minMarkStart = Number.MAX_SAFE_INTEGER;
+  let firstFunc:     Func    | null = null;
+  let minFuncStart = Number.MAX_SAFE_INTEGER;
   for (const selection of editor.selections) {
     let topLine = selection.active.line;
     let botLine = selection.anchor.line;
-    let marks: Mark[] = [];
+    let funcs: Func[] = [];
     const fsPath = document.uri.fsPath;
     if(topLine === botLine) {
-      const mark = mrks.getMarkAtLine(fsPath, topLine);
-      if(mark) marks = [mark];
+      const func = fnct.getFuncAtLine(fsPath, topLine);
+      if(func) funcs = [func];
     }
     else {
       if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-      marks = mrks.getMarksBetweenLines(fsPath, topLine, botLine, true);
+      funcs = fnct.getFuncsBetweenLines(fsPath, topLine, botLine, true);
     }
-    if(marks.length === 0) return;
+    if(funcs.length === 0) return;
     if(enable === null) {
       let enabledCount = 0;
-      marks.forEach(mark => { if(mark.enabled) enabledCount++; });
-      enable = enabledCount/marks.length < 0.5;
+      funcs.forEach(func => { if(func.enabled) enabledCount++; });
+      enable = enabledCount/funcs.length < 0.5;
     }
-    marks.forEach(mark => {
-      mark.enabled = !mark.enabled;
-      if(enable && mark.start < minMarkStart) {
-        minMarkStart = mark.start;
-        firstMark    = mark;
+    funcs.forEach(func => {
+      func.enabled = !func.enabled;
+      if(enable && func.start < minFuncStart) {
+        minFuncStart = func.start;
+        firstFunc    = func;
       }
     });
   }
-  await updateSide({dontUpdateMarks: true});
-  await mrks.saveMarkStorage();
-  if(firstMark) await mrks.revealMark(null, firstMark);
+  await updateSide({dontUpdateFuncs: true});
+  await fnct.saveFuncStorage();
+  if(firstFunc) await fnct.revealFunc(null, firstFunc);
 }
 
 async function prevNext(next: boolean) {
@@ -68,38 +68,38 @@ async function prevNext(next: boolean) {
     const fileWrap = settings.fileWrap;
     const sortArgs = {enabledOnly: true};
     if(!fileWrap) (sortArgs as any).fsPath = fsPath;
-    const marks = mrks.getSortedMarks(sortArgs);
-    if(marks.length == 0) return;
+    const funcs = fnct.getSortedFuncs(sortArgs);
+    if(funcs.length == 0) return;
     const selFsPath = (fileWrap ? fsPath : '');
     const selKey = utils.createSortKey(
           selFsPath, activeEditor.selection.active.line);
-    let mark: Mark;
-    for(let i = (next? 0 : marks.length-1); 
-           (next? (i < marks.length) : (i >= 0)); 
+    let func: Func;
+    for(let i = (next? 0 : funcs.length-1); 
+           (next? (i < funcs.length) : (i >= 0)); 
             i += (next? 1 : -1)) {
-      mark = marks[i];
-      const markFsPath = (fileWrap ? mark.getFsPath() : '');
-      if(next ? (markFsPath < selFsPath) 
-              : (markFsPath > selFsPath)) continue;
-      if(markFsPath !== selFsPath) break;
-      const markKey = utils.createSortKey(
-            markFsPath, mark.getStartLine());
+      func = funcs[i];
+      const funcFsPath = (fileWrap ? func.getFsPath() : '');
+      if(next ? (funcFsPath < selFsPath) 
+              : (funcFsPath > selFsPath)) continue;
+      if(funcFsPath !== selFsPath) break;
+      const funcKey = utils.createSortKey(
+            funcFsPath, func.getStartLine());
       if(next) {
-        if(selKey < markKey) break;
-        else if(i == marks.length-1) {
-          mark = marks[0];
+        if(selKey < funcKey) break;
+        else if(i == funcs.length-1) {
+          func = funcs[0];
           break;
         }
       }
       else {
-        if(selKey > markKey) break;
+        if(selKey > funcKey) break;
         else if(i == 0) {
-          mark = marks[marks.length-1];
+          func = funcs[funcs.length-1];
           break;
         }
       }
     }
-    await mrks.revealMark(null, mark!, true);
+    await fnct.revealFunc(null, func!, true);
   }
 }
 
@@ -126,10 +126,10 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
 }
 
 export async function updateSide( p:any = {}) {
-  const {dontUpdateMarks = false, document} = p;
-  if(!dontUpdateMarks) {
-    const updatedMarks = await mrks.updateMarksInFile(document);
-    sbar.updateItemsFromMarks(updatedMarks);
+  const {dontUpdateFuncs = false, document} = p;
+  if(!dontUpdateFuncs) {
+    const updatedFuncs = await fnct.updateFuncsInFile(document);
+    sbar.updateItemsFromFuncs(updatedFuncs);
   }
   sbar.updatePointers(null, true);
   sbar.updateTree();

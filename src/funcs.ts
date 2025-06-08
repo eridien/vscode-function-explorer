@@ -9,7 +9,7 @@ import {settings}   from './settings';
 import * as sett    from './settings';
 import {Func, Item} from './classes';
 import * as utils   from './utils.js';
-const {log, start, end} = utils.getLog('fnct');
+const {log, start, end} = utils.getLog('func');
 
 const LOAD_FUNCS_ON_START = true;
 // const LOAD_FUNCS_ON_START = false;

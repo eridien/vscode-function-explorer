@@ -2,14 +2,14 @@ import * as vscode from 'vscode';
 import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
-export class Mark {
+export class Func {
   wsFolder?:      vscode.WorkspaceFolder;
   document:       vscode.TextDocument;
   name:           string;
   type:           string;
   start:          number;
   end:            number;
-  parents?:       Mark[];
+  parents?:       Func[];
   id?:            string;
   startLine?:     number;
   endLine?:       number;
@@ -32,9 +32,9 @@ export class Mark {
     this.wsFolder ??= vscode.workspace
                             .getWorkspaceFolder(this.document.uri);
     if(!this.wsFolder) {
-      log('err', 'getWsFolder, mark has no workspace folder', 
+      log('err', 'getWsFolder, func has no workspace folder', 
                     this.name, this.getFsPath());
-      throw new Error('Mark has no workspace folder');
+      throw new Error('Func has no workspace folder');
     }
     return this.wsFolder;
   }
@@ -48,15 +48,15 @@ export class Mark {
                           this.getFsPath(), this.getStartLine());      }
   getEndKey()    { return this.endKey    ??= utils.createSortKey(
                           this.getFsPath(), this.getEndLine());        }
-  equalsPos(mark:Mark) { 
-    return (this.start === mark.start &&
-            this.end   === mark.end);
+  equalsPos(func:Func) { 
+    return (this.start === func.start &&
+            this.end   === func.end);
   }
 }
 
 export class Item extends vscode.TreeItem {
   wsFolder?:   vscode.WorkspaceFolder;
-  mark?:       Mark;
+  func?:       Func;
   pointer?:    boolean;
   parentId?:   string;
   children?:   Item[];

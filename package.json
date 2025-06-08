@@ -52,8 +52,8 @@
         "category": "Function Marks"
       },
       {
-        "command": "vscode-function-marks.markClickCmd",
-        "title": "First click opens the file in an editor and jumps to the marked function. Clicks after that toggle the mark.",
+        "command": "vscode-function-marks.funcClickCmd",
+        "title": "First click opens the file in an editor and jumps to the marked function. Clicks after that toggle the func.",
         "category": "Function Marks"
       }
     ],
@@ -139,7 +139,7 @@
           "order": 3,
           "description": "Include nested functions when marking with a selection."
         },
-        "function-marks.alphaSortMarks": {
+        "function-marks.alphaSortFuncs": {
           "type": "boolean",
           "default": true,
           "order": 4,

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path   from 'path';
-import * as mrks   from './marks';
+import * as fnct   from './funcs';
 import * as utils  from './utils';
 const {log} = utils.getLog('gutt');
 
@@ -41,9 +41,9 @@ export function updateGutter(editor: vscode.TextEditor |
   const document  = editor.document;
   const decRanges = [];
   const fsPath    = document.uri.fsPath;
-  const marks     = mrks.getMarks({enabledOnly: true, fsPath});
-  for(const mark of marks) {
-    const lineNumber = document.positionAt(mark.start).line;
+  const funcs     = fnct.getFuncs({enabledOnly: true, fsPath});
+  for(const func of funcs) {
+    const lineNumber = document.positionAt(func.start).line;
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
     decRanges.push({range});
   }

@@ -5,10 +5,10 @@ import { Dirent }   from 'fs';
 import {minimatch}  from 'minimatch';
 import * as fs      from 'fs/promises';
 import * as path    from 'path';
-import * as mrks    from './marks';
+import * as fnct    from './funcs';
 import * as sett    from './settings';
 import {settings}   from './settings';
-import {Mark, Item} from './classes';
+import {Func, Item} from './classes';
 import * as utils   from './utils.js';
 const {log, start, end} = utils.getLog('side');
 
@@ -29,7 +29,7 @@ export async function activate(treeViewIn: vscode.TreeView<Item>,
 export function setItemInMaps(item: Item): boolean {
   const oldItem = itemsById.get(item.id!);
   let fsPath: string;
-  if(item instanceof Mark) fsPath = (item as Mark).getFsPath();
+  if(item instanceof Func) fsPath = (item as Func).getFsPath();
   else                     fsPath = item.id!;
   itemsById.set(item.id!, item);
   let itemMap = itemsByFsPath.get(fsPath);
@@ -142,10 +142,10 @@ async function getFolderItem(folderFsPath: string) {
 };
 
 function getFileItem(fsPath: string) {
-  const children = mrks.getSortedMarks(
-                            {fsPath, alpha:settings.alphaSortMarks})
-                       .map(mark => { 
-                         const item = getMarkItem(mark);
+  const children = fnct.getSortedFuncs(
+                            {fsPath, alpha:settings.alphaSortFuncs})
+                       .map(func => { 
+                         const item = getFuncItem(func);
                          item.parentId! = fsPath;
                          return item;
                        });
@@ -164,17 +164,17 @@ function getFileItem(fsPath: string) {
   return item;
 };
 
-export function getMarkItem(mark: Mark) {
-  const item = new Item(mark.name, vscode.TreeItemCollapsibleState.None);
-  Object.assign(item, {id: mark.id, contextValue:'mark', mark});
+export function getFuncItem(func: Func) {
+  const item = new Item(func.name, vscode.TreeItemCollapsibleState.None);
+  Object.assign(item, {id: func.id, contextValue:'func', func});
   const activeEditor = vscode.window.activeTextEditor;
   item.pointer = activeEditor                                  && 
       activeEditor.document.uri.scheme === 'file'              &&
-      mark.getFsPath()    === activeEditor.document.uri.fsPath &&
-      mark.getStartLine() === activeEditor.selection.active.line;
+      func.getFsPath()    === activeEditor.document.uri.fsPath &&
+      func.getStartLine() === activeEditor.selection.active.line;
   // if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
   item.command = {
-    command: 'vscode-function-marks.markClickCmd',
+    command: 'vscode-function-marks.funcClickCmd',
     title:   'Item Clicked',
     arguments: [item.id],
   };
@@ -198,14 +198,14 @@ export async function setInitialTree() {
   return treeRoot;
 }
 
-export function updateItemsFromMarks(updatedMarks: Mark[]) {
-  for (const mark of updatedMarks) getMarkItem(mark);
+export function updateItemsFromFuncs(updatedFuncs: Func[]) {
+  for (const func of updatedFuncs) getFuncItem(func);
   sidebarProvider.refresh();
 }
 
-export function updatePointer(mark:Mark, hasPointer: boolean,
+export function updatePointer(func:Func, hasPointer: boolean,
                               dontRefreshItems = false) {
-  let item = itemsById.get(mark.id!);
+  let item = itemsById.get(func.id!);
   if(item && item.pointer !== hasPointer) {
     item.pointer  = hasPointer;
     item.iconPath = item.pointer 
@@ -234,16 +234,16 @@ export function updatePointers(editor: vscode.TextEditor | null | undefined,
   const fsPath   = document.uri.fsPath;
   if(document.uri.scheme !== 'file' || 
     !sett.includeFile(fsPath)) return;
-  const marks = mrks.getMarks({fsPath});
-  for(const mark of marks) {
-    const markLine = mark.getStartLine();
+  const funcs = fnct.getFuncs({fsPath});
+  for(const func of funcs) {
+    const funcLine = func.getStartLine();
     let hasPointer = false;
     for(const selection of editor.selections) {
-      hasPointer = markLine >= selection.start.line  && 
-                   markLine <= selection.end.line;
+      hasPointer = funcLine >= selection.start.line  && 
+                   funcLine <= selection.end.line;
       if(hasPointer) break; 
     }
-    updatePointer(mark, hasPointer, dontRefreshItems);
+    updatePointer(func, hasPointer, dontRefreshItems);
   }
 }
 
@@ -269,14 +269,14 @@ export function chgSidebarVisibility(visible: boolean) {
   if(!visible) focusedItem = null;
 }
 
-export async function markClickCmd() { 
-  if (focusedItem?.mark) await mrks.revealMark(null, focusedItem.mark, true);
+export async function funcClickCmd() { 
+  if (focusedItem?.func) await fnct.revealFunc(null, focusedItem.func, true);
 }
 
 export async function fileClickCmd(path: string) { 
   const document = 
           await vscode.workspace.openTextDocument(vscode.Uri.file(path));
-  await mrks.revealMark(document, null);
+  await fnct.revealFunc(document, null);
 }
 
 export function updateTree() {

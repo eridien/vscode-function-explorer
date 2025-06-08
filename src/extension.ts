@@ -1,6 +1,6 @@
 import * as vscode       from 'vscode';
 import * as cmds         from './commands';
-import * as mrks         from './marks';
+import * as fnct         from './funcs';
 import * as file         from './files';
 import * as side         from './sidebar';
 import {SidebarProvider} from './sidebar';
@@ -27,9 +27,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.next();
 	});
 
-	const markClickCmd = vscode.commands.registerCommand(
-                   'vscode-function-marks.markClickCmd', async () => {
-		await side.markClickCmd();
+	const funcClickCmd = vscode.commands.registerCommand(
+                   'vscode-function-marks.funcClickCmd', async () => {
+		await side.funcClickCmd();
 	});
 
 	const fileClickCmd = vscode.commands.registerCommand(
@@ -79,13 +79,13 @@ export async function activate(context: vscode.ExtensionContext) {
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();
-  await mrks.activate(context);
+  await fnct.activate(context);
   await side.activate(treeView, sidebarProvider);
   await cmds.activate();
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg, fileClickCmd,
-    chgSidebarVisibility, chgItemFocus, chgEditorSel, markClickCmd);
+    chgSidebarVisibility, chgItemFocus, chgEditorSel, funcClickCmd);
 
   end('extension');
 }
