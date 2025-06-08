@@ -24,7 +24,7 @@ export async function toggle() {
   await fnct.updateFuncsInFile(document);
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  let enable:        boolean | null = null;
+  let mark:        boolean | null = null;
   let firstFunc:     Func    | null = null;
   let minFuncStart = Number.MAX_SAFE_INTEGER;
   for (const selection of editor.selections) {
@@ -41,14 +41,14 @@ export async function toggle() {
       funcs = fnct.getFuncsBetweenLines(fsPath, topLine, botLine, true);
     }
     if(funcs.length === 0) return;
-    if(enable === null) {
-      let enabledCount = 0;
-      funcs.forEach(func => { if(func.enabled) enabledCount++; });
-      enable = enabledCount/funcs.length < 0.5;
+    if(mark === null) {
+      let markedCount = 0;
+      funcs.forEach(func => { if(func.marked) markedCount++; });
+      mark = markedCount/funcs.length < 0.5;
     }
     funcs.forEach(func => {
-      func.enabled = !func.enabled;
-      if(enable && func.start < minFuncStart) {
+      func.marked = !func.marked;
+      if(mark && func.start < minFuncStart) {
         minFuncStart = func.start;
         firstFunc    = func;
       }
@@ -66,7 +66,7 @@ async function prevNext(next: boolean) {
       sett.includeFile(activeEditor.document.uri.fsPath)) {
     const fsPath   = activeEditor.document.uri.fsPath;
     const fileWrap = settings.fileWrap;
-    const sortArgs = {enabledOnly: true};
+    const sortArgs = {markedOnly: true};
     if(!fileWrap) (sortArgs as any).fsPath = fsPath;
     const funcs = fnct.getSortedFuncs(sortArgs);
     if(funcs.length == 0) return;

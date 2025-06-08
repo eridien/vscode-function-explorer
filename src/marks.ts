@@ -33,7 +33,7 @@ export function setFuncInMaps(func: Func): boolean {
   func.missing  = false; 
   const fsPath  = func.getFsPath();
   const oldFunc = funcsById.get(func.id!);
-  if(oldFunc) func.enabled = oldFunc.enabled; 
+  if(oldFunc) func.marked = oldFunc.marked; 
   funcsById.set(func.id!, func);
   let funcMap = funcsByFsPath.get(fsPath);
   if (!funcMap) {
@@ -152,7 +152,7 @@ export async function updateFuncsInFile(
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {
-  const {enabledOnly = false, includeMissing = false, fsPath} = p;
+  const {markedOnly = false, includeMissing = false, fsPath} = p;
   let funcs;
   if(fsPath) {
     const fileFuncMap = funcsByFsPath.get(fsPath);
@@ -160,7 +160,7 @@ export function getFuncs(p: any | {} = {}) : Func[] {
     funcs = Array.from(fileFuncMap.values());
   }
   else funcs = [...funcsById.values()];
-  if(enabledOnly)     funcs = funcs.filter(func =>  func.enabled);
+  if(markedOnly)     funcs = funcs.filter(func =>  func.marked);
   if(!includeMissing) funcs = funcs.filter(func => !func.missing);
   return funcs;
 }
@@ -228,7 +228,7 @@ export function getFuncsBetweenLines(fsPath: string,
     const subFuncs = [];
     for(const func of matches) {
       const depth = func.parents!.length;
-      if(!func.missing && func.enabled &&
+      if(!func.missing && func.marked &&
             (depth == minDepth || overRideSubChk)) 
         subFuncs.push(func);
     }

@@ -16,7 +16,7 @@ export class Func {
   startKey?:      string;
   endKey?:        string;
   fsPath?:        string;
-  enabled:        boolean;
+  marked:        boolean;
   missing:        boolean;
   constructor(p:any) {
     const {document, name, type, start, end} = p;
@@ -25,7 +25,7 @@ export class Func {
     this.type      = type;
     this.start     = start;
     this.end       = end;
-    this.enabled   = false;
+    this.marked   = false;
     this.missing   = false;
   }
   getWsFolder()  { 

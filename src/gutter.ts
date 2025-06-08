@@ -41,7 +41,7 @@ export function updateGutter(editor: vscode.TextEditor |
   const document  = editor.document;
   const decRanges = [];
   const fsPath    = document.uri.fsPath;
-  const funcs     = fnct.getFuncs({enabledOnly: true, fsPath});
+  const funcs     = fnct.getFuncs({markedOnly: true, fsPath});
   for(const func of funcs) {
     const lineNumber = document.positionAt(func.start).line;
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
