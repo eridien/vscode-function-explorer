@@ -32,19 +32,17 @@ export class WsAndFolderItem extends Item {
     const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
     for (const entry of entries) {
       const fsPath = path.join(parentFsPath, entry.name);
-      if (entry.isDirectory()) {
-        const uri = vscode.Uri.file(fsPath);
-        if(uri.scheme !== 'file' || 
-          !sett.includeFile(fsPath, true)) continue;
+      const uri    = vscode.Uri.file(fsPath);
+      if(uri.scheme !== 'file') continue;
+      const isDir = entry.isDirectory();
+      if(!sett.includeFile(fsPath, isDir)) continue;
+      if (isDir) {
         const folderItem = await FolderItem.create(fsPath);
         if(!folderItem) continue;
         folderItem.parentId = parentFsPath;
         folders.push(folderItem);
       }
       if (entry.isFile()) {
-        const uri = vscode.Uri.file(fsPath);
-        if(uri.scheme !== 'file' || 
-          !sett.includeFile(fsPath)) continue;
         const fileItem = new FileItem(fsPath);
         if(!fileItem) continue;
         fileItem.parentId = parentFsPath;
@@ -64,8 +62,7 @@ export class WsAndFolderItem extends Item {
 
 export class WsFolderItem extends WsAndFolderItem {
   constructor(wsFolder: vscode.WorkspaceFolder) {
-    const label = wsFolder.name;
-    super(label, vscode.TreeItemCollapsibleState.Expanded);
+    super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
     Object.assign(this, {id, contextValue:'wsFolder', iconPath});
@@ -112,7 +109,6 @@ class FileItem extends Item {
     };
     sbar.setItemInMap(this);
   }
-
   async getChildren(): Promise<Item[]> {
     if(this.children) return this.children;
     const uri = vscode.Uri.file(this.id!);
@@ -145,7 +141,7 @@ export class FuncItem extends Item {
           func.getFsPath() === activeEditor.document.uri.fsPath &&
           func.getStartLine() <= topLine                        &&
           func.getEndLine()   >= botLine;
-      // if(this.pointer) this.iconPath = new vscode.ThemeIcon('triangle-right');
+      if(this.pointer) this.iconPath = new vscode.ThemeIcon('triangle-right');
     }
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
