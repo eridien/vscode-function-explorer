@@ -25,40 +25,30 @@ export class Item extends vscode.TreeItem {
   }
 }
 
-async function getFsEntries(parentFsPath: string) : Promise<Dirent[]> {
-  return await fs.readdir(parentFsPath, {withFileTypes: true});
-}
-
 export class WsAndFolderItem extends Item {
   private children: Item[] | undefined;
   private async _getFolderFileChildren(
        parentFsPath: string, folders: Item[], files: Item[]) {
-    const entries = await getFsEntries(parentFsPath);
+    const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
     for (const entry of entries) {
       const fsPath = path.join(parentFsPath, entry.name);
       if (entry.isDirectory()) {
         const uri = vscode.Uri.file(fsPath);
         if(uri.scheme !== 'file' || 
           !sett.includeFile(fsPath, true)) continue;
-        let folderItem: FolderItem | null = null;
-        try { folderItem = await FolderItem.create(fsPath); }
-        catch (err: unknown) { continue; }
-        if (folderItem !== null) {
-          folderItem.parentId = parentFsPath;
-          folders.push(folderItem);
-        }
+        const folderItem = await FolderItem.create(fsPath);
+        if(!folderItem) continue;
+        folderItem.parentId = parentFsPath;
+        folders.push(folderItem);
       }
       if (entry.isFile()) {
         const uri = vscode.Uri.file(fsPath);
         if(uri.scheme !== 'file' || 
           !sett.includeFile(fsPath)) continue;
-        let fileItem : FileItem;
-        try { fileItem = await FileItem.create(fsPath); }
-        catch (err: unknown) { continue; }
-        if(fileItem !== null) {
-          fileItem.parentId = parentFsPath;
-          files.push(fileItem);
-        }
+        const fileItem = new FileItem(fsPath);
+        if(!fileItem) continue;
+        fileItem.parentId = parentFsPath;
+        files.push(fileItem);
       }
     }
   }
@@ -74,7 +64,8 @@ export class WsAndFolderItem extends Item {
 
 export class WsFolderItem extends WsAndFolderItem {
   constructor(wsFolder: vscode.WorkspaceFolder) {
-    super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
+    const label = wsFolder.name;
+    super(label, vscode.TreeItemCollapsibleState.Expanded);
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
     Object.assign(this, {id, contextValue:'wsFolder', iconPath});
@@ -91,9 +82,8 @@ export class FolderItem extends WsAndFolderItem {
   private constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
   }
-  static async create(fsPath: string) {    
-    if((await getFsEntries(fsPath)).length === 0)
-      throw new Error(`Folder is empty.`);
+  static async create(fsPath: string) {
+    if (!await utils.hasChildTest(fsPath, sett.includeFile)) return null;
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('folder');
     const command =  {
@@ -110,39 +100,30 @@ export class FolderItem extends WsAndFolderItem {
 
 class FileItem extends Item {
   private children?: Item[];
-  private funcs?:    Func[];
-  private constructor(fsPath: string) {
+  constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
-  }
-  static async create(fsPath: string) {    
-    const newThis = new FileItem(fsPath);
-    if(!newThis.funcs) {
-      const uri      = vscode.Uri.file(fsPath);
-      const document = await vscode.workspace.openTextDocument(uri);
-      await fnct.updateFuncsInFile(document);
-      newThis.funcs ??= fnct.getSortedFuncs(
-                            {fsPath, alpha:settings.alphaSortFuncs});
-      if(newThis.funcs.length === 0) 
-        throw new Error(`File has no functions.`);
-    }
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('file');
-    Object.assign(newThis, {id, contextValue:'file', iconPath});
-    newThis.command = {
+    Object.assign(this, {id, contextValue:'file', iconPath});
+    this.command = {
       command:   'vscode-function-explorer.fileClickCmd',
       title:     'Item Clicked',
       arguments: [id],
     };
-    sbar.setItemInMap(newThis);
-    return newThis;
+    sbar.setItemInMap(this);
   }
-  getChildren(): Item[] {
-    this.children ??= this.funcs!.map(
-        func => {const item = new FuncItem(func);
-                  item.parentId = this.id;
-                  return item;
-                });
-    return this.children;
+
+  async getChildren(): Promise<Item[]> {
+    if(this.children) return this.children;
+    const uri = vscode.Uri.file(this.id!);
+    const document = await vscode.workspace.openTextDocument(uri);
+    await  fnct.updateFuncsInFile(document);
+    return fnct.getSortedFuncs(
+        {fsPath: this.id!, alpha:settings.alphaSortFuncs})
+        .map(func => {const item = new FuncItem(func);
+                      item.parentId = this.id;
+                      return item;
+                     });
   }
 }
 

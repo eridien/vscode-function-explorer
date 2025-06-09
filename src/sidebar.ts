@@ -100,6 +100,7 @@ export async function fileClickCmd(path: string) {
 export function updateTree(item?: Item) {
   sidebarProvider.refresh(item);
 }
+let count = 0;
 
 export class SidebarProvider {
   onDidChangeTreeData:               vscode.Event<Item        | undefined>;
@@ -115,6 +116,7 @@ export class SidebarProvider {
   }
 
   getTreeItem(item: Item): Item {
+    log(++count, 'getTreeItem',item.label);
     return itemsById.get(item.id!) ?? item;
   }
 
@@ -127,8 +129,13 @@ export class SidebarProvider {
   }
 
   async getChildren(item: Item): Promise<Item[]> {
+    log(++count, 'getChildren',item?.label);
     if(!item) return Item.getTree();
-    return item.contextValue !== 'func' 
+    const children = item.contextValue !== 'func' 
                ? await (item as WsAndFolderItem).getChildren() : [];
+    // for(const child of children) {
+    //   if(child.label == 'test')  debugger; 
+    // }
+    return children;
   }
 }

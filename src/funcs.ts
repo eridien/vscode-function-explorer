@@ -98,7 +98,7 @@ export function setFuncInMaps(func: Func): boolean {
 
 export async function updateFuncsInFile(
                document: vscode.TextDocument|null = null): Promise<Func[]> {
-  start('updateFuncsInFile', true);
+  // start('updateFuncsInFile', true);
   const updatedFuncs: Func[] = [];
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
@@ -202,7 +202,7 @@ export async function updateFuncsInFile(
   const msg = `${path.basename(uri.fsPath)}, `+
     `${updatedFuncs.length}:${funcs.length}` + 
       (updatedFuncs.length > 0 ? '  <<<<<<<<<<' : '');
-  end('updateFuncsInFile', false, msg);
+  // end('updateFuncsInFile', false, msg);
   return updatedFuncs;
 }
 
