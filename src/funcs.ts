@@ -199,7 +199,7 @@ export async function updateFuncsInFile(
     if(setFuncInMaps(func)) updatedFuncs.push(func);
   }
   await saveFuncStorage();
-  const msg = `updated ${path.basename(uri.fsPath)}, `+
+  const msg = `${path.basename(uri.fsPath)}, `+
     `${updatedFuncs.length}:${funcs.length}` + 
       (updatedFuncs.length > 0 ? '  <<<<<<<<<<' : '');
   end('updateFuncsInFile', false, msg);
