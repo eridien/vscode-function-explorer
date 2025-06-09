@@ -75,9 +75,9 @@ export async function activate(context: vscode.ExtensionContext) {
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();
-  await fnct.activate(context);
   side.activate(treeView, sidebarProvider);
-  await cmds.activate();
+  await fnct.activate(context);
+  await cmds.updateSide({dontUpdateFuncs: true});
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg, fileClickCmd,

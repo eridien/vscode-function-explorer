@@ -18,7 +18,7 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
                          sidebarProviderIn: SidebarProvider) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
-  updateTree();
+  // updateTree();
 }
 
 export function setItemInMap(item: Item) {
