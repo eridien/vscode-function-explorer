@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import {Dirent}    from 'fs';
 import * as fs     from 'fs/promises';
 import * as path   from 'path';
+import * as sbar   from './sidebar';
 import * as fnct   from './funcs';
 import {Func}      from './funcs';
 import * as sett   from './settings';
@@ -10,11 +11,7 @@ import * as utils  from './utils';
 const {log} = utils.getLog('cmds');
 
 export class Item extends vscode.TreeItem {
-  wsFolder?:   vscode.WorkspaceFolder;
-  func?:       Func;
-  pointer?:    boolean;
   parentId?:   string;
-
   static getTree() {
     const wsFolders = vscode.workspace.workspaceFolders;
     if (!wsFolders) {
@@ -28,21 +25,22 @@ export class Item extends vscode.TreeItem {
   }
 }
 
-class WsAndFolderItem extends Item {
+async function getFsEntries(parentFsPath: string) : Promise<Dirent[]> {
+  return await fs.readdir(parentFsPath, {withFileTypes: true});
+}
+
+export class WsAndFolderItem extends Item {
   private children: Item[] | undefined;
-  async getFsEntries(parentFsPath: string) : Promise<Dirent[]> {
-    return await fs.readdir(parentFsPath, {withFileTypes: true});
-  }
   private async _getFolderFileChildren(
        parentFsPath: string, folders: Item[], files: Item[]) {
-    const entries = await this.getFsEntries(parentFsPath);
+    const entries = await getFsEntries(parentFsPath);
     for (const entry of entries) {
       const fsPath = path.join(parentFsPath, entry.name);
       if (entry.isDirectory()) {
         const uri = vscode.Uri.file(fsPath);
         if(uri.scheme !== 'file' || 
           !sett.includeFile(fsPath, true)) continue;
-        const folderItem = await new FolderItem(fsPath);
+        const folderItem = await FolderItem.create(fsPath);
         if (folderItem !== null) {
           folderItem.parentId = parentFsPath;
           folders.push(folderItem);
@@ -64,14 +62,14 @@ class WsAndFolderItem extends Item {
     if(this.children) return this.children;
     const folders: Item[] = [];
     const files:   Item[] = [];
-    await this._getFolderFileChildren(this.id, folders, files);
+    await this._getFolderFileChildren(this.id!, folders, files);
     this.children = [...folders, ...files];
     return this.children;
   }
 }
 
 export class WsFolderItem extends WsAndFolderItem {
-  async constructor(wsFolder: vscode.WorkspaceFolder) {
+  constructor(wsFolder: vscode.WorkspaceFolder) {
     super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
@@ -81,30 +79,33 @@ export class WsFolderItem extends WsAndFolderItem {
       title:     'Item Clicked',
       arguments: [id],
     };
-    setItemInMaps(this);
+    sbar.setItemInMap(this);
   }
 }
 
 export class FolderItem extends WsAndFolderItem {
-  constructor(fsPath: string) {
-    super(fsPath);
+  private constructor(fsPath: string) {
+    super(fsPath, vscode.TreeItemCollapsibleState.Collapsed);
+  }
+  static async create(fsPath: string) {    
     const label = path.basename(fsPath);
-    if((await this.getFsEntries(fsPath)).length === 0) 
+    if((await getFsEntries(fsPath)).length === 0)
       throw new Error(`Folder "${label}" is empty.`);
-    super(label, vscode.TreeItemCollapsibleState.Collapsed);
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('folder');
-    Object.assign(this, {id, contextValue:'folder', iconPath});
-    this.command = {
+    const command =  {
       command:   'vscode-function-explorer.folderClickCmd',
       title:     'Item Clicked',
       arguments: [id],
     };
-    setItemInMaps(this);
+    const newThis = new FolderItem(fsPath);
+    Object.assign(newThis, {id, contextValue:'folder', iconPath, command});
+    sbar.setItemInMap(newThis);
+    return newThis;
   }
 }
 
-class FileItem extends Item {
+export class FileItem extends Item {
   private children?: Item[];
   private funcs?:    Func[];
   constructor(fsPath: string) {
@@ -121,7 +122,7 @@ class FileItem extends Item {
       title:     'Item Clicked',
       arguments: [id],
     };
-    setItemInMaps(this);
+    sbar.setItemInMap(this);
   }
   getChildren(): Item[] {
     this.children ??= this.funcs!.map(
@@ -133,35 +134,35 @@ class FileItem extends Item {
   }
 }
 
-class FuncItem extends Item {
-  constructor(func: fnct.Func) {
-    super(func.name, vscode.TreeItemCollapsibleState.None);
+export class FuncItem extends Item {
+  func?:    Func;
+  pointer?: boolean;
+  constructor(func: Func) {
+    const label = (func.marked ? '🔖' : '') + func.name;
+    super(label, vscode.TreeItemCollapsibleState.None);
     const id = func.id;
     Object.assign(this, {id, contextValue:'func', func});
-    if(func.marked) 
-      this.iconPath = new vscode.ThemeIcon('bookmark');
+    const activeEditor = vscode.window.activeTextEditor;
+    if(activeEditor) {
+      let topLine = activeEditor.selection.active.line;
+      let botLine = activeEditor.selection.anchor.line;
+      if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
+      this.pointer = activeEditor                               && 
+          activeEditor.document.uri.scheme === 'file'           &&
+          func.getFsPath() === activeEditor.document.uri.fsPath &&
+          func.getStartLine() <= topLine                        &&
+          func.getEndLine()   >= botLine;
+      // if(this.pointer) this.iconPath = new vscode.ThemeIcon('triangle-right');
+    }
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',
       arguments: [id],
     };
-    setItemInMaps(this);
+    sbar.setItemInMap(this);
   }
-
-  const label = (func.marked ? '🔖' : '') + func.name;
-  const item = new Item(label, vscode.TreeItemCollapsibleState.None);
-  Object.assign(item, {id: func.id, contextValue:'func', func});
-  const activeEditor = vscode.window.activeTextEditor;
-  item.pointer = activeEditor                                  && 
-      activeEditor.document.uri.scheme === 'file'              &&
-      func.getFsPath()    === activeEditor.document.uri.fsPath &&
-      func.getStartLine() === activeEditor.selection.active.line;
-  // if(item.pointer) item.iconPath = new vscode.ThemeIcon('triangle-right');
-  item.command = {
-    command: 'vscode-function-explorer.funcClickCmd',
-    title:   'Item Clicked',
-    arguments: [item.id],
-  };
-  setItemInMaps(item);
-  return item;
-};
+  setFunc(func: Func) {
+    this.func = func;
+    sbar.updateTree(this);
+  }
+}

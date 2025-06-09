@@ -28,8 +28,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(
-                   'vscode-function-explorer.funcClickCmd', async () => {
-		await side.funcClickCmd();
+                   'vscode-function-explorer.funcClickCmd', async (id) => {
+		await side.funcClickCmd(id);
 	});
 
 	const fileClickCmd = vscode.commands.registerCommand(
@@ -52,13 +52,9 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const chgSidebarVisibility = treeView.onDidChangeVisibility(event => {
-    side.chgSidebarVisibility(event.visible);
   });
 
   const chgItemFocus = treeView.onDidChangeSelection(event => {
-    if (event.selection.length > 0) {
-      side.chgItemFocus(event.selection[0]);
-    }
   });
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
@@ -80,7 +76,7 @@ export async function activate(context: vscode.ExtensionContext) {
   gutt.activate(context);
   file.setFileWatcher();
   await fnct.activate(context);
-  await side.activate(treeView, sidebarProvider);
+  side.activate(treeView, sidebarProvider);
   await cmds.activate();
 
 	context.subscriptions.push(
