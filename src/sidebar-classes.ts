@@ -53,7 +53,7 @@ export class WsAndFolderItem extends Item {
         if(uri.scheme !== 'file' || 
           !sett.includeFile(fsPath)) continue;
         let fileItem : FileItem;
-        try { fileItem = new FileItem(fsPath); }
+        try { fileItem = await FileItem.create(fsPath); }
         catch (err: unknown) { continue; }
         if(fileItem !== null) {
           fileItem.parentId = parentFsPath;
@@ -111,21 +111,30 @@ export class FolderItem extends WsAndFolderItem {
 class FileItem extends Item {
   private children?: Item[];
   private funcs?:    Func[];
-  constructor(fsPath: string) {
+  private constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
-    this.funcs ??= fnct.getSortedFuncs(
-                         {fsPath, alpha:settings.alphaSortFuncs});
-    if(this.funcs.length === 0) 
-      throw new Error(`File "${this.label}" has no functions.`);
+  }
+  static async create(fsPath: string) {    
+    const newThis = new FileItem(fsPath);
+    if(!newThis.funcs) {
+      const uri      = vscode.Uri.file(fsPath);
+      const document = await vscode.workspace.openTextDocument(uri);
+      await fnct.updateFuncsInFile(document);
+      newThis.funcs ??= fnct.getSortedFuncs(
+                            {fsPath, alpha:settings.alphaSortFuncs});
+      if(newThis.funcs.length === 0) 
+        throw new Error(`File has no functions.`);
+    }
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('file');
-    Object.assign(this, {id, contextValue:'file', iconPath});
-    this.command = {
+    Object.assign(newThis, {id, contextValue:'file', iconPath});
+    newThis.command = {
       command:   'vscode-function-explorer.fileClickCmd',
       title:     'Item Clicked',
       arguments: [id],
     };
-    sbar.setItemInMap(this);
+    sbar.setItemInMap(newThis);
+    return newThis;
   }
   getChildren(): Item[] {
     this.children ??= this.funcs!.map(

@@ -2,12 +2,13 @@
 // https://github.com/acornjs/acorn/tree/master/acorn-loose/
 // https://github.com/acornjs/acorn/tree/master/acorn-walk/
 
-import vscode       from 'vscode';
-import * as acorn   from "acorn-loose";
-import * as walk    from 'acorn-walk';
-import {settings}   from './settings';
-import * as sett    from './settings';
-import * as utils   from './utils.js';
+import vscode     from 'vscode';
+import * as path  from 'path';
+import * as acorn from "acorn-loose";
+import * as walk  from 'acorn-walk';
+import {settings} from './settings';
+import * as sett  from './settings';
+import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('func');
 
 const LOAD_FUNCS_ON_START = true;
@@ -96,8 +97,8 @@ export function setFuncInMaps(func: Func): boolean {
 }
 
 export async function updateFuncsInFile(
-        document: vscode.TextDocument|null = null): Promise<Func[]> {
-  start('updateFuncsInFile');
+               document: vscode.TextDocument|null = null): Promise<Func[]> {
+  start('updateFuncsInFile', true);
   const updatedFuncs: Func[] = [];
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
@@ -108,7 +109,7 @@ export async function updateFuncsInFile(
   if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return [];
   const docText = document.getText();
   if (!docText || docText.length === 0) return [];
-  const docFuncs = funcsByFsPath.get(document.uri.fsPath);
+  const docFuncs = funcsByFsPath.get(uri.fsPath);
   for (const func of (docFuncs ? docFuncs.values() : [])) 
     func.missing = true;
   let ast: any;
@@ -198,7 +199,10 @@ export async function updateFuncsInFile(
     if(setFuncInMaps(func)) updatedFuncs.push(func);
   }
   await saveFuncStorage();
-  end('updateFuncsInFile', false);
+  const msg = `updated ${path.basename(uri.fsPath)}, `+
+    `${updatedFuncs.length}:${funcs.length}` + 
+      (updatedFuncs.length > 0 ? '  <<<<<<<<<<' : '');
+  end('updateFuncsInFile', false, msg);
   return updatedFuncs;
 }
 

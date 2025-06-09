@@ -33,7 +33,7 @@ const outputChannel = vscode.window.createOutputChannel('function-explorer');
 export function getLog(module: string) : {
   log:   (...args: any[])                   => void;
   start: (name: string, hide?: boolean)     => void;
-  end:   (name: string, onlySlow?: boolean) => void;
+  end:   (name: string, onlySlow?: boolean, msg?: string) => void;
 } {
   const timers: Record<string, number> = {};
 
@@ -46,7 +46,8 @@ export function getLog(module: string) : {
     console.log(line);
   };
 
-  const end = function (name: string, onlySlow: boolean = true): void {
+  const end = function (name: string, onlySlow: boolean = true, 
+                        msg: string = ''): void {
     if (!timers[name]) {
       const line = `${module}: ${name} ended`;
       outputChannel.appendLine(line);
@@ -56,7 +57,7 @@ export function getLog(module: string) : {
     const endTime = Date.now();
     const duration = endTime - timers[name];
     if (onlySlow && duration < 100) return;
-    const line = `${module}: ${name} ended, ${timeInSecs(duration)}s`;
+    const line = `${module}: ${name} ended, ${timeInSecs(duration)}s,  ${msg}`;
     outputChannel.appendLine(line);
     console.log(line);
   };

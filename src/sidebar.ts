@@ -1,12 +1,12 @@
 // @@ts-nocheck
 
-import vscode       from 'vscode';
-import * as fnct    from './funcs';
-import {Func}       from './funcs';
-import * as sett    from './settings';
+import vscode     from 'vscode';
+import * as fnct  from './funcs';
+import {Func}     from './funcs';
+import * as sett  from './settings';
 import {Item, WsAndFolderItem, FuncItem} 
-                    from './sidebar-classes';
-import * as utils   from './utils.js';
+                  from './sidebar-classes';
+import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('side');
 
 let treeView:        vscode.TreeView<Item>;

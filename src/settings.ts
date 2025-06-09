@@ -44,11 +44,11 @@ export function loadSettings() {
   };
   const incParts = config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                          .split(",").map(p => p.trim());
-  if(incParts.length < 2) includeCfg =     incParts.join(",");
+  if(incParts.length < 2) includeCfg =     incParts[0];
   else                    includeCfg = '{'+incParts.join(",")+'}';
   const excParts = config.get<string>("filesToExclude", "node_modules/**")
                          .split(",").map(p => p.trim());
-  if(excParts.length < 2) excludeCfg =     excParts.join(",");
+  if(excParts.length < 2) excludeCfg =     excParts[0];
   else                    excludeCfg = '{'+excParts.join(",")+'}';
   filesGlobPattern = `${includeCfg},!${excludeCfg}`;
 }
@@ -56,10 +56,10 @@ export function loadSettings() {
 export function includeFile(fsPath: string, folder?:boolean): boolean {
   const filePath = vscode.workspace.asRelativePath(fsPath);
   const relPath = folder ? filePath + '/' : filePath;
-  log('includeFile', `checking ${relPath} against "${
-                                 excludeCfg}", "${includeCfg}"`,
-                      minimatch(relPath, excludeCfg), 
-                      minimatch(relPath, includeCfg));
+  // log('includeFile', `checking ${relPath} against "${
+  //                                excludeCfg}", "${includeCfg}"`,
+  //                     minimatch(relPath, excludeCfg), 
+  //                     minimatch(relPath, includeCfg));
   if(minimatch(relPath, excludeCfg)) return false;
   return folder || minimatch(relPath, includeCfg);
 }
