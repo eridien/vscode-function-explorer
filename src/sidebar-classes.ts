@@ -8,7 +8,7 @@ import {Func}      from './funcs';
 import * as sett   from './settings';
 import {settings}  from './settings';
 import * as utils  from './utils';
-const {log} = utils.getLog('cmds');
+const {log} = utils.getLog('sbcl');
 
 export class Item extends vscode.TreeItem {
   parentId?:   string;
@@ -40,7 +40,9 @@ export class WsAndFolderItem extends Item {
         const uri = vscode.Uri.file(fsPath);
         if(uri.scheme !== 'file' || 
           !sett.includeFile(fsPath, true)) continue;
-        const folderItem = await FolderItem.create(fsPath);
+        let folderItem: FolderItem | null = null;
+        try { folderItem = await FolderItem.create(fsPath); }
+        catch (err: unknown) { continue; }
         if (folderItem !== null) {
           folderItem.parentId = parentFsPath;
           folders.push(folderItem);
@@ -50,7 +52,9 @@ export class WsAndFolderItem extends Item {
         const uri = vscode.Uri.file(fsPath);
         if(uri.scheme !== 'file' || 
           !sett.includeFile(fsPath)) continue;
-        const fileItem = new FileItem(fsPath);
+        let fileItem : FileItem;
+        try { fileItem = new FileItem(fsPath); }
+        catch (err: unknown) { continue; }
         if(fileItem !== null) {
           fileItem.parentId = parentFsPath;
           files.push(fileItem);
@@ -85,12 +89,11 @@ export class WsFolderItem extends WsAndFolderItem {
 
 export class FolderItem extends WsAndFolderItem {
   private constructor(fsPath: string) {
-    super(fsPath, vscode.TreeItemCollapsibleState.Collapsed);
+    super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
   }
   static async create(fsPath: string) {    
-    const label = path.basename(fsPath);
     if((await getFsEntries(fsPath)).length === 0)
-      throw new Error(`Folder "${label}" is empty.`);
+      throw new Error(`Folder is empty.`);
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('folder');
     const command =  {
@@ -105,7 +108,7 @@ export class FolderItem extends WsAndFolderItem {
   }
 }
 
-export class FileItem extends Item {
+class FileItem extends Item {
   private children?: Item[];
   private funcs?:    Func[];
   constructor(fsPath: string) {

@@ -11,7 +11,6 @@ const {log, start, end} = utils.getLog('side');
 
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
-let treeRoot:        Item[] | null = null;
 
 let itemsById:     Map<string, Item> = new Map();
 
@@ -27,33 +26,6 @@ export function setItemInMap(item: Item) {
   if(item instanceof Func) fsPath = (item as Func).getFsPath();
   else                     fsPath = item.id!;
   itemsById.set(item.id!, item);
-}
-
-let intervalId: NodeJS.Timeout | null = null;
-let timeoutId:  NodeJS.Timeout | null = null;
-export let showingBusy = false;
-
-export function setBusy(busy: boolean, blinking = false) {
-  if (treeView) 
-      treeView.message = busy ? '⟳ Processing Bookmarks ...' : '';
-  updateTree();
-  if(blinking) return;
-  if(busy && !showingBusy) {
-    showingBusy = true;
-    intervalId = setInterval(() => {
-      setBusy(true, true);
-      timeoutId = setTimeout(() => { setBusy(false, true); }, 1000);
-    }, 2000);
-    setBusy(true);
-  }
-  if(!busy && showingBusy) {
-    showingBusy = false;
-    if(intervalId) clearInterval(intervalId);
-    if(timeoutId)  clearTimeout(timeoutId);
-    intervalId = null;
-    timeoutId  = null;
-    setBusy(false, true);
-  }
 }
 
 export function updateItemsFromFuncs(updatedFuncs: Func[]) {
@@ -112,7 +84,6 @@ export function fileCreated(uri: vscode.Uri) {
 
 }
 export function fileDeleted(uri: vscode.Uri) {
-
 }
 
 export async function funcClickCmd(id: string) { 
