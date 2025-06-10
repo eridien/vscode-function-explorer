@@ -1,6 +1,5 @@
 import * as vscode  from 'vscode';
 import * as sbar    from './sidebar';
-import * as itms    from './items';
 import * as gutt    from './gutter';
 import * as fnct    from './funcs';
 import * as sett    from './settings';
@@ -14,17 +13,17 @@ export async function toggle() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
   const document = editor.document;
+  const fsPath = document.uri.fsPath;
   await fnct.updateFuncsInFile(document);
   if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(document.uri.fsPath)) return;
-  let mark:        boolean | null = null;
+     !sett.includeFile(fsPath)) return;
+  let mark:          boolean | null = null;
   let firstFunc:     Func    | null = null;
   let minFuncStart = Number.MAX_SAFE_INTEGER;
   for (const selection of editor.selections) {
     let topLine = selection.active.line;
     let botLine = selection.anchor.line;
     let funcs: Func[] = [];
-    const fsPath = document.uri.fsPath;
     if(topLine === botLine) {
       const func = fnct.getFuncAtLine(fsPath, topLine);
       if(func) funcs = [func];
@@ -47,8 +46,8 @@ export async function toggle() {
       }
     });
   }
-  await updateSide();
   await fnct.saveFuncStorage();
+  sbar.updateFileItem(fsPath);
   if(firstFunc) await fnct.revealFunc(null, firstFunc);
 }
 
@@ -104,7 +103,7 @@ export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  await updateSide();
+  await updateSide(document);
 }
 
 export function selectionChg(event: vscode.TextEditorSelectionChangeEvent) {
@@ -115,7 +114,7 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
   const document = event.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  await updateSide();
+  await updateSide(document);
 }
 
 export async function updateSide(document?: vscode.TextDocument) {
@@ -128,6 +127,5 @@ export async function updateSide(document?: vscode.TextDocument) {
                await fnct.updateFuncsInFile(document);
   if (structureChanged) sbar.updateFileItem(document.uri.fsPath);
   else for (const func of updatedFuncs) sbar.updateFuncItem(func);
-  sbar.updatePointers(null, true);
   gutt.updateGutter();
 };

@@ -134,6 +134,7 @@ export class FuncItem extends Item {
   func?:    Func;
   pointer?: boolean;
   constructor(func: Func) {
+    
     const label = (func.marked ? '🞂' : ' ') + func.name;
     super(label, vscode.TreeItemCollapsibleState.None);
     const id = func.id;
@@ -143,16 +144,26 @@ export class FuncItem extends Item {
       let topLine = activeEditor.selection.active.line;
       let botLine = activeEditor.selection.anchor.line;
       if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-      this.pointer = activeEditor                               && 
+      this.pointer = (
           activeEditor.document.uri.scheme === 'file'           &&
           func.getFsPath() === activeEditor.document.uri.fsPath &&
           func.getStartLine() <= topLine                        &&
-          func.getEndLine()   >= botLine;
+          func.getEndLine()   >= botLine);
       if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
       else            this.iconPath = vscode.Uri.file(
          path.join(context.extensionPath, 'images', 'gutter-icon-lgt.svg'));
     }
     sbar.setMarkInItem(this, func.marked);
+
+  if(func && func.marked !== mark) {
+    func.marked = mark;
+    item.iconPath = func.marked ? markIconPath :  vscode.Uri.file( 
+             path.join(context.extensionPath, 'images', 'transparent.svg'));
+    updateTree(item);
+    revealItem(item);
+  }
+
+
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',

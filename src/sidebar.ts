@@ -14,7 +14,7 @@ const {log, start, end} = utils.getLog('side');
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
-let markIconPath: { light: vscode.Uri; dark: vscode.Uri };
+let markIconPath: {light: vscode.Uri; dark: vscode.Uri};
 
 let itemsById: Map<string, Item> = new Map();
 
@@ -39,24 +39,8 @@ export function setItemInMap(item: Item) {
   itemsById.set(item.id!, item);
 }
 
-export function updateItemsFromFuncs(updatedFuncs: Func[]) {
-  for (const func of updatedFuncs) new FuncItem(func);
-  updateTree();
-}
-
 export function revealItem(item: Item) {
   treeView.reveal(item, {expand: true, select: true, focus: false});
-}
-
-export function setMarkInItem(item: FuncItem, mark: boolean) {
-  let func = item.func;
-  if(func && func.marked !== mark) {
-    func.marked = mark;
-    item.iconPath = func.marked ? markIconPath :  vscode.Uri.file( 
-             path.join(context.extensionPath, 'images', 'transparent.svg'));
-    updateTree(item);
-    revealItem(item);
-  }
 }
 
 export function updatePointer(item: FuncItem, pointer: boolean,
@@ -71,8 +55,7 @@ export function updatePointer(item: FuncItem, pointer: boolean,
   }
 }
 
-export function updatePointers(editor: vscode.TextEditor | null | undefined, 
-                               dontRefreshItems = false) {
+export function updatePointers(editor?: vscode.TextEditor) {
   editor ??= vscode.window.activeTextEditor;
   if (!editor) return;
   const document = editor.document;
@@ -88,7 +71,7 @@ export function updatePointers(editor: vscode.TextEditor | null | undefined,
                    funcLine <= selection.end.line;
       if(hasPointer) break; 
     }
-    updatePointer(func, hasPointer, dontRefreshItems);
+    updatePointer(func, hasPointer);
   }
 }
 

@@ -179,7 +179,15 @@ export async function updateFuncsInFile(
   const oldFuncs = getSortedFuncs({fsPath: uri.fsPath, alpha:false});
   let oldIdx = 0;
   let newIdx = 0;
-  while(newIdx < funcs.length) {
+  while(true) {
+    if(newIdx >= funcs.length) {
+      while(oldIdx < oldFuncs.length) {
+        funcsById.delete(oldFuncs[oldIdx].id!);
+        structureChanged = true;
+        oldIdx++;
+      }
+      break;
+    }
     if(oldIdx >= oldFuncs.length) {
       while(newIdx < funcs.length) {
         funcsById.set(funcs[newIdx].id!, funcs[newIdx]);
