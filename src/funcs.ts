@@ -17,7 +17,8 @@ const LOAD_FUNCS_ON_START = true;
 const VERIFY_FUNCS_IN_DUMP = true;
 // const VERIFY_FUNCS_IN_DUMP = false;
 
-let context: vscode.ExtensionContext;
+let context:   vscode.ExtensionContext;
+let funcsById: Map<string, Func> = new Map();
 
 export async function activate(contextIn: vscode.ExtensionContext) {
   start('activate funcs');
@@ -27,40 +28,27 @@ export async function activate(contextIn: vscode.ExtensionContext) {
 }
 
 export class Func {
-  wsFolder?:      vscode.WorkspaceFolder;
-  document:       vscode.TextDocument;
-  name:           string;
-  type:           string;
-  start:          number;
-  end:            number;
-  parents?:       Func[];
-  id?:            string;
-  startLine?:     number;
-  endLine?:       number;
-  startKey?:      string;
-  endKey?:        string;
-  fsPath?:        string;
-  marked:        boolean;
-  missing:        boolean;
+  document:   vscode.TextDocument;
+  name:       string;
+  type:       string;
+  start:      number;
+  end:        number;
+  marked:     boolean;
+  parents?:   Func[];
+  id?:        string;
+  startLine?: number;
+  endLine?:   number;
+  startKey?:  string;
+  endKey?:    string;
+  fsPath?:    string;
   constructor(p:any) {
     const {document, name, type, start, end} = p;
-    this.document  = document;
-    this.name      = name;
-    this.type      = type;
-    this.start     = start;
-    this.end       = end;
+    this.document = document;
+    this.name     = name;
+    this.type     = type;
+    this.start    = start;
+    this.end      = end;
     this.marked   = false;
-    this.missing   = false;
-  }
-  getWsFolder()  { 
-    this.wsFolder ??= vscode.workspace
-                            .getWorkspaceFolder(this.document.uri);
-    if(!this.wsFolder) {
-      log('err', 'getWsFolder, func has no workspace folder', 
-                    this.name, this.getFsPath());
-      throw new Error('Func has no workspace folder');
-    }
-    return this.wsFolder;
   }
   getFsPath()    { return this.fsPath    ??= 
                           this.document.uri.fsPath;                    }
@@ -73,60 +61,51 @@ export class Func {
   getEndKey()    { return this.endKey    ??= utils.createSortKey(
                           this.getFsPath(), this.getEndLine());        }
   equalsPos(func:Func) { 
-    return (this.start === func.start &&
-            this.end   === func.end);
+    return (this.start === func.start && this.end === func.end);
   }
 }
 
-let funcsById:     Map<string, Func> = new Map();
-let funcsByFsPath: Map<string, Map<string, Func>> = new Map();
-
-export function setFuncInMaps(func: Func): boolean {
-  func.missing  = false; 
+export function setFuncInMap(func: Func): boolean {
   const fsPath  = func.getFsPath();
   const oldFunc = funcsById.get(func.id!);
-  if(oldFunc) func.marked = oldFunc.marked; 
-  funcsById.set(func.id!, func);
-  let funcMap = funcsByFsPath.get(fsPath);
-  if (!funcMap) {
-    funcMap = new Map<string, Func>();
-    funcsByFsPath.set(fsPath, funcMap);
-  }
-  funcMap.set(func.id!, func);
+  if(oldFunc) oldFunc.marked = func.marked;
+  else        funcsById.set(func.id!, func);
   return !oldFunc || !func.equalsPos(oldFunc);
 }
 
 export async function updateFuncsInFile(
-               document: vscode.TextDocument|null = null): Promise<Func[]> {
-  // start('updateFuncsInFile', true);
+               document: vscode.TextDocument|null = null): 
+                  Promise<{updatedFuncs: Func[], structureChanged: boolean}> {
+  start('updateFuncsInFile', true);
   const updatedFuncs: Func[] = [];
+  let   structureChanged = false;
+  const nullReturn = {updatedFuncs: [], structureChanged: false};
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
     if(activeEditor) document = activeEditor.document;
   }
-  if(!document) return [];
+  if(!document) return nullReturn;
+
   const uri = document.uri;
-  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return [];
+  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return nullReturn;
+
   const docText = document.getText();
-  if (!docText || docText.length === 0) return [];
-  const docFuncs = funcsByFsPath.get(uri.fsPath);
-  for (const func of (docFuncs ? docFuncs.values() : [])) 
-    func.missing = true;
+  if (!docText || docText.length === 0) return nullReturn;
+
   let ast: any;
   try{
       ast = acorn.parse(docText, { ecmaVersion: 'latest' });
   } catch (err) {
     log('err', 'parse error', (err as any).message);
-    return [];
+    return nullReturn;
   }
-  const funcs: Func[] = [];
+  let funcs: Func[] = [];
   function addFunc(name: string, type: string, start: number, end: number) {
     if(type != 'FunctionDeclaration'     && 
        type != 'FunctionExpression'      &&
        type != 'ArrowFunctionExpression' &&
        type != 'Constructor'             &&
        type != 'Method') {
-      // log('err', 'addFunc, non-function type', type, ', with name', name);
       return;
     }
     funcs.push(new Func({document, name, type, start, end}));
@@ -182,7 +161,6 @@ export async function updateFuncsInFile(
       return;
     }
   });
-  funcs.sort((a, b) => a.start - b.start);
   for(const func of funcs) {
     const parents: Func[] = [];
     for(const parentFunc of funcs) {
@@ -196,32 +174,76 @@ export async function updateFuncsInFile(
       id += parent.name + "\x00" + parent.type + "\x00";
     id += func.getFsPath();
     func.id = id;
-    if(setFuncInMaps(func)) updatedFuncs.push(func);
+  }
+  funcs.sort((a, b) => a.start - b.start);
+  const oldFuncs = getSortedFuncs({fsPath: uri.fsPath, alpha:false});
+  let oldIdx = 0;
+  let newIdx = 0;
+  while(newIdx < funcs.length) {
+    if(oldIdx >= oldFuncs.length) {
+      while(newIdx < funcs.length) {
+        funcsById.set(funcs[newIdx].id!, funcs[newIdx]);
+        structureChanged = true;
+        newIdx++;
+      }
+      break;
+    }
+    const oldFunc = oldFuncs[oldIdx];
+    const newFunc = funcs[newIdx];
+    if(oldFunc.equalsPos(newFunc)) {
+      if(oldFunc.id !== newFunc.id) {
+        structureChanged = true;
+        newFunc.marked = oldFunc.marked;
+        funcsById.delete(oldFunc.id!);
+        funcsById.set(newFunc.id!, newFunc);
+        oldIdx++; newIdx++;
+        continue;
+      }
+      oldIdx++; newIdx++;
+    } else if(oldFunc.start < newFunc.start) {
+      structureChanged = true;
+      funcsById.delete(oldFunc.id!);
+      oldIdx++;
+    } else {
+      structureChanged = true;
+      funcsById.set(newFunc.id!, newFunc);
+      newIdx++;
+    }
   }
   await saveFuncStorage();
   const msg = `${path.basename(uri.fsPath)}, `+
+      (structureChanged ? 'structureChanged, ' : '') +
     `${updatedFuncs.length}:${funcs.length}` + 
       (updatedFuncs.length > 0 ? '  <<<<<<<<<<' : '');
-  // end('updateFuncsInFile', false, msg);
-  return updatedFuncs;
+  end('updateFuncsInFile', false, msg);
+  return {updatedFuncs, structureChanged};
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {
-  const {markedOnly = false, includeMissing = false, fsPath} = p;
+  const {fsPath, markedOnly = false} = p;
   let funcs;
   if(fsPath) {
-    const fileFuncMap = funcsByFsPath.get(fsPath);
-    if (!fileFuncMap) return [];
-    funcs = Array.from(fileFuncMap.values());
+    funcs = Array.from(funcsById.values())
+                 .filter(func => func.getFsPath() === fsPath);
   }
   else funcs = [...funcsById.values()];
-  if(markedOnly)     funcs = funcs.filter(func =>  func.marked);
-  if(!includeMissing) funcs = funcs.filter(func => !func.missing);
+  if(markedOnly) funcs = funcs.filter(func => func.marked);
   return funcs;
 }
 
-function sortKeyAlpha(a: Func) {
-  return a.getFsPath() + "\x00" + a.name;
+export function getFuncById(id: string) : Func | undefined {
+  return funcsById.get(id);
+}
+
+function sortFuncsByAlpha(funcs: Func[]) : Func[]{
+  function sortKeyAlpha(a: Func) {
+    return a.getFsPath() + "\x00" + a.name;
+  }
+  return funcs.sort((a, b) => {
+    if (sortKeyAlpha(a) > sortKeyAlpha(b)) return +1;
+    if (sortKeyAlpha(a) < sortKeyAlpha(b)) return -1;
+    return 0;
+  });
 }
 
 export function getSortedFuncs(p: any = {}) : Func[] {
@@ -229,13 +251,7 @@ export function getSortedFuncs(p: any = {}) : Func[] {
   const funcs = getFuncs(p);
   if(funcs.length === 0) return [];
   if (!fsPath) {
-    if (alpha) {
-      return funcs.sort((a, b) => {
-        if (sortKeyAlpha(a) > sortKeyAlpha(b)) return reverse? -1 : +1;
-        if (sortKeyAlpha(a) < sortKeyAlpha(b)) return reverse? +1 : -1;
-        return 0;
-      });
-    }
+    if (alpha) return sortFuncsByAlpha(funcs);
     return funcs.sort((a, b) => {
       if (a.getStartKey() > b.getStartKey()) return reverse? -1 : +1;
       if (a.getStartKey() < b.getStartKey()) return reverse? +1 : -1;
@@ -278,13 +294,12 @@ export function getFuncsBetweenLines(fsPath: string,
     let minDepth = 1e9;
     for(const func of matches) {
       const depth = func.parents!.length;
-      if(!func.missing && depth < minDepth) minDepth = depth;
+      if(depth < minDepth) minDepth = depth;
     }
     const subFuncs = [];
     for(const func of matches) {
       const depth = func.parents!.length;
-      if(!func.missing && func.marked &&
-            (depth == minDepth || overRideSubChk)) 
+      if(func.marked && (depth == minDepth || overRideSubChk)) 
         subFuncs.push(func);
     }
     return subFuncs;
@@ -298,9 +313,7 @@ async function loadFuncStorage() {
     for (const funcObj of funcs) {
       const func = Object.create(Func.prototype);
       Object.assign(func, funcObj);
-      func.document =
-        await vscode.workspace.openTextDocument(func.getFsPath());
-      setFuncInMaps(func);
+      setFuncInMap(func);
     }
   }
   await saveFuncStorage();
@@ -330,14 +343,6 @@ export async function revealFunc(document: vscode.TextDocument | null,
 
 export async function saveFuncStorage() {
   await context.workspaceState.update('funcs', getFuncs());
-}
-
-function deleteFuncFromFileSet(func: Func) {
-  let funcMap = funcsByFsPath.get(func.getFsPath());
-  if (funcMap) {
-    funcMap.delete(func.id!);
-    if(funcMap.size === 0) funcsByFsPath.delete(func.getFsPath());
-  }
 }
 
 function verifyFunc(func: Func): boolean {

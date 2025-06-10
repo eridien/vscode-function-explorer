@@ -66,8 +66,10 @@ export class WsAndFolderItem extends Item {
 }
 
 export class WsFolderItem extends WsAndFolderItem {
+  wsFolder: vscode.WorkspaceFolder;
   constructor(wsFolder: vscode.WorkspaceFolder) {
     super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
+    this.wsFolder = wsFolder;
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
     Object.assign(this, {id, contextValue:'wsFolder', iconPath});
@@ -100,7 +102,7 @@ export class FolderItem extends WsAndFolderItem {
   }
 }
 
-class FileItem extends Item {
+export class FileItem extends Item {
   private children?: Item[];
   constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);

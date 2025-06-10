@@ -4,7 +4,7 @@ import * as fnct         from './funcs';
 import * as file         from './files';
 import * as side         from './sidebar';
 import {SidebarProvider} from './sidebar';
-import * as sbcl         from './sidebar-classes';
+import * as sbcl         from './items';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
 import * as utils        from './utils';
@@ -79,7 +79,7 @@ export async function activate(context: vscode.ExtensionContext) {
   side.activate(treeView, sidebarProvider, context);
   sbcl.activate(context);
   await fnct.activate(context);
-  await cmds.updateSide({dontUpdateFuncs: true});
+  await cmds.updateSide();
 
 
 	context.subscriptions.push(

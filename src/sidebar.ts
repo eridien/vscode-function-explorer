@@ -5,8 +5,9 @@ import path       from 'path';
 import * as fnct  from './funcs';
 import {Func}     from './funcs';
 import * as sett  from './settings';
-import {Item, WsAndFolderItem, FuncItem} 
-                  from './sidebar-classes';
+import {Item, WsAndFolderItem, WsFolderItem, 
+        FolderItem, FileItem, FuncItem} 
+                  from './items';
 import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('side');
 
@@ -43,27 +44,30 @@ export function updateItemsFromFuncs(updatedFuncs: Func[]) {
   updateTree();
 }
 
+export function revealItem(item: Item) {
+  treeView.reveal(item, {expand: true, select: true, focus: false});
+}
+
 export function setMarkInItem(item: FuncItem, mark: boolean) {
   let func = item.func;
   if(func && func.marked !== mark) {
     func.marked = mark;
     item.iconPath = func.marked ? markIconPath :  vscode.Uri.file( 
              path.join(context.extensionPath, 'images', 'transparent.svg'));
-    treeView.reveal(item, {expand: true, select: true, focus: false});
+    updateTree(item);
+    revealItem(item);
   }
 }
 
-export function updatePointer(func: Func, hasPointer: boolean,
+export function updatePointer(item: FuncItem, pointer: boolean,
                               dontRefreshItems = false) {
-  let item = (itemsById.get(func.id!) as FuncItem);
-  if(item && item.pointer !== hasPointer) {
-    item.pointer  = hasPointer;
-    item.iconPath = item.pointer 
-          ? new vscode.ThemeIcon('triangle-right') 
-          :  vscode.Uri.file( 
-             path.join(context.extensionPath, 'images', 'transparent.svg'));
-    treeView.reveal(item, {expand: true, select: true, focus: false});
-    if(!dontRefreshItems) updateTree(item);
+  const func = item.func;
+  if(!func) return;
+  if(item && item.pointer !== pointer) {
+    item.pointer = pointer;
+    item.label   = (func.marked ? '🞂' : ' ') + func.name;
+    updateTree(item);
+    revealItem(item);
   }
 }
 
@@ -71,7 +75,6 @@ export function updatePointers(editor: vscode.TextEditor | null | undefined,
                                dontRefreshItems = false) {
   editor ??= vscode.window.activeTextEditor;
   if (!editor) return;
-  // clearAllPointers(dontRefreshItems);
   const document = editor.document;
   const fsPath   = document.uri.fsPath;
   if(document.uri.scheme !== 'file' || 
@@ -112,6 +115,44 @@ export async function fileClickCmd(path: string) {
 export function updateTree(item?: Item) {
   sidebarProvider.refresh(item);
 }
+
+export function updateWsFolderItem(fsPath: string) {
+  const oldWsFolderItem = itemsById.get(fsPath) as WsFolderItem;
+  const wsFolderItem    = new WsFolderItem(oldWsFolderItem.wsFolder);
+  itemsById.set(wsFolderItem.id!, wsFolderItem);
+  updateTree(wsFolderItem);
+}
+
+export async function updateWsAndFolderItem(fsPath: string) {
+  const oldItem = itemsById.get(fsPath) as WsAndFolderItem;
+  if(oldItem && oldItem instanceof WsFolderItem) {
+    updateWsFolderItem(oldItem.id!);
+    return;
+  }
+  let folderItem = await FolderItem.create(fsPath);
+  if(!folderItem) {
+    folderItem = itemsById.get(fsPath) as WsAndFolderItem;
+    itemsById.delete(fsPath);
+    if(folderItem && folderItem.parentId)
+      await updateWsAndFolderItem(folderItem.parentId);
+    return;
+  }
+  itemsById.set(folderItem.id!, folderItem);
+  updateTree(folderItem);
+}
+
+export function updateFileItem(fsPath: string) {
+  const fileItem = new FileItem(fsPath);
+  itemsById.set(fileItem.id!, fileItem);
+  updateTree(fileItem);
+}
+
+export function updateFuncItem(func: Func) {
+  const funcItem = new FuncItem(func);
+  itemsById.set(funcItem.id!, funcItem);
+  updateTree(funcItem);
+}
+
 let count = 0;
 
 export class SidebarProvider {

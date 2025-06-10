@@ -1,5 +1,6 @@
 import * as vscode  from 'vscode';
 import * as sbar    from './sidebar';
+import * as itms    from './items';
 import * as gutt    from './gutter';
 import * as fnct    from './funcs';
 import * as sett    from './settings';
@@ -46,7 +47,7 @@ export async function toggle() {
       }
     });
   }
-  await updateSide({dontUpdateFuncs: true});
+  await updateSide();
   await fnct.saveFuncStorage();
   if(firstFunc) await fnct.revealFunc(null, firstFunc);
 }
@@ -114,16 +115,19 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
   const document = event.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  await updateSide({document});
+  await updateSide();
 }
 
-export async function updateSide( p:any = {}) {
-  const {dontUpdateFuncs = false, document} = p;
-  if(!dontUpdateFuncs) {
-    const updatedFuncs = await fnct.updateFuncsInFile(document);
-    sbar.updateItemsFromFuncs(updatedFuncs);
+export async function updateSide(document?: vscode.TextDocument) {
+  if(!document) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if(activeEditor) document = activeEditor.document;
   }
+  if(!document) return;
+  const {updatedFuncs, structureChanged} = 
+               await fnct.updateFuncsInFile(document);
+  if (structureChanged) sbar.updateFileItem(document.uri.fsPath);
+  else for (const func of updatedFuncs) sbar.updateFuncItem(func);
   sbar.updatePointers(null, true);
-  sbar.updateTree();
   gutt.updateGutter();
 };
