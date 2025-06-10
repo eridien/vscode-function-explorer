@@ -26,26 +26,23 @@ function getGutterDec() {
   });
 };
 
-vscode.window.onDidChangeActiveColorTheme((event) => {
+vscode.window.onDidChangeActiveColorTheme(() => {
   if(gutterDec) gutterDec.dispose();
   gutterDec = getGutterDec();
+  updateGutter();
 });
 
-export function updateGutter(editor: vscode.TextEditor | 
-                                     undefined = undefined) {
-  if(!editor) {
-    const activeEditor = vscode.window.activeTextEditor;
-    if(activeEditor) editor = activeEditor;
-    else return;
-  }
-  const document  = editor.document;
-  const decRanges = [];
+export function updateGutter() {
+  const activeEditor = vscode.window.activeTextEditor;
+  if(!activeEditor) return;
+  const document  = activeEditor.document;
   const fsPath    = document.uri.fsPath;
+  const decRanges = [];
   const funcs     = fnct.getFuncs({markedOnly: true, fsPath});
   for(const func of funcs) {
     const lineNumber = document.positionAt(func.start).line;
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
     decRanges.push({range});
   }
-  editor.setDecorations(gutterDec, decRanges);
+  activeEditor.setDecorations(gutterDec, decRanges);
 }

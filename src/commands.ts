@@ -40,6 +40,7 @@ export async function toggle() {
     }
     funcs.forEach(func => {
       func.marked = !func.marked;
+      sbar.updateFuncItem(func);
       if(mark && func.start < minFuncStart) {
         minFuncStart = func.start;
         firstFunc    = func;
@@ -47,7 +48,6 @@ export async function toggle() {
     });
   }
   await fnct.saveFuncStorage();
-  sbar.updateFileItem(fsPath);
   if(firstFunc) await fnct.revealFunc(null, firstFunc);
 }
 
@@ -123,9 +123,10 @@ export async function updateSide(document?: vscode.TextDocument) {
     if(activeEditor) document = activeEditor.document;
   }
   if(!document) return;
+  const fsPath = document.uri.fsPath;
   const {updatedFuncs, structureChanged} = 
                await fnct.updateFuncsInFile(document);
-  if (structureChanged) sbar.updateFileItem(document.uri.fsPath);
+  if (structureChanged)                 sbar.updateFileItem(fsPath);
   else for (const func of updatedFuncs) sbar.updateFuncItem(func);
   gutt.updateGutter();
 };

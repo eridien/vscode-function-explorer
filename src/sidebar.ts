@@ -14,7 +14,6 @@ const {log, start, end} = utils.getLog('side');
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
-let markIconPath: {light: vscode.Uri; dark: vscode.Uri};
 
 let itemsById: Map<string, Item> = new Map();
 
@@ -24,35 +23,14 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
   context         = contextIn;
-  markIconPath    = {
-    light: vscode.Uri.file(
-             path.join(context.extensionPath, 'images', 'gutter-icon-lgt.svg')),
-    dark:  vscode.Uri.file(
-             path.join(context.extensionPath, 'images', 'gutter-icon-drk.svg'))
-  };
 }
 
 export function setItemInMap(item: Item) {
-  let fsPath: string;
-  if(item instanceof Func) fsPath = (item as Func).getFsPath();
-  else                     fsPath = item.id!;
   itemsById.set(item.id!, item);
 }
 
 export function revealItem(item: Item) {
   treeView.reveal(item, {expand: true, select: true, focus: false});
-}
-
-export function updatePointer(item: FuncItem, pointer: boolean,
-                              dontRefreshItems = false) {
-  const func = item.func;
-  if(!func) return;
-  if(item && item.pointer !== pointer) {
-    item.pointer = pointer;
-    item.label   = (func.marked ? '🞂' : ' ') + func.name;
-    updateTree(item);
-    revealItem(item);
-  }
 }
 
 export function updatePointers(editor?: vscode.TextEditor) {
@@ -61,7 +39,7 @@ export function updatePointers(editor?: vscode.TextEditor) {
   const document = editor.document;
   const fsPath   = document.uri.fsPath;
   if(document.uri.scheme !== 'file' || 
-    !sett.includeFile(fsPath)) return;
+                 !sett.includeFile(fsPath)) return;
   const funcs = fnct.getFuncs({fsPath});
   for(const func of funcs) {
     const funcLine = func.getStartLine();
@@ -71,8 +49,9 @@ export function updatePointers(editor?: vscode.TextEditor) {
                    funcLine <= selection.end.line;
       if(hasPointer) break; 
     }
-    updatePointer(func, hasPointer);
+    func.pointer = hasPointer;
   }
+  updateFileItem(fsPath);
 }
 
 export function fileChanged(uri: vscode.Uri) {
@@ -89,9 +68,9 @@ export async function funcClickCmd(id: string) {
   if (item) await fnct.revealFunc(null, item.func!, true);
 }
 
-export async function fileClickCmd(path: string) { 
+export async function fileClickCmd(fsPath: string) { 
   const document = 
-          await vscode.workspace.openTextDocument(vscode.Uri.file(path));
+          await vscode.workspace.openTextDocument(vscode.Uri.file(fsPath));
   await fnct.revealFunc(document, null);
 }
 
@@ -152,8 +131,8 @@ export class SidebarProvider {
   }
 
   getTreeItem(item: Item): Item {
-    log(++count, 'getTreeItem',item.label);
-    return itemsById.get(item.id!) ?? item;
+    log(++count, 'getTreeItem', item.label);
+    return item;
   }
 
   getParent(item: Item): Item | null {
@@ -169,9 +148,6 @@ export class SidebarProvider {
     if(!item) return Item.getTree();
     const children = item.contextValue !== 'func' 
                ? await (item as WsAndFolderItem).getChildren() : [];
-    // for(const child of children) {
-    //   if(child.label == 'test')  debugger; 
-    // }
     return children;
   }
 }

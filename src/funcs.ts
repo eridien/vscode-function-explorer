@@ -34,6 +34,7 @@ export class Func {
   start:      number;
   end:        number;
   marked:     boolean;
+  pointer:    boolean;
   parents?:   Func[];
   id?:        string;
   startLine?: number;
@@ -49,6 +50,7 @@ export class Func {
     this.start    = start;
     this.end      = end;
     this.marked   = false;
+    this.pointer  = false;
   }
   getFsPath()    { return this.fsPath    ??= 
                           this.document.uri.fsPath;                    }
@@ -63,14 +65,6 @@ export class Func {
   equalsPos(func:Func) { 
     return (this.start === func.start && this.end === func.end);
   }
-}
-
-export function setFuncInMap(func: Func): boolean {
-  const fsPath  = func.getFsPath();
-  const oldFunc = funcsById.get(func.id!);
-  if(oldFunc) oldFunc.marked = func.marked;
-  else        funcsById.set(func.id!, func);
-  return !oldFunc || !func.equalsPos(oldFunc);
 }
 
 export async function updateFuncsInFile(
@@ -133,7 +127,7 @@ export async function updateFuncsInFile(
     AssignmentExpression(node) {
       const {start, end, left, right} = node;
       const name = docText.slice(left.start!, left.end!);
-      const type  = right.type;
+      const type = right.type;
       addFunc(name, type, start, end);
       return;
     },
@@ -255,24 +249,19 @@ function sortFuncsByAlpha(funcs: Func[]) : Func[]{
 }
 
 export function getSortedFuncs(p: any = {}) : Func[] {
-  const {fsPath, reverse = false, alpha = false} = p;
+  const {fsPath, alpha = false} = p;
   const funcs = getFuncs(p);
   if(funcs.length === 0) return [];
   if (!fsPath) {
     if (alpha) return sortFuncsByAlpha(funcs);
     return funcs.sort((a, b) => {
-      if (a.getStartKey() > b.getStartKey()) return reverse? -1 : +1;
-      if (a.getStartKey() < b.getStartKey()) return reverse? +1 : -1;
+      if (a.getStartKey() > b.getStartKey()) return -1;
+      if (a.getStartKey() < b.getStartKey()) return +1;
       return 0;
     });
   } 
-  if (alpha) {
-    if(reverse) return funcs.sort((a, b) => b.name.localeCompare(a.name));
-    else        return funcs.sort((a, b) => a.name.localeCompare(b.name));
-  }
-  return funcs.sort((a, b) =>
-    reverse? b.start - a.start : a.start - b.start
-  );
+  if (alpha) return funcs.sort((a, b) => a.name.localeCompare(b.name));
+  return funcs.sort((a, b) => a.start - b.start);
 }
 
 export function getFuncAtLine( fsPath: string, 
@@ -315,18 +304,6 @@ export function getFuncsBetweenLines(fsPath: string,
   return matches;
 }
 
-async function loadFuncStorage() {
-  if(LOAD_FUNCS_ON_START) {
-    const funcs = context.workspaceState.get('funcs', []);
-    for (const funcObj of funcs) {
-      const func = Object.create(Func.prototype);
-      Object.assign(func, funcObj);
-      setFuncInMap(func);
-    }
-  }
-  await saveFuncStorage();
-}
-
 export async function revealFunc(document: vscode.TextDocument | null, 
                                  func: Func | null, selection = false) {
   let start: number | null = null;
@@ -344,65 +321,23 @@ export async function revealFunc(document: vscode.TextDocument | null,
       editor.selection = new vscode.Selection(range.start, range.end);
   }
   else if(document) {
-   await vscode.window.showTextDocument(document.uri, 
+    await vscode.window.showTextDocument(document.uri, 
                    {preview: true, preserveFocus: true });
   }
 }
 
+async function loadFuncStorage() {
+  if(LOAD_FUNCS_ON_START) {
+    const funcs = context.workspaceState.get('funcs', []);
+    for (const funcObj of funcs) {
+      const func = Object.create(Func.prototype);
+      Object.assign(func, funcObj);
+      funcsById.set(func.id!, func);
+    }
+  }
+  await saveFuncStorage();
+}
+
 export async function saveFuncStorage() {
   await context.workspaceState.update('funcs', getFuncs());
-}
-
-function verifyFunc(func: Func): boolean {
-  const document  = func.document;
-  const startLine = func.getStartLine();
-  const numLines  = document.lineCount;
-  if(startLine < 0 || startLine >= numLines) {
-    log('err', 'verifyFunc, line number out of range',
-                func.getFsPath(), startLine);
-    return false;
-  }
-  const lineText = document.lineAt(startLine).text;
-  if(!lineText) {
-    log('err', 'verifyFunc, line text is empty',
-                func.getFsPath(), startLine);
-    return false;
-  }
-  if(!lineText.includes(func.name)) {
-    log('err', 'verifyFunc, line text does not include func name',
-                func.getFsPath(), startLine, func.name);
-    return false;
-  }
-  return true;
-}
-
-function dumpFuncs(caller: string, list: boolean, dump: boolean) {
-  caller = caller + ' funcs: ';
-  let funcs = Array.from(funcsById.values());
-  if(funcs.length === 0) {
-    log(caller, '<no funcs>');
-    return;
-  }
-  if(dump) log(caller, 'all funcs', funcs);
-  else if(list) {
-    funcs.sort((a, b) => a.start - b.start);
-    let str = "\n";
-    for(const func of funcs) {
-      if(VERIFY_FUNCS_IN_DUMP) verifyFunc(func);
-      str += `${func.name}, ${func.getFsPath()}, ${func.start}\n`;
-    }
-    log(caller, str.slice(0,-1));
-  }
-  else {
-    let str = "";
-    for(const func of funcs) {
-      if(VERIFY_FUNCS_IN_DUMP) verifyFunc(func);
-      str += func.name;
-    }
-    log(caller, str);
-  }
-}
-
-export function markItemClick(item:any) {
-  log('funcItemClick', item);
 }

@@ -7,25 +7,6 @@ function timeInSecs(ms: number): string {
   return (ms / 1000).toFixed(2);
 }
 
-export async function fileExists(path:string) {
-  try {
-    await vscode.workspace.fs.stat(vscode.Uri.file(path));
-    return true;
-  } catch (_err) {
-    return false;
-  }
-}
-
-export function getRelPath(wsFolder: vscode.WorkspaceFolder, 
-                           uri:      vscode.Uri): string {
-  const wsPath = wsFolder.uri.path;
-  let relPath  = uri.path.startsWith(wsPath)
-               ? uri.path.slice(wsPath.length)
-               : uri.path;
-  if (relPath.startsWith('/')) relPath = relPath.slice(1);
-  return relPath;
-}
-
 export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
 }

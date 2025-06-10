@@ -16,7 +16,7 @@ export function activate(contextIn: vscode.ExtensionContext) {
 }
 
 export class Item extends vscode.TreeItem {
-  parentId?:   string;
+  parentId?: string;
   static getTree() {
     const wsFolders = vscode.workspace.workspaceFolders;
     if (!wsFolders) {
@@ -31,7 +31,7 @@ export class Item extends vscode.TreeItem {
 }
 
 export class WsAndFolderItem extends Item {
-  private children: Item[] | undefined;
+  private children?: Item[];
   private async _getFolderFileChildren(
        parentFsPath: string, folders: Item[], files: Item[]) {
     const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
@@ -46,12 +46,14 @@ export class WsAndFolderItem extends Item {
         if(!folderItem) continue;
         folderItem.parentId = parentFsPath;
         folders.push(folderItem);
+        continue;
       }
       if (entry.isFile()) {
         const fileItem = new FileItem(fsPath);
         if(!fileItem) continue;
         fileItem.parentId = parentFsPath;
         files.push(fileItem);
+        continue;
       }
     }
   }
@@ -131,39 +133,12 @@ export class FileItem extends Item {
 }
 
 export class FuncItem extends Item {
-  func?:    Func;
-  pointer?: boolean;
+  func?: Func;
   constructor(func: Func) {
-    
-    const label = (func.marked ? '🞂' : ' ') + func.name;
+    const label = (func.pointer ? '🞂' : ' ') + func.name;
     super(label, vscode.TreeItemCollapsibleState.None);
     const id = func.id;
     Object.assign(this, {id, contextValue:'func', func});
-    const activeEditor = vscode.window.activeTextEditor;
-    if(activeEditor) {
-      let topLine = activeEditor.selection.active.line;
-      let botLine = activeEditor.selection.anchor.line;
-      if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-      this.pointer = (
-          activeEditor.document.uri.scheme === 'file'           &&
-          func.getFsPath() === activeEditor.document.uri.fsPath &&
-          func.getStartLine() <= topLine                        &&
-          func.getEndLine()   >= botLine);
-      if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
-      else            this.iconPath = vscode.Uri.file(
-         path.join(context.extensionPath, 'images', 'gutter-icon-lgt.svg'));
-    }
-    sbar.setMarkInItem(this, func.marked);
-
-  if(func && func.marked !== mark) {
-    func.marked = mark;
-    item.iconPath = func.marked ? markIconPath :  vscode.Uri.file( 
-             path.join(context.extensionPath, 'images', 'transparent.svg'));
-    updateTree(item);
-    revealItem(item);
-  }
-
-
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',

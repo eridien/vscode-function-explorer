@@ -56,6 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const chgItemFocus = treeView.onDidChangeSelection(event => {
+    cmds.selectionChg(event);
   });
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
