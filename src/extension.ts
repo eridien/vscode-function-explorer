@@ -4,6 +4,7 @@ import * as fnct         from './funcs';
 import * as file         from './files';
 import * as side         from './sidebar';
 import {SidebarProvider} from './sidebar';
+import * as sbcl         from './sidebar-classes';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
 import * as utils        from './utils';
@@ -60,9 +61,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
 
-  const chgEditorSel = vscode.window.onDidChangeTextEditorSelection(event => {
+  const selectionChg = vscode.window.onDidChangeTextEditorSelection(event => {
     if (event.textEditor?.document.uri.scheme !== 'file') return;
-    cmds.chgEditorSel(event);
+    cmds.selectionChg(event);
   });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
@@ -75,12 +76,15 @@ export async function activate(context: vscode.ExtensionContext) {
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();
-  side.activate(treeView, sidebarProvider);
+  side.activate(treeView, sidebarProvider, context);
+  sbcl.activate(context);
   await fnct.activate(context);
+  await cmds.updateSide({dontUpdateFuncs: true});
+
 
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg, fileClickCmd,
-    chgSidebarVisibility, chgItemFocus, chgEditorSel, funcClickCmd);
+    chgSidebarVisibility, chgItemFocus, selectionChg, funcClickCmd);
 
   end('extension');
 }

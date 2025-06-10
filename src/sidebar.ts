@@ -1,6 +1,7 @@
 // @@ts-nocheck
 
 import vscode     from 'vscode';
+import path       from 'path';
 import * as fnct  from './funcs';
 import {Func}     from './funcs';
 import * as sett  from './settings';
@@ -9,16 +10,25 @@ import {Item, WsAndFolderItem, FuncItem}
 import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('side');
 
+let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
+let markIconPath: { light: vscode.Uri; dark: vscode.Uri };
 
-let itemsById:     Map<string, Item> = new Map();
+let itemsById: Map<string, Item> = new Map();
 
 export function activate(treeViewIn: vscode.TreeView<Item>, 
-                         sidebarProviderIn: SidebarProvider) {
+                         sidebarProviderIn: SidebarProvider,
+                         contextIn: vscode.ExtensionContext) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
-  // updateTree();
+  context         = contextIn;
+  markIconPath    = {
+    light: vscode.Uri.file(
+             path.join(context.extensionPath, 'images', 'gutter-icon-lgt.svg')),
+    dark:  vscode.Uri.file(
+             path.join(context.extensionPath, 'images', 'gutter-icon-drk.svg'))
+  };
 }
 
 export function setItemInMap(item: Item) {
@@ -33,25 +43,27 @@ export function updateItemsFromFuncs(updatedFuncs: Func[]) {
   updateTree();
 }
 
+export function setMarkInItem(item: FuncItem, mark: boolean) {
+  let func = item.func;
+  if(func && func.marked !== mark) {
+    func.marked = mark;
+    item.iconPath = func.marked ? markIconPath :  vscode.Uri.file( 
+             path.join(context.extensionPath, 'images', 'transparent.svg'));
+    treeView.reveal(item, {expand: true, select: true, focus: false});
+  }
+}
+
 export function updatePointer(func: Func, hasPointer: boolean,
                               dontRefreshItems = false) {
   let item = (itemsById.get(func.id!) as FuncItem);
   if(item && item.pointer !== hasPointer) {
     item.pointer  = hasPointer;
     item.iconPath = item.pointer 
-                ? new vscode.ThemeIcon('triangle-right') : undefined;
+          ? new vscode.ThemeIcon('triangle-right') 
+          :  vscode.Uri.file( 
+             path.join(context.extensionPath, 'images', 'transparent.svg'));
     treeView.reveal(item, {expand: true, select: true, focus: false});
     if(!dontRefreshItems) updateTree(item);
-  }
-}
-
-function clearAllPointers(dontRefreshItems = false) {
-  for (const item of itemsById.values()) {
-    if ((item as FuncItem).pointer) {
-        (item as FuncItem).pointer = false;
-        (item as FuncItem).iconPath = undefined;
-      if(!dontRefreshItems) updateTree(item);
-    }
   }
 }
 
@@ -59,7 +71,7 @@ export function updatePointers(editor: vscode.TextEditor | null | undefined,
                                dontRefreshItems = false) {
   editor ??= vscode.window.activeTextEditor;
   if (!editor) return;
-  clearAllPointers(dontRefreshItems);
+  // clearAllPointers(dontRefreshItems);
   const document = editor.document;
   const fsPath   = document.uri.fsPath;
   if(document.uri.scheme !== 'file' || 

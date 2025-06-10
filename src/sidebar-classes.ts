@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import {Dirent}    from 'fs';
 import * as fs     from 'fs/promises';
 import * as path   from 'path';
 import * as sbar   from './sidebar';
@@ -9,6 +8,12 @@ import * as sett   from './settings';
 import {settings}  from './settings';
 import * as utils  from './utils';
 const {log} = utils.getLog('sbcl');
+
+let context: vscode.ExtensionContext;
+
+export function activate(contextIn: vscode.ExtensionContext) {
+  context = contextIn;
+}
 
 export class Item extends vscode.TreeItem {
   parentId?:   string;
@@ -127,7 +132,7 @@ export class FuncItem extends Item {
   func?:    Func;
   pointer?: boolean;
   constructor(func: Func) {
-    const label = (func.marked ? '🔖' : '') + func.name;
+    const label = (func.marked ? '🞂' : ' ') + func.name;
     super(label, vscode.TreeItemCollapsibleState.None);
     const id = func.id;
     Object.assign(this, {id, contextValue:'func', func});
@@ -141,8 +146,11 @@ export class FuncItem extends Item {
           func.getFsPath() === activeEditor.document.uri.fsPath &&
           func.getStartLine() <= topLine                        &&
           func.getEndLine()   >= botLine;
-      if(this.pointer) this.iconPath = new vscode.ThemeIcon('triangle-right');
+      if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
+      else            this.iconPath = vscode.Uri.file(
+         path.join(context.extensionPath, 'images', 'gutter-icon-lgt.svg'));
     }
+    sbar.setMarkInItem(this, func.marked);
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',
