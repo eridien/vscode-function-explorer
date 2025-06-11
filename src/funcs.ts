@@ -11,8 +11,8 @@ import * as sett  from './settings';
 import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('func');
 
-const LOAD_FUNCS_ON_START = true;
-// const LOAD_FUNCS_ON_START = false;
+// const LOAD_FUNCS_ON_START = true;
+const LOAD_FUNCS_ON_START = false;
 
 const VERIFY_FUNCS_IN_DUMP = true;
 // const VERIFY_FUNCS_IN_DUMP = false;
@@ -73,6 +73,9 @@ export async function updateFuncsInFile(
   start('updateFuncsInFile', true);
   const updatedFuncs: Func[] = [];
   let   structureChanged = false;
+  let addCount    = 0;
+  let removeCount = 0;
+  let chgCount    = 0;
   const nullReturn = {updatedFuncs: [], structureChanged: false};
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
@@ -179,6 +182,7 @@ export async function updateFuncsInFile(
         funcsById.delete(oldFuncs[oldIdx].id!);
         structureChanged = true;
         oldIdx++;
+        removeCount++;
       }
       break;
     }
@@ -187,6 +191,7 @@ export async function updateFuncsInFile(
         funcsById.set(funcs[newIdx].id!, funcs[newIdx]);
         structureChanged = true;
         newIdx++;
+        addCount++;
       }
       break;
     }
@@ -199,6 +204,7 @@ export async function updateFuncsInFile(
         funcsById.delete(oldFunc.id!);
         funcsById.set(newFunc.id!, newFunc);
         oldIdx++; newIdx++;
+        chgCount++;
         continue;
       }
       oldIdx++; newIdx++;
@@ -206,17 +212,19 @@ export async function updateFuncsInFile(
       structureChanged = true;
       funcsById.delete(oldFunc.id!);
       oldIdx++;
+      removeCount++;
     } else {
       structureChanged = true;
       funcsById.set(newFunc.id!, newFunc);
       newIdx++;
+      addCount++;
     }
-  }
+  } 
+
   await saveFuncStorage();
   const msg = `${path.basename(uri.fsPath)}, `+
       (structureChanged ? 'structureChanged, ' : '') +
-    `${updatedFuncs.length}:${funcs.length}` + 
-      (updatedFuncs.length > 0 ? '  <<<<<<<<<<' : '');
+    `+${addCount} -${removeCount} m${chgCount}`;
   end('updateFuncsInFile', false, msg);
   return {updatedFuncs, structureChanged};
 }

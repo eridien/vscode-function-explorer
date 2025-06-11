@@ -127,15 +127,17 @@ export class SidebarProvider {
   }
   
   refresh(item?: Item): void {
-    this._onDidChangeTreeData.fire(item);
+    // log(++count, 'refresh', item?.label || 'undefined');
+    this._onDidChangeTreeData.fire(undefined);
   }
 
   getTreeItem(item: Item): Item {
-    log(++count, 'getTreeItem', item.label);
+    // log(++count, 'getTreeItem', item.label);
     return item;
   }
 
   getParent(item: Item): Item | null {
+    // log(++count, 'getParent', item?.label || 'undefined');
     if(item?.parentId) {
       const parentItem = itemsById.get(item.parentId);
       if(parentItem) return parentItem;
@@ -144,7 +146,7 @@ export class SidebarProvider {
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    log(++count, 'getChildren',item?.label);
+    // log(++count, 'getChildren', item?.label || 'undefined');
     if(!item) return Item.getTree();
     const children = item.contextValue !== 'func' 
                ? await (item as WsAndFolderItem).getChildren() : [];
