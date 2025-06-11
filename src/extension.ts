@@ -81,7 +81,6 @@ export async function activate(context: vscode.ExtensionContext) {
   await fnct.activate(context);
   await cmds.updateSide();
 
-
 	context.subscriptions.push(
     toggle, prev, next, loadSettings, textChg, editorChg, fileClickCmd,
     chgSidebarVisibility, chgItemFocus, selectionChg, funcClickCmd);
