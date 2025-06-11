@@ -117,7 +117,7 @@
         "function-explorer.scrollPosition": {
           "type": "string",
           "order": 2,
-          "default": "At Top",
+          "default": "Minimal Scrolling",
           "enum": [
             "Minimal Scrolling",
             "In Center",
@@ -148,13 +148,13 @@
           "type": "string",
           "default": "**/*.js, **/*.ts",
           "order": 5,
-          "description": "Files to include in the Vscode-function-explorer explorer. Separate glob patterns with commas."
+          "description": "Files to include in the function explorer. Separate glob patterns with commas."
         },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
           "order": 6,
-          "description": "Files to exclude in the Vscode-function-explorer explorer. Separate glob patterns with commas."
+          "description": "Files to exclude in the function explorer. Separate glob patterns with commas."
         }
       }
     }

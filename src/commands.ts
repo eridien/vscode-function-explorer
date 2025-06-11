@@ -48,7 +48,6 @@ export async function toggle() {
     });
   }
   await fnct.saveFuncStorage();
-  if(firstFunc) await fnct.revealFunc(null, firstFunc);
   gutt.updateGutter();
 }
 

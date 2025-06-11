@@ -11,8 +11,8 @@ import * as sett  from './settings';
 import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('func');
 
-// const LOAD_FUNCS_ON_START = true;
-const LOAD_FUNCS_ON_START = false;
+const LOAD_FUNCS_ON_START = true;
+// const LOAD_FUNCS_ON_START = false;
 
 const VERIFY_FUNCS_IN_DUMP = true;
 // const VERIFY_FUNCS_IN_DUMP = false;
@@ -263,8 +263,8 @@ export function getSortedFuncs(p: any = {}) : Func[] {
   if (!fsPath) {
     if (alpha) return sortFuncsByAlpha(funcs);
     return funcs.sort((a, b) => {
-      if (a.getStartKey() > b.getStartKey()) return -1;
-      if (a.getStartKey() < b.getStartKey()) return +1;
+      if (a.getStartKey() > b.getStartKey()) return +1;
+      if (a.getStartKey() < b.getStartKey()) return -1;
       return 0;
     });
   } 
@@ -340,6 +340,8 @@ async function loadFuncStorage() {
     for (const funcObj of funcs) {
       const func = Object.create(Func.prototype);
       Object.assign(func, funcObj);
+      func.document = await vscode.workspace.openTextDocument(
+                            vscode.Uri.file(func.getFsPath()));
       funcsById.set(func.id!, func);
     }
   }
