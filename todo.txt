@@ -5,8 +5,10 @@ bugs ...
   pointer isn't removed from old file
   can't toggle: function x(){}
   toggle on with selection
+  minimal scrolling broken
 
 todo ...
+  dbl-click on fn name in text toggles
   show parent chain in func label
     including methods b / a @ c
   add marks-only mode to file item
@@ -15,10 +17,13 @@ todo ...
   handle fs changes
   set pointer on click in body of func
   alpha sort setting doesn't immediately change sidebar
-  make prev/next when not in valid file go to valid mark
-  custom scroll
   flash line (entire function?) when revealed
 
+unlikely ...
+  make prev/next when not in valid file go to valid mark
+  custom scroll
+  keep mark during cut/paste
+  
 options ...
   reveal func item when text selected  (sidebar already visible)
   reveal func item when toggled on     (sidebar already visible)
