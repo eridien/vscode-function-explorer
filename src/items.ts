@@ -139,6 +139,9 @@ export class FuncItem extends Item {
     super(label, vscode.TreeItemCollapsibleState.None);
     const id = func.id;
     Object.assign(this, {id, contextValue:'func', func});
+    if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
+    else            this.iconPath = vscode.Uri.file(
+        path.join(context.extensionPath, 'images', 'transparent.svg'));
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',
