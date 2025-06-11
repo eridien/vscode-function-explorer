@@ -1,0 +1,42 @@
+bugs ...
+  one line file doesn't toggle: const x = () => {};
+  func parentid missing
+  no pointer on boot
+  pointer isn't removed from old file
+  can't toggle: function x(){}
+  toggle on with selection
+
+todo ...
+  show parent chain in func label
+    including methods b / a @ c
+  add marks-only mode to file item
+  toggle mark on func item dbl-click
+  clean up updates to tree
+  handle fs changes
+  set pointer on click in body of func
+  alpha sort setting doesn't immediately change sidebar
+  make prev/next when not in valid file go to valid mark
+  custom scroll
+  flash line (entire function?) when revealed
+
+options ...
+  reveal func item when text selected  (sidebar already visible)
+  reveal func item when toggled on     (sidebar already visible)
+
+testing ...
+  settings changes
+  error test files
+
+release checks ...
+  version
+  log('
+  todo
+  console.log
+  debug
+  dbg
+  check problems
+  run and check console
+
+npm install -g @vscode/vsce
+vsce package
+https://marketplace.visualstudio.com/manage/publishers/
