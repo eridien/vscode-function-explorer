@@ -1,6 +1,7 @@
 bugs ...
   toggle on with selection
   minimal scrolling broken
+  marked-only on at boot
 
 todo ...
   focus editor on any keyboard cmd

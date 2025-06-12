@@ -304,7 +304,7 @@ export function getFuncsBetweenLines(fsPath: string,
     const subFuncs = [];
     for(const func of matches) {
       const depth = func.parents!.length;
-      if(func.marked && (depth == minDepth || overRideSubChk)) 
+      if(depth == minDepth || overRideSubChk) 
         subFuncs.push(func);
     }
     return subFuncs;
