@@ -16,6 +16,7 @@ let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
 
 let itemsById: Map<string, Item> = new Map();
+let marksOnlySet                 = new Set<string>();
 
 export function activate(treeViewIn: vscode.TreeView<Item>, 
                          sidebarProviderIn: SidebarProvider,
@@ -63,15 +64,22 @@ export function fileCreated(uri: vscode.Uri) {
 export function fileDeleted(uri: vscode.Uri) {
 }
 
+export function isMarksOnly(fsPath: string): boolean {
+  return marksOnlySet.has(fsPath);
+}
+
+export function fileClickCmd(fsPath: string) { 
+  log('fileClickCmd', fsPath);
+  if(marksOnlySet.has(fsPath))
+     marksOnlySet.delete(fsPath);
+  else 
+     marksOnlySet.add(fsPath);
+  updateTree();
+}
+
 export async function funcClickCmd(id: string) { 
   const item = itemsById.get(id) as FuncItem;
   if (item) await fnct.revealFunc(null, item.func!, true);
-}
-
-export async function fileClickCmd(fsPath: string) { 
-  const document = 
-          await vscode.workspace.openTextDocument(vscode.Uri.file(fsPath));
-  await fnct.revealFunc(document, null);
 }
 
 export function updateTree(item?: Item) {
@@ -146,7 +154,7 @@ export class SidebarProvider {
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    // log(++count, 'getChildren', item?.label || 'undefined');
+    log(++count, 'provider getChildren', item?.label || 'undefined');
     if(!item) return Item.getTree();
     const children = item.contextValue !== 'func' 
                ? await (item as WsAndFolderItem).getChildren() : [];

@@ -34,8 +34,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const fileClickCmd = vscode.commands.registerCommand(
-                   'vscode-function-explorer.fileClickCmd', async (path) => {
-		await side.fileClickCmd(path);
+                   'vscode-function-explorer.fileClickCmd', (path) => {
+		side.fileClickCmd(path);
 	});
 
   const loadSettings = vscode.workspace

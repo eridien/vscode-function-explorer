@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -184,6 +184,7 @@
     "@babel/types": "^7.27.3",
     "acorn-loose": "^8.5.0",
     "acorn-walk": "^8.3.4",
+    "minimatch": "^10.0.2",
     "typescript-parser": "^2.6.1"
   }
 }

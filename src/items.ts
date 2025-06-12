@@ -106,15 +106,17 @@ export class FolderItem extends WsAndFolderItem {
 
 export class FileItem extends Item {
   private children?: Item[];
+  marked: boolean;
   constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('file');
     Object.assign(this, {id, contextValue:'file', iconPath});
+    this.marked = sbar.isMarksOnly(fsPath);
     this.command = {
       command:   'vscode-function-explorer.fileClickCmd',
       title:     'Item Clicked',
-      arguments: [id],
+      arguments: [fsPath],
     };
     sbar.setItemInMap(this);
   }
@@ -124,7 +126,8 @@ export class FileItem extends Item {
     const document = await vscode.workspace.openTextDocument(uri);
     await  fnct.updateFuncsInFile(document);
     return fnct.getSortedFuncs(
-        {fsPath: this.id!, alpha:settings.alphaSortFuncs})
+            {fsPath: this.id!, alpha:settings.alphaSortFuncs,
+            markedOnly: sbar.isMarksOnly(this.id!)})
         .map(func => {const item = new FuncItem(func);
                       item.parentId = this.id;
                       return item;

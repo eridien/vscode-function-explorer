@@ -8,10 +8,12 @@ bugs ...
   minimal scrolling broken
 
 todo ...
+  focus editor on any keyboard cmd
+  add classes to func list
+  click on folder to reveal all funcs below
   dbl-click on fn name in text toggles
   show parent chain in func label
     including methods b / a @ c
-  add marks-only mode to file item
   toggle mark on func item dbl-click
   clean up updates to tree
   handle fs changes
