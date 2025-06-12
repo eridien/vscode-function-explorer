@@ -158,12 +158,13 @@ export async function updateFuncsInFile(
       return;
     }
   });
+  funcs.sort((a, b) => a.start - b.start);
   for(const func of funcs) {
     const parents: Func[] = [];
-    for(const parentFunc of funcs) {
-      if(parentFunc === func) continue;
-      if(parentFunc.start > func.start) break;
-      if(parentFunc.end  >= func.end) parents.unshift(parentFunc);
+    for(const innerFunc of funcs) {
+      if(innerFunc === func) continue;
+      if(innerFunc.start > func.start) break;
+      if(innerFunc.end  >= func.end) parents.unshift(innerFunc);
     }
     func.parents = parents;
     let id = func.name  + "\x00" + func.type   + "\x00";
@@ -172,7 +173,6 @@ export async function updateFuncsInFile(
     id += func.getFsPath();
     func.id = id;
   }
-  funcs.sort((a, b) => a.start - b.start);
   const oldFuncs = getSortedFuncs({fsPath: uri.fsPath, alpha:false});
   let oldIdx = 0;
   let newIdx = 0;

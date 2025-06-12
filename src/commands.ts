@@ -30,7 +30,7 @@ export async function toggle() {
     }
     else {
       if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-      funcs = fnct.getFuncsBetweenLines(fsPath, topLine, botLine, true);
+      funcs = fnct.getFuncsBetweenLines(fsPath, topLine, botLine);
     }
     if(funcs.length === 0) return;
     if(mark === null) {
