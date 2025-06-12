@@ -1,5 +1,4 @@
 bugs ...
-  one line file doesn't toggle: const x = () => {};
   func parentid missing
   no pointer on boot
   pointer isn't removed from old file

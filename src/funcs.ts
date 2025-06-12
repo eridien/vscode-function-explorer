@@ -278,8 +278,8 @@ export function getFuncAtLine( fsPath: string,
   if (funcs.length === 0) return null;
   let match: Func | null = null;
   for(const func of funcs) {
-    if(func.getStartLine() > lineNumber) return match;
-    if(func.getEndLine()   > lineNumber) match = func;
+    if(func.getStartLine() >  lineNumber) return match;
+    if(func.getEndLine()   >= lineNumber) match = func;
   }
   return match;
 }
