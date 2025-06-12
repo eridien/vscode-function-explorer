@@ -30,7 +30,7 @@ export async function toggle() {
     }
     else {
       if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-      funcs = fnct.getFuncsBetweenLines(fsPath, topLine, botLine);
+      funcs = fnct.getFuncsBetweenLines(fsPath, topLine, botLine, true);
     }
     if(funcs.length === 0) return;
     if(mark === null) {
@@ -39,7 +39,7 @@ export async function toggle() {
       mark = markedCount/funcs.length < 0.5;
     }
     funcs.forEach(func => {
-      func.marked = !func.marked;
+      func.marked = mark!;
       sbar.updateFuncItem(func);
       if(mark && func.start < minFuncStart) {
         minFuncStart = func.start;
