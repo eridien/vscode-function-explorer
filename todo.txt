@@ -1,8 +1,4 @@
 bugs ...
-  func parentid missing
-  no pointer on boot
-  pointer isn't removed from old file
-  can't toggle: function x(){}
   toggle on with selection
   minimal scrolling broken
 

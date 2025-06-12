@@ -107,7 +107,7 @@ export async function editorChg(editor: vscode.TextEditor) {
 }
 
 export function selectionChg(event: vscode.TextEditorSelectionChangeEvent) {
-  sbar.updatePointers(event.textEditor);
+  sbar.updatePointers();
 }
 
 export async function textChg(event :vscode.TextDocumentChangeEvent) {

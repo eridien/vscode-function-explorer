@@ -34,13 +34,14 @@ export function revealItem(item: Item) {
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }
 
-export function updatePointers(editor?: vscode.TextEditor) {
-  editor ??= vscode.window.activeTextEditor;
+export function updatePointers() {
+  const editor = vscode.window.activeTextEditor;
   if (!editor) return;
   const document = editor.document;
   const fsPath   = document.uri.fsPath;
   if(document.uri.scheme !== 'file' || 
                  !sett.includeFile(fsPath)) return;
+  fnct.removeAllPointers();
   const funcs = fnct.getFuncs({fsPath});
   for(const func of funcs) {
     const funcLine = func.getStartLine();
@@ -50,6 +51,7 @@ export function updatePointers(editor?: vscode.TextEditor) {
                    funcLine <= selection.end.line;
       if(hasPointer) break; 
     }
+    log('updatePointers', func.name, hasPointer);
     func.pointer = hasPointer;
   }
   updateFileItem(fsPath);

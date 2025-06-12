@@ -334,6 +334,11 @@ export async function revealFunc(document: vscode.TextDocument | null,
   }
 }
 
+export function removeAllPointers() {
+  log('removeAllPointers');
+  funcsById.forEach(func => func.pointer = false);
+}
+
 async function loadFuncStorage() {
   if(LOAD_FUNCS_ON_START) {
     const funcs = context.workspaceState.get('funcs', []);
@@ -345,6 +350,7 @@ async function loadFuncStorage() {
       funcsById.set(func.id!, func);
     }
   }
+  removeAllPointers();
   await saveFuncStorage();
 }
 
