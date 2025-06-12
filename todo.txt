@@ -1,9 +1,13 @@
 bugs ...
-  toggle on with selection
   minimal scrolling broken
   marked-only on at boot
 
 todo ...
+  many settings don't immediately change sidebar
+  indicators on file
+    has marks
+    in marked-only mode
+  don't toggle marked-only mode when file closed
   focus editor on any keyboard cmd
   add classes to func list
   click on folder to reveal all funcs below
@@ -13,8 +17,6 @@ todo ...
   toggle mark on func item dbl-click
   clean up updates to tree
   handle fs changes
-  set pointer on click in body of func
-  alpha sort setting doesn't immediately change sidebar
   flash line (entire function?) when revealed
 
 unlikely ...

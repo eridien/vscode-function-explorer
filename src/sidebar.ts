@@ -43,16 +43,15 @@ export function updatePointers() {
                  !sett.includeFile(fsPath)) return;
   fnct.removeAllPointers();
   const funcs = fnct.getFuncs({fsPath});
+  let start1  = editor.selection.start.line;
+  let end1    = editor.selection.end.line;
   for(const func of funcs) {
-    const funcLine = func.getStartLine();
-    let hasPointer = false;
-    for(const selection of editor.selections) {
-      hasPointer = funcLine >= selection.start.line  && 
-                   funcLine <= selection.end.line;
-      if(hasPointer) break; 
-    }
-    log('updatePointers', func.name, hasPointer);
-    func.pointer = hasPointer;
+    let start2 = func.getStartLine();
+    let end2   = func.getEndLine();
+    if (start1 > end1) [start1, end1] = [end1, start1];
+    if (start2 > end2) [start2, end2] = [end2, start2];
+    func.pointer = start1 <= end2 && start2 <= end1;
+    log('updatePointers', func.name, start2, end2, start1, end1, func.pointer);
   }
   updateFileItem(fsPath);
 }

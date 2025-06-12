@@ -138,7 +138,7 @@ export class FileItem extends Item {
 export class FuncItem extends Item {
   func: Func;
   constructor(func: Func) {
-    const label = (func.pointer ? '🞂' : '') + func.name;
+    const label = (func.pointer ? '➤ ' : '') + func.name;
     super(label, vscode.TreeItemCollapsibleState.None);
     const id   = func.id;
     Object.assign(this, {id, contextValue:'func'});
