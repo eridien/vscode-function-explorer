@@ -1,52 +1,31 @@
 import * as vscode  from 'vscode';
 import * as sbar    from './sidebar';
-import * as gutt    from './gutter';
 import * as fnct    from './funcs';
+import {Func}       from './funcs';
 import * as sett    from './settings';
 import {settings}   from './settings';
-import {Func}       from './funcs';
+import * as gutt    from './gutter';
 import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
 export async function toggle() {
   log('toggle');
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) return;
-  const document = editor.document;
-  const fsPath = document.uri.fsPath;
-  await fnct.updateFuncsInFile(document);
-  if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(fsPath)) return;
-  let mark:          boolean | null = null;
-  let firstFunc:     Func    | null = null;
+  const funcs = await fnct.getFuncsOverlappingSelections();
+  if(funcs.length === 0) return;
+  let markedCount = 0;
+  funcs.forEach(func => { if(func.marked) markedCount++; });
+  const mark = markedCount/funcs.length < 0.5;
+  let firstFunc: Func | null = null;
   let minFuncStart = Number.MAX_SAFE_INTEGER;
-  for (const selection of editor.selections) {
-    let topLine = selection.active.line;
-    let botLine = selection.anchor.line;
-    let funcs: Func[] = [];
-    if(topLine === botLine) {
-      const func = fnct.getFuncAtLine(fsPath, topLine);
-      if(func) funcs = [func];
+  funcs.forEach(func => {
+    func.marked = mark!;
+    sbar.updateFuncItem(func);
+    if(mark && func.start < minFuncStart) {
+      minFuncStart = func.start;
+      firstFunc    = func;
     }
-    else {
-      if(topLine > botLine) [topLine, botLine] = [botLine, topLine];
-      funcs = fnct.getFuncsBetweenLines(fsPath, topLine, botLine, true);
-    }
-    if(funcs.length === 0) return;
-    if(mark === null) {
-      let markedCount = 0;
-      funcs.forEach(func => { if(func.marked) markedCount++; });
-      mark = markedCount/funcs.length < 0.5;
-    }
-    funcs.forEach(func => {
-      func.marked = mark!;
-      sbar.updateFuncItem(func);
-      if(mark && func.start < minFuncStart) {
-        minFuncStart = func.start;
-        firstFunc    = func;
-      }
-    });
-  }
+  });
+  if(firstFunc) await fnct.revealFunc(null, firstFunc);
   await fnct.saveFuncStorage();
   gutt.updateGutter();
 }
@@ -106,8 +85,9 @@ export async function editorChg(editor: vscode.TextEditor) {
   await updateSide(document);
 }
 
-export function selectionChg(event: vscode.TextEditorSelectionChangeEvent) {
-  sbar.updatePointers();
+export async function selectionChg(
+                      event: vscode.TextEditorSelectionChangeEvent) {
+  await sbar.updatePointers();
 }
 
 export async function textChg(event :vscode.TextDocumentChangeEvent) {

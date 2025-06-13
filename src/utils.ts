@@ -30,6 +30,13 @@ export async function hasChildTest(fsPath: string,
   return false;
 }
 
+export function rangesOverlap(start1: number, end1: number, 
+                              start2: number, end2: number): boolean {
+  if (start1 > end1) [start1, end1] = [end1, start1];
+  if (start2 > end2) [start2, end2] = [end2, start2];
+  return start1 <= end2 && start2 <= end1;
+}
+
 const outputChannel = vscode.window.createOutputChannel('function-explorer');
 
 export function getLog(module: string) : {

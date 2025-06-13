@@ -284,32 +284,45 @@ export function getFuncAtLine( fsPath: string,
   return match;
 }
 
-export function getFuncsBetweenLines(fsPath: string, 
-                                  startLine: number, endLine: number, 
-                                  overRideSubChk: boolean = false) : Func[] {
+export async function getFuncsOverlappingSelections() : Promise<Func[]> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return [];
+  const document = editor.document;
+  const fsPath = document.uri.fsPath;
+  await updateFuncsInFile(document);
+  if (document.uri.scheme !== 'file' ||
+     !sett.includeFile(fsPath)) return [];
+  await updateFuncsInFile(document);
   let funcs = getSortedFuncs({fsPath});
   if (funcs.length === 0) return [];
-  let matches: Func[] = [];
-  for(const func of funcs) {
-    const funcStartLine = func.getStartLine();
-    if(funcStartLine >  endLine) break;
-    if(funcStartLine >= startLine) matches.push(func);
-  }
-  if(!settings.includeSubFunctions) {
-    let minDepth = 1e9;
-    for(const func of matches) {
-      const depth = func.parents!.length;
-      if(depth < minDepth) minDepth = depth;
+  let touching: Func[] = [];
+  for (const selection of editor.selections) {
+    const selStartLine = selection.start.line;
+    const selEndLine = selection.end.line;
+    const overlaps: Func[] = [];
+    for(const func of funcs) {
+      const funcStartLine = func.getStartLine();
+      const funcEndLine   = func.getEndLine();
+      if (utils.rangesOverlap(selStartLine,  selEndLine, 
+                              funcStartLine, funcEndLine))
+        overlaps.push(func);
     }
-    const subFuncs = [];
-    for(const func of matches) {
-      const depth = func.parents!.length;
-      if(depth == minDepth || overRideSubChk) 
-        subFuncs.push(func);
+    if(!settings.includeSubFunctions) {
+      let minDepth = 1e9;
+      for(const func of overlaps) {
+        const depth = func.parents!.length;
+        if(depth < minDepth) minDepth = depth;
+      }
+      const nonSubFuncs = [];
+      for(const func of overlaps) {
+        const depth = func.parents!.length;
+        if(depth == minDepth) nonSubFuncs.push(func);
+      }
+      touching.push(...nonSubFuncs);
     }
-    return subFuncs;
+    else touching.push(...overlaps);
   }
-  return matches;
+  return touching;
 }
 
 export async function revealFunc(document: vscode.TextDocument | null, 

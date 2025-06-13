@@ -1,7 +1,9 @@
 bugs ...
   minimal scrolling broken
   marked-only on at boot
-
+  marks disappearing, one each in commands, sidebar, and utils
+  sel subfunc selects parents
+  
 todo ...
   many settings don't immediately change sidebar
   indicators on file
