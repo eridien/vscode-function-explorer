@@ -38,17 +38,17 @@
       },
       {
         "command": "vscode-function-explorer.toggleMarkedFilter",
-        "title": "⏳",
+        "title": " ✔ ",
         "category": "Function Explorer: Toggle Mark Filter"
       },
       {
         "command": "vscode-function-explorer.toggleAlphaSort",
-        "title": "⇅",
+        "title": " A ",
         "category": "Function Explorer: Toggle Alpha Sort"
       },
       {
         "command": "vscode-function-explorer.removeMarks",
-        "title": "⨉",
+        "title": " ⨉ ",
         "category": "Function Explorer: Remove Marks"
       },
       {
@@ -105,17 +105,29 @@
       ],
       "view/item/context": [
         {
+          "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == wsFolder",
+          "group": "inline@1"
+        },{
+          "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == folder",
+          "group": "inline@1"
+        },{
           "command": "vscode-function-explorer.toggleMarkedFilter",
-          "when": "view == sidebarView && viewItem == func",
+          "when": "view == sidebarView && viewItem == file",
           "group": "inline@1"
         },{
           "command": "vscode-function-explorer.toggleAlphaSort",
-          "when": "view == sidebarView && viewItem == func",
+          "when": "view == sidebarView && viewItem == file",
           "group": "inline@2"
         },{
           "command": "vscode-function-explorer.removeMarks",
-          "when": "view == sidebarView && viewItem == func",
+          "when": "view == sidebarView && viewItem == file",
           "group": "inline@3"
+        },{
+          "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == func",
+          "group": "inline@1"
         }
       ]
     },
