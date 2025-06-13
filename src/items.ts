@@ -77,11 +77,6 @@ export class WsFolderItem extends WsAndFolderItem {
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
     Object.assign(this, {id, contextValue:'wsFolder', iconPath});
-    this.command = {
-      command:   'vscode-function-explorer.workspaceFolderClickCmd',
-      title:     'Item Clicked',
-      arguments: [id],
-    };
     sbar.setItemInMap(this);
   }
 }
@@ -96,13 +91,8 @@ export class FolderItem extends WsAndFolderItem {
     if (!await utils.hasChildTest(fsPath, sett.includeFile)) return null;
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('folder');
-    const command =  {
-      command:   'vscode-function-explorer.folderClickCmd',
-      title:     'Item Clicked',
-      arguments: [id],
-    };
     const newThis = new FolderItem(fsPath);
-    Object.assign(newThis, {id, contextValue:'folder', iconPath, command});
+    Object.assign(newThis, {id, contextValue:'folder', iconPath});
     sbar.setItemInMap(newThis);
     return newThis;
   }
@@ -116,11 +106,6 @@ export class FileItem extends Item {
     this.id           = fsPath;
     this.iconPath     = new vscode.ThemeIcon('file');
     this.contextValue = 'file';
-    this.command = {
-      command:   'vscode-function-explorer.fileClickCmd',
-      title:     'Item Clicked',
-      arguments: [fsPath],
-    };
     sbar.setItemInMap(this);
   }
   async getChildren(): Promise<FuncItem[]> {

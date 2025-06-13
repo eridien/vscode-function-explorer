@@ -3,21 +3,17 @@ bugs ...
   sel subfunc selects parents
 
 todo ...
+  menu for alpha sort
   why saving items in storage?
-  toggle mark on func item dbl-click
-  don't toggle marked-only mode when file closed
+  turn off marked-only mode when file or any parent opens 
     collapsed state is in item
+  should click on closed file do something?
   many settings don't immediately change sidebar
-  indicators on file
-    has marks
-    in marked-only mode
   focus editor on any keyboard cmd
   add classes to func list
-  click on folder to reveal all funcs below
   dbl-click on fn name in text toggles
   show parent chain in func label
     including methods b / a @ c
-  clean up updates to tree
   handle fs changes
   flash line (entire function?) when revealed
 
@@ -25,6 +21,9 @@ unlikely ...
   make prev/next when not in valid file go to valid mark
   custom scroll
   keep mark during cut/paste
+  indicators on file
+    has marks
+    in marked-only mode
   
 options ...
   reveal func item when text selected  (sidebar already visible)

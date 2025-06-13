@@ -37,11 +37,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		await sbar.funcClickCmd(id);
 	});
 
-	const fileClickCmd = vscode.commands.registerCommand(
-                   'vscode-function-explorer.fileClickCmd', (path) => {
-		sbar.fileClickCmd(path);
-	});
-
 ////////////  SETTINGS  ////////////
 
   const loadSettings = vscode.workspace
@@ -72,7 +67,7 @@ export async function activate(context: vscode.ExtensionContext) {
     sbar.itemExpandChg(event.element as WsFolderItem | FolderItem | FileItem, true);
   });
 
-  const treeCollapseChg = treeView.onDidCollapseElement(event => {
+  const itemCollapseChg = treeView.onDidCollapseElement(event => {
     sbar.itemExpandChg(event.element as WsFolderItem | FolderItem | FileItem, false);
   });
 
@@ -104,9 +99,9 @@ export async function activate(context: vscode.ExtensionContext) {
   await cmds.updateSide();
 
 	context.subscriptions.push(
-    toggle, prev, next, fileClickCmd, funcClickCmd,
-    loadSettings, editorChg, selectionChg, textChg,
-    sidebarVisChg, treeSelChg, itemExpandChg, treeCollapseChg);
+    toggle, prev, next, funcClickCmd, loadSettings,
+    editorChg, selectionChg, textChg,
+    sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg);
 
   end('extension');
 }

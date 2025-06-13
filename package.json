@@ -37,18 +37,18 @@
         "when": "editorTextFocus"
       },
       {
-        "command": "vscode-function-explorer.expandCollapseItems",
-        "title": "Collapse or expand all folders and files below the selected item in the function explorer.",
+        "command": "vscode-function-explorer.toggleMarkedFilter",
+        "title": "Toggle showing all functions in the file versus just marked functions.",
         "category": "Vscode-function-explorer"
       },
       {
-        "command": "vscode-function-explorer.toggleUnmarkedVisibility",
-        "title": "Toggle showing all functions in the explorer file versus just marked functions.",
+        "command": "vscode-function-explorer.toggleAlphaSort",
+        "title": "Toggle sorting functions alphabetically.",
         "category": "Vscode-function-explorer"
       },
       {
-        "command": "vscode-function-explorer.fileClickCmd",
-        "title": "Open the file without jumping.",
+        "command": "vscode-function-explorer.removeMarks",
+        "title": "Remove all function marks in folder or file.",
         "category": "Vscode-function-explorer"
       },
       {
