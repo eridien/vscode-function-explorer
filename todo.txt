@@ -1,15 +1,17 @@
 bugs ...
   marked-only on at boot
   sel subfunc selects parents
+  'vscode-function-explorer.toggleFuncMark' not found
 
 todo ...
-  menus for alpha sort, filter, and remove marks
-  why saving items in storage?
-  turn off marked-only mode when file or any parent opens 
-    collapsed state is in item
-  should click on closed file do something?
+  don't show files with no funcs
+    use stored funcs
+  alpha sort, filter, and remove mark actions
+  turn off filter
+    when file opens (collapsed state is in item)
+    when no marks
   many settings don't immediately change sidebar
-  focus editor on any keyboard cmd
+  focus editor with a mark on prev/next
   add classes to func list
   dbl-click on fn name in text toggles
   show parent chain in func label
@@ -18,12 +20,10 @@ todo ...
   flash line (entire function?) when revealed
 
 unlikely ...
-  make prev/next when not in valid file go to valid mark
   custom scroll
   keep mark during cut/paste
-  indicators on file
-    has marks
-    in marked-only mode
+  has mark indicator on file
+    
   
 options ...
   reveal func item when text selected  (sidebar already visible)

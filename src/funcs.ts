@@ -215,14 +215,14 @@ export async function updateFuncsInFile(
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {
-  const {fsPath, markedOnly = false} = p;
+  const {fsPath, filtered = false} = p;
   let funcs;
   if(fsPath) {
     funcs = Array.from(funcsById.values())
                  .filter(func => func.getFsPath() === fsPath);
   }
   else funcs = [...funcsById.values()];
-  if(markedOnly) funcs = funcs.filter(func => func.marked);
+  if(filtered) funcs = funcs.filter(func => func.marked);
   return funcs;
 }
 

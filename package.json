@@ -42,14 +42,35 @@
         "category": "Function Explorer: Toggle Mark Filter"
       },
       {
+        "command": "vscode-function-explorer.toggleMarkedFilterMenu",
+        "title": " Toggle Mark Filter"
+      },
+      {
         "command": "vscode-function-explorer.toggleAlphaSort",
         "title": " A ",
         "category": "Function Explorer: Toggle Alpha Sort"
       },
       {
+        "command": "vscode-function-explorer.toggleAlphaSortMenu",
+        "title": "Toggle Alpha Sort"
+      },
+      {
+        "command": "vscode-function-explorer.toggleFuncMark",
+        "title": "  ƒ  ",
+        "category": "Function Explorer: Toggle Function Mark"
+      },
+      {
+        "command": "vscode-function-explorer.toggleFuncMarkMenu",
+        "title": "Toggle Function Mark"
+      },
+      {
         "command":  "vscode-function-explorer.removeMarks",
         "title":    " ⨉ ",
         "category": "Function Explorer: Remove Marks"
+      },
+      {
+        "command":  "vscode-function-explorer.removeMarksMenu",
+        "title":    "Remove Marks"
       },
       {
         "command":  "vscode-function-explorer.funcClickCmd",
@@ -105,29 +126,47 @@
       ],
       "view/item/context": [
         {
-          "command": "vscode-function-explorer.removeMarks",
-          "when": "view == sidebarView && viewItem == wsFolder",
-          "group": "inline@1"
-        },{
-          "command": "vscode-function-explorer.removeMarks",
-          "when": "view == sidebarView && viewItem == folder",
-          "group": "inline@1"
-        },{
           "command": "vscode-function-explorer.toggleMarkedFilter",
           "when": "view == sidebarView && viewItem == file",
           "group": "inline@1"
+        },{
+          "command": "vscode-function-explorer.toggleMarkedFilterMenu",
+          "when": "view == sidebarView && viewItem == file"
         },{
           "command": "vscode-function-explorer.toggleAlphaSort",
           "when": "view == sidebarView && viewItem == file",
           "group": "inline@2"
         },{
-          "command": "vscode-function-explorer.removeMarks",
-          "when": "view == sidebarView && viewItem == file",
-          "group": "inline@3"
+          "command": "vscode-function-explorer.toggleAlphaSortMenu",
+          "when": "view == sidebarView && viewItem == file"
+        },{
+          "command": "vscode-function-explorer.toggleFuncMark",
+          "when": "view == sidebarView && viewItem == func",
+          "group": "inline@2"
+        },{
+          "command": "vscode-function-explorer.toggleFuncMarkMenu",
+          "when": "view == sidebarView && viewItem == func"
         },{
           "command": "vscode-function-explorer.removeMarks",
-          "when": "view == sidebarView && viewItem == func",
-          "group": "inline@1"
+          "when": "view == sidebarView && viewItem == wsFolder",
+          "group": "inline@3"
+        },{
+          "command": "vscode-function-explorer.removeMarksMenu",
+          "when": "view == sidebarView && viewItem == wsFolder"
+        },{
+          "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == folder",
+          "group": "inline@3"
+        },{
+          "command": "vscode-function-explorer.removeMarksMenu",
+          "when": "view == sidebarView && viewItem == folder"
+        },{
+          "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == file",
+          "group": "inline@4"
+        },{
+          "command": "vscode-function-explorer.removeMarksMenu",
+          "when": "view == sidebarView && viewItem == file"
         }
       ]
     },

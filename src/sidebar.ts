@@ -80,7 +80,8 @@ export async function updatePointers() {
 export function updateMarkByFunc(func: Func) {
   const funcItem = itemsById.get(func.id!);
   if(funcItem) 
-    funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') : undefined;
+    funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
+                                    : undefined;
 }
 
 export function fileChanged(uri: vscode.Uri) {
@@ -110,6 +111,38 @@ export async function funcClickCmd(id: string) {
   if (item) await fnct.revealFunc(null, item.func!, true);
 }
 
+export function toggleMarkedFilter(fileItem: FileItem) {
+  fileItem.filtered = !fileItem.filtered;
+  updateTree();
+}
+
+export function toggleAlphaSort(fileItem: FileItem) {
+  fileItem.alphaSorted = !fileItem.alphaSorted;
+  updateTree();
+}
+
+export function removeMarks(item: Item) {
+  function hasParent(item: Item, parentId: string) {
+    if(item.parentId === parentId) return true;
+    if(!item.parentId) return false;
+    const parentItem = itemsById.get(item.parentId);
+    if(!parentItem) return false;
+    return hasParent(parentItem, parentId);
+  }
+  function removeMarks(parentItem: Item) {
+    for(const funcItem of itemsById.values()) {
+      if(funcItem.contextValue !== 'func') continue;
+      const func = (funcItem as FuncItem).func;
+      if(func.marked && hasParent(funcItem, parentItem.id!)) 
+         func.marked = false;
+    }
+  }
+  if(item.contextValue === 'func') 
+    (item as FuncItem).func.marked = false;
+  else removeMarks(item);
+  updateTree();
+}
+
 export function updateTree(item?: Item) {
   sidebarProvider.refresh(item);
 }
@@ -118,9 +151,8 @@ export function treeExpandChg(item: Item, expanded: boolean) {
   gutt.updateGutter();
 }
 
-export function itemExpandChg(item: WsFolderItem | FolderItem | FileItem, 
-                              expanded: boolean) {
-  item.expanded = expanded;
+export function itemExpandChg(fileItem: FileItem, expanded: boolean) {
+  fileItem.expanded = expanded;
 }
 
 let count = 0;

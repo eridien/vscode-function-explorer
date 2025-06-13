@@ -10,8 +10,7 @@ export default [{
     ignores: [
         "**/node_modules/**",
         "**/out/**",
-        "!**/src/*.ts",
-        '!package.json'
+        "!**/src/*.ts"
     ],
     plugins: {
         "@typescript-eslint": typescriptEslint,

@@ -25,7 +25,7 @@ export async function toggle() {
       firstFunc    = func;
     }
   });
-  if(firstFunc) await fnct.revealFunc(null, firstFunc);
+  if(firstFunc && funcs.length > 1) await fnct.revealFunc(null, firstFunc);
   await fnct.saveFuncStorage();
   await updateSide();
 }
@@ -37,7 +37,7 @@ async function prevNext(next: boolean) {
       sett.includeFile(activeEditor.document.uri.fsPath)) {
     const fsPath   = activeEditor.document.uri.fsPath;
     const fileWrap = settings.fileWrap;
-    const sortArgs = {markedOnly: true};
+    const sortArgs = {filtered: true};
     if(!fileWrap) (sortArgs as any).fsPath = fsPath;
     const funcs = fnct.getSortedFuncs(sortArgs);
     if(funcs.length == 0) return;

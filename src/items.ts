@@ -69,10 +69,8 @@ export class WsAndFolderItem extends Item {
 
 export class WsFolderItem extends WsAndFolderItem {
   wsFolder: vscode.WorkspaceFolder;
-  expanded: boolean;
   constructor(wsFolder: vscode.WorkspaceFolder) {
     super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
-    this.expanded = true;
     this.wsFolder = wsFolder;
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
@@ -82,10 +80,8 @@ export class WsFolderItem extends WsAndFolderItem {
 }
 
 export class FolderItem extends WsAndFolderItem {
-  expanded: boolean;
   private constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Expanded);
-    this.expanded = true;
   }
   static async create(fsPath: string) {
     if (!await utils.hasChildTest(fsPath, sett.includeFile)) return null;
@@ -99,10 +95,11 @@ export class FolderItem extends WsAndFolderItem {
 }
 
 export class FileItem extends Item {
-  expanded: boolean;
+  expanded:    boolean = false;
+  filtered:    boolean = false;
+  alphaSorted: boolean = false;
   constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
-    this.expanded     = false;
     this.id           = fsPath;
     this.iconPath     = new vscode.ThemeIcon('file');
     this.contextValue = 'file';
@@ -113,8 +110,7 @@ export class FileItem extends Item {
     const document = await vscode.workspace.openTextDocument(uri);
     await fnct.updateFuncsInFile(document);
     const funcItems = fnct.getSortedFuncs(
-            {fsPath: this.id!, alpha:settings.alphaSortFuncs,
-             markedOnly: sbar.isMarksOnly(this.id!)})
+          {fsPath: this.id!, alpha: this.alphaSorted, filtered: this.filtered})
       .map(async func => {
         const item = 
                 await sbar.getOrMakeItemById(func.id!, func) as FuncItem;

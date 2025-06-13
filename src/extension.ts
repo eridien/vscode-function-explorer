@@ -5,7 +5,7 @@ import * as file         from './files';
 import * as sbar         from './sidebar';
 import {SidebarProvider} from './sidebar';
 import * as itms         from './items';
-import {WsFolderItem, FolderItem, FileItem}
+import {Item, WsFolderItem, FolderItem, FileItem}
                          from './items';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
@@ -32,8 +32,38 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.next();
 	});
 
+	const toggleMarkedFilter = vscode.commands.registerCommand(
+       'vscode-function-explorer.toggleMarkedFilter', (fileItem: FileItem) => {
+		sbar.toggleMarkedFilter(fileItem);
+	});
+
+	const toggleMarkedFilterMenu = vscode.commands.registerCommand(
+   'vscode-function-explorer.toggleMarkedFilterMenu', (fileItem: FileItem) => {
+		sbar.toggleMarkedFilter(fileItem);
+	});
+
+	const toggleAlphaSort = vscode.commands.registerCommand(
+          'vscode-function-explorer.toggleAlphaSort', (fileItem: FileItem) => {
+		sbar.toggleAlphaSort(fileItem);
+	});
+
+	const toggleAlphaSortMenu = vscode.commands.registerCommand(
+      'vscode-function-explorer.toggleAlphaSortMenu', (fileItem: FileItem) => {
+		sbar.toggleAlphaSort(fileItem);
+	});
+
+	const removeMarks = vscode.commands.registerCommand(
+                      'vscode-function-explorer.removeMarks', (item: Item) => {
+		sbar.removeMarks(item);
+	});
+
+	const removeMarksMenu = vscode.commands.registerCommand(
+                  'vscode-function-explorer.removeMarksMenu', (item: Item) => {
+		sbar.removeMarks(item);
+	});
+
 	const funcClickCmd = vscode.commands.registerCommand(
-                   'vscode-function-explorer.funcClickCmd', async (id) => {
+                       'vscode-function-explorer.funcClickCmd', async (id) => {
 		await sbar.funcClickCmd(id);
 	});
 
@@ -64,11 +94,11 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const itemExpandChg = treeView.onDidExpandElement(event => {
-    sbar.itemExpandChg(event.element as WsFolderItem | FolderItem | FileItem, true);
+    sbar.itemExpandChg(event.element as FileItem, true);
   });
 
   const itemCollapseChg = treeView.onDidCollapseElement(event => {
-    sbar.itemExpandChg(event.element as WsFolderItem | FolderItem | FileItem, false);
+    sbar.itemExpandChg(event.element as FileItem, false);
   });
 
 ////////////  EDITOR  ////////////
@@ -101,7 +131,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
     toggle, prev, next, funcClickCmd, loadSettings,
     editorChg, selectionChg, textChg,
-    sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg);
+    sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
+    toggleMarkedFilter, toggleAlphaSort, removeMarks,
+    toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu
+  );
 
   end('extension');
 }
