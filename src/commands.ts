@@ -19,7 +19,7 @@ export async function toggle() {
   let minFuncStart = Number.MAX_SAFE_INTEGER;
   funcs.forEach(func => {
     func.marked = mark!;
-    sbar.updateTree();
+    sbar.updateMarkByFunc(func);
     if(mark && func.start < minFuncStart) {
       minFuncStart = func.start;
       firstFunc    = func;
@@ -27,7 +27,7 @@ export async function toggle() {
   });
   if(firstFunc) await fnct.revealFunc(null, firstFunc);
   await fnct.saveFuncStorage();
-  gutt.updateGutter();
+  await updateSide();
 }
 
 async function prevNext(next: boolean) {

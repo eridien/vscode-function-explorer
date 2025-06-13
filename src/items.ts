@@ -143,9 +143,8 @@ export class FileItem extends Item {
 export class FuncItem extends Item {
   func: Func;
   constructor(func: Func) {
-    const label = (func.pointer ? '➤ ' : '') + func.name;
-    super(label, vscode.TreeItemCollapsibleState.None);
-    const id   = func.id;
+    super(func.name, vscode.TreeItemCollapsibleState.None);
+    const id = func.id;
     Object.assign(this, {id, contextValue:'func'});
     this.func = func;
     if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');

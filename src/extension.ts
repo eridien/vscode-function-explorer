@@ -5,7 +5,7 @@ import * as file         from './files';
 import * as sbar         from './sidebar';
 import {SidebarProvider} from './sidebar';
 import * as itms         from './items';
-import {WsAndFolderItem, FileItem}
+import {WsFolderItem, FolderItem, FileItem}
                          from './items';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
@@ -69,11 +69,11 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const itemExpandChg = treeView.onDidExpandElement(event => {
-    sbar.itemExpandChg(event.element as WsAndFolderItem | FileItem, true);
+    sbar.itemExpandChg(event.element as WsFolderItem | FolderItem | FileItem, true);
   });
 
   const treeCollapseChg = treeView.onDidCollapseElement(event => {
-    sbar.itemExpandChg(event.element as WsAndFolderItem | FileItem, false);
+    sbar.itemExpandChg(event.element as WsFolderItem | FolderItem | FileItem, false);
   });
 
 ////////////  EDITOR  ////////////
@@ -98,7 +98,7 @@ export async function activate(context: vscode.ExtensionContext) {
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();
-  sbar.activate(treeView, sidebarProvider, context);
+  await sbar.activate(treeView, sidebarProvider, context);
   itms.activate(context);
   await fnct.activate(context);
   await cmds.updateSide();

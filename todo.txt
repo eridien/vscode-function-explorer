@@ -1,11 +1,12 @@
 bugs ...
   marked-only on at boot
-  marks disappearing, one each in commands, sidebar, and utils
   sel subfunc selects parents
-  handle pointer
-  
+
 todo ...
+  why saving items in storage?
+  toggle mark on func item dbl-click
   don't toggle marked-only mode when file closed
+    collapsed state is in item
   many settings don't immediately change sidebar
   indicators on file
     has marks
@@ -16,7 +17,6 @@ todo ...
   dbl-click on fn name in text toggles
   show parent chain in func label
     including methods b / a @ c
-  toggle mark on func item dbl-click
   clean up updates to tree
   handle fs changes
   flash line (entire function?) when revealed

@@ -31,7 +31,6 @@ export class Func {
   start:      number;
   end:        number;
   marked:     boolean;
-  pointer:    boolean;
   parents?:   Func[];
   id?:        string;
   startLine?: number;
@@ -47,7 +46,6 @@ export class Func {
     this.start    = start;
     this.end      = end;
     this.marked   = false;
-    this.pointer  = false;
   }
   getFsPath()    { return this.fsPath    ??= 
                           this.document.uri.fsPath;                    }
@@ -333,11 +331,6 @@ export async function revealFunc(document: vscode.TextDocument | null,
   }
 }
 
-export function removeAllPointers() {
-  log('removeAllPointers');
-  funcsById.forEach(func => func.pointer = false);
-}
-
 async function loadFuncStorage() {
   if(LOAD_FUNCS_ON_START) {
     const funcs = context.workspaceState.get('funcs', []);
@@ -349,7 +342,6 @@ async function loadFuncStorage() {
       funcsById.set(func.id!, func);
     }
   }
-  removeAllPointers();
   await saveFuncStorage();
 }
 

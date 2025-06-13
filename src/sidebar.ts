@@ -21,12 +21,13 @@ let sidebarProvider: SidebarProvider;
 let itemsById: Map<string, Item> = new Map();
 let marksOnlySet                 = new Set<string>();
 
-export function activate(treeViewIn: vscode.TreeView<Item>, 
+export async function activate(treeViewIn: vscode.TreeView<Item>, 
                          sidebarProviderIn: SidebarProvider,
                          contextIn: vscode.ExtensionContext) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
   context         = contextIn;
+  await loadItemStorage();
 }
 
 export function setItemInMap(item: Item) {
@@ -49,10 +50,7 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
         throw new Error(`getOrMakeItemById, Unknown item type: ${itemType}`);
     }
   }
-  if(item) {
-    setItemInMap(item);
-    await saveItemStorage();
-  }
+  if(item) await saveItemStorage();
   return item;
 }
 
@@ -62,10 +60,11 @@ async function loadItemStorage() {
     for (const itemObj of items) {
       const item = Object.create(Item.prototype);
       Object.assign(item, itemObj);
-      setItemInMap(item!);
+      setItemInMap(item);
     }
   }
   await saveItemStorage();
+  removeAllPointers();
 }
 
 export async function saveItemStorage() {
@@ -76,11 +75,31 @@ export function revealItem(item: Item) {
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }
 
+function removeAllPointers() {
+  for(const item of itemsById.values()) {
+    if(item.contextValue == 'func') {
+      const funcItem = item as FuncItem;
+      const func     = funcItem.func;
+      funcItem.label = func.name;
+    }
+  }
+}
+
 export async function updatePointers() {
-  fnct.removeAllPointers();
+  removeAllPointers();
   const funcs = await fnct.getFuncsOverlappingSelections();
-  for(const func of funcs) func.pointer = true;
+  for(const func of funcs) {
+    const funcItem = itemsById.get(func.id!);
+    if(!funcItem) continue;
+    funcItem.label = `➤ ${func.name}`; 
+  }
   updateTree();
+}
+
+export function updateMarkByFunc(func: Func) {
+  const funcItem = itemsById.get(func.id!);
+  if(funcItem) 
+    funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') : undefined;
 }
 
 export function fileChanged(uri: vscode.Uri) {
@@ -118,7 +137,7 @@ export function treeExpandChg(item: Item, expanded: boolean) {
   gutt.updateGutter();
 }
 
-export function itemExpandChg(item: WsAndFolderItem | FileItem, 
+export function itemExpandChg(item: WsFolderItem | FolderItem | FileItem, 
                               expanded: boolean) {
   item.expanded = expanded;
 }
