@@ -47,13 +47,13 @@
         "category": "Function Explorer: Toggle Alpha Sort"
       },
       {
-        "command": "vscode-function-explorer.removeMarks",
-        "title": " ⨉ ",
+        "command":  "vscode-function-explorer.removeMarks",
+        "title":    " ⨉ ",
         "category": "Function Explorer: Remove Marks"
       },
       {
-        "command": "vscode-function-explorer.funcClickCmd",
-        "title": "First click opens the file in an editor and jumps to the function. Clicks after that toggle the mark.",
+        "command":  "vscode-function-explorer.funcClickCmd",
+        "title":    "Show the function in an editor.",
         "category": "Vscode-function-explorer"
       }
     ],

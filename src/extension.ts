@@ -93,7 +93,7 @@ export async function activate(context: vscode.ExtensionContext) {
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();
-  await sbar.activate(treeView, sidebarProvider, context);
+  sbar.activate(treeView, sidebarProvider, context);
   itms.activate(context);
   await fnct.activate(context);
   await cmds.updateSide();

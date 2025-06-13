@@ -21,13 +21,12 @@ let sidebarProvider: SidebarProvider;
 let itemsById: Map<string, Item> = new Map();
 let marksOnlySet                 = new Set<string>();
 
-export async function activate(treeViewIn: vscode.TreeView<Item>, 
+export function activate(treeViewIn: vscode.TreeView<Item>, 
                          sidebarProviderIn: SidebarProvider,
                          contextIn: vscode.ExtensionContext) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
   context         = contextIn;
-  await loadItemStorage();
 }
 
 export function setItemInMap(item: Item) {
@@ -50,25 +49,7 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
         throw new Error(`getOrMakeItemById, Unknown item type: ${itemType}`);
     }
   }
-  if(item) await saveItemStorage();
   return item;
-}
-
-async function loadItemStorage() {
-  if(LOAD_ITEMS_ON_START) {
-    const items = context.workspaceState.get('items', []);
-    for (const itemObj of items) {
-      const item = Object.create(Item.prototype);
-      Object.assign(item, itemObj);
-      setItemInMap(item);
-    }
-  }
-  await saveItemStorage();
-  removeAllPointers();
-}
-
-export async function saveItemStorage() {
-  await context.workspaceState.update('items', itemsById.values());
 }
 
 export function revealItem(item: Item) {
