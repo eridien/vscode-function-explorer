@@ -38,18 +38,18 @@
       },
       {
         "command": "vscode-function-explorer.toggleMarkedFilter",
-        "title": "Toggle showing all functions in the file versus just marked functions.",
-        "category": "Vscode-function-explorer"
+        "title": "⏳",
+        "category": "Function Explorer: Toggle Mark Filter"
       },
       {
         "command": "vscode-function-explorer.toggleAlphaSort",
-        "title": "Toggle sorting functions alphabetically.",
-        "category": "Vscode-function-explorer"
+        "title": "⇅",
+        "category": "Function Explorer: Toggle Alpha Sort"
       },
       {
         "command": "vscode-function-explorer.removeMarks",
-        "title": "Remove all function marks in folder or file.",
-        "category": "Vscode-function-explorer"
+        "title": "⨉",
+        "category": "Function Explorer: Remove Marks"
       },
       {
         "command": "vscode-function-explorer.funcClickCmd",
@@ -103,7 +103,21 @@
           "group": "1_modification"
         }
       ],
-      "view/item/context": []
+      "view/item/context": [
+        {
+          "command": "vscode-function-explorer.toggleMarkedFilter",
+          "when": "view == sidebarView && viewItem == func",
+          "group": "inline@1"
+        },{
+          "command": "vscode-function-explorer.toggleAlphaSort",
+          "when": "view == sidebarView && viewItem == func",
+          "group": "inline@2"
+        },{
+          "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == func",
+          "group": "inline@3"
+        }
+      ]
     },
     "configuration": {
       "title": "Function Explorer",

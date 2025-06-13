@@ -3,7 +3,7 @@ bugs ...
   sel subfunc selects parents
 
 todo ...
-  menu for alpha sort
+  menus for alpha sort, filter, and remove marks
   why saving items in storage?
   turn off marked-only mode when file or any parent opens 
     collapsed state is in item
