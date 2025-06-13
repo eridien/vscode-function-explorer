@@ -25,9 +25,9 @@ let includeCfg:              string;
 export function loadSettings() {
   const config = vscode.workspace.getConfiguration('function-explorer');
   let scrollPos: vscode.TextEditorRevealType;
-  switch (config.get('scrollPosition', 'AtTop') as string) {
+  switch (config.get('scrollPosition', 'Default') as string) {
     case 'Minimal Scrolling':
-      scrollPos = vscode.TextEditorRevealType.AtTop; break;
+      scrollPos = vscode.TextEditorRevealType.Default; break;
     case 'In Center':
       scrollPos = vscode.TextEditorRevealType.InCenter; break;
     case 'In Center If Needed':

@@ -292,7 +292,6 @@ export async function getFuncsOverlappingSelections() : Promise<Func[]> {
   await updateFuncsInFile(document);
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return [];
-  await updateFuncsInFile(document);
   let funcs = getSortedFuncs({fsPath});
   if (funcs.length === 0) return [];
   let touching: Func[] = [];
