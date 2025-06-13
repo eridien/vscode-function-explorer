@@ -2,6 +2,7 @@ import * as vscode  from 'vscode';
 import * as sbar    from './sidebar';
 import * as fnct    from './funcs';
 import {Func}       from './funcs';
+import {Item}       from './items';
 import * as sett    from './settings';
 import {settings}   from './settings';
 import * as gutt    from './gutter';
@@ -110,3 +111,7 @@ export async function updateSide(document?: vscode.TextDocument) {
   else for (const func of updatedFuncs) sbar.updateFuncItem(func);
   gutt.updateGutter();
 };
+export async function treeExpandChg(item: Item, expanded: boolean) {
+  log('treeExpandChg');
+  gutt.updateGutter();
+}

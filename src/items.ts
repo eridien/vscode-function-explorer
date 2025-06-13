@@ -32,6 +32,7 @@ export class Item extends vscode.TreeItem {
 
 export class WsAndFolderItem extends Item {
   private children?: Item[];
+  expanded: boolean = false;
   private async _getFolderFileChildren(
        parentFsPath: string, folders: Item[], files: Item[]) {
     const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
@@ -105,6 +106,7 @@ export class FolderItem extends WsAndFolderItem {
 }
 
 export class FileItem extends Item {
+  expanded: boolean = false;
   private children?: Item[];
   marked: boolean;
   constructor(fsPath: string) {

@@ -109,6 +109,11 @@ export function updateFuncItem(func: Func) {
   updateTree(funcItem);
 }
 
+export function itemExpandChg(item: WsAndFolderItem | FileItem, 
+                              expanded: boolean) {
+  item.expanded = expanded;
+}
+
 let count = 0;
 
 export class SidebarProvider {

@@ -4,11 +4,11 @@ bugs ...
   sel subfunc selects parents
 
 todo ...
+  don't toggle marked-only mode when file closed
   many settings don't immediately change sidebar
   indicators on file
     has marks
     in marked-only mode
-  don't toggle marked-only mode when file closed
   focus editor on any keyboard cmd
   add classes to func list
   click on folder to reveal all funcs below

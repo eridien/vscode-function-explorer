@@ -2,9 +2,11 @@ import * as vscode       from 'vscode';
 import * as cmds         from './commands';
 import * as fnct         from './funcs';
 import * as file         from './files';
-import * as side         from './sidebar';
+import * as sbar         from './sidebar';
 import {SidebarProvider} from './sidebar';
-import * as sbcl         from './items';
+import * as itms         from './items';
+import {WsAndFolderItem, FileItem}
+                         from './items';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
 import * as utils        from './utils';
@@ -12,6 +14,8 @@ const {log, start, end} = utils.getLog('extn');
 
 export async function activate(context: vscode.ExtensionContext) {
   start('extension');
+
+////////////  COMMANDS  ////////////
   
 	const toggle = vscode.commands.registerCommand(
            'vscode-function-explorer.toggle', async () => {
@@ -30,13 +34,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const funcClickCmd = vscode.commands.registerCommand(
                    'vscode-function-explorer.funcClickCmd', async (id) => {
-		await side.funcClickCmd(id);
+		await sbar.funcClickCmd(id);
 	});
 
 	const fileClickCmd = vscode.commands.registerCommand(
                    'vscode-function-explorer.fileClickCmd', (path) => {
-		side.fileClickCmd(path);
+		sbar.fileClickCmd(path);
 	});
+
+////////////  SETTINGS  ////////////
 
   const loadSettings = vscode.workspace
                              .onDidChangeConfiguration(async event => {
@@ -47,16 +53,30 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+////////////  SIDEBAR  ////////////
+
   const sidebarProvider = new SidebarProvider();
   const treeView = vscode.window.createTreeView('sidebarView', {
     treeDataProvider: sidebarProvider,
   });
 
-  const chgSidebarVisibility = treeView.onDidChangeVisibility(event => {
+  const sidebarVisChg = treeView.onDidChangeVisibility(event => {
+     // boolean whether the sidebar is now visible
   });
 
-  const chgItemFocus = treeView.onDidChangeSelection(event => {
+  const treeSelChg = treeView.onDidChangeSelection(event => {
+     // item selection[]
   });
+
+  const itemExpandChg = treeView.onDidExpandElement(event => {
+    sbar.itemExpandChg(event.element as WsAndFolderItem | FileItem, true);
+  });
+
+  const treeCollapseChg = treeView.onDidCollapseElement(event => {
+    sbar.itemExpandChg(event.element as WsAndFolderItem | FileItem, false);
+  });
+
+////////////  EDITOR  ////////////
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
@@ -73,17 +93,20 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+////////////  INIT  ////////////
+
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();
-  side.activate(treeView, sidebarProvider, context);
-  sbcl.activate(context);
+  sbar.activate(treeView, sidebarProvider, context);
+  itms.activate(context);
   await fnct.activate(context);
   await cmds.updateSide();
 
 	context.subscriptions.push(
-    toggle, prev, next, loadSettings, textChg, editorChg, fileClickCmd,
-    chgSidebarVisibility, chgItemFocus, selectionChg, funcClickCmd);
+    toggle, prev, next, fileClickCmd, funcClickCmd,
+    loadSettings, editorChg, selectionChg, textChg,
+    sidebarVisChg, treeSelChg, itemExpandChg, treeCollapseChg);
 
   end('extension');
 }
