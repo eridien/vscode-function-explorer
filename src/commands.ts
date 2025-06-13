@@ -2,7 +2,6 @@ import * as vscode  from 'vscode';
 import * as sbar    from './sidebar';
 import * as fnct    from './funcs';
 import {Func}       from './funcs';
-import {Item}       from './items';
 import * as sett    from './settings';
 import {settings}   from './settings';
 import * as gutt    from './gutter';
@@ -20,7 +19,7 @@ export async function toggle() {
   let minFuncStart = Number.MAX_SAFE_INTEGER;
   funcs.forEach(func => {
     func.marked = mark!;
-    sbar.updateFuncItem(func);
+    sbar.updateTree();
     if(mark && func.start < minFuncStart) {
       minFuncStart = func.start;
       firstFunc    = func;
@@ -104,14 +103,7 @@ export async function updateSide(document?: vscode.TextDocument) {
     if(activeEditor) document = activeEditor.document;
   }
   if(!document) return;
-  const fsPath = document.uri.fsPath;
-  const {updatedFuncs, structureChanged} = 
-               await fnct.updateFuncsInFile(document);
-  if (structureChanged)                 sbar.updateFileItem(fsPath);
-  else for (const func of updatedFuncs) sbar.updateFuncItem(func);
+  await fnct.updateFuncsInFile(document);
+  sbar.updateTree();
   gutt.updateGutter();
 };
-export async function treeExpandChg(item: Item, expanded: boolean) {
-  log('treeExpandChg');
-  gutt.updateGutter();
-}

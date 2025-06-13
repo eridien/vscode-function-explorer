@@ -2,7 +2,8 @@ bugs ...
   marked-only on at boot
   marks disappearing, one each in commands, sidebar, and utils
   sel subfunc selects parents
-
+  handle pointer
+  
 todo ...
   don't toggle marked-only mode when file closed
   many settings don't immediately change sidebar

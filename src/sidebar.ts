@@ -4,12 +4,15 @@ import vscode     from 'vscode';
 import path       from 'path';
 import * as fnct  from './funcs';
 import {Func}     from './funcs';
-import * as sett  from './settings';
 import {Item, WsAndFolderItem, WsFolderItem, 
         FolderItem, FileItem, FuncItem} 
                   from './items';
+import * as gutt  from './gutter';
 import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('side');
+
+// const LOAD_ITEMS_ON_START = true;
+const LOAD_ITEMS_ON_START = false;
 
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
@@ -28,6 +31,45 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
 
 export function setItemInMap(item: Item) {
   itemsById.set(item.id!, item);
+}
+
+export async function getOrMakeItemById(id: string, itemType: string | Func) {
+  let item = itemsById.get(id);
+  if(item) return item;
+  if(itemType instanceof Func) {
+    item = new FuncItem(itemType);
+  } 
+  else {
+    switch (itemType) {
+      case 'folder': 
+            item = (await FolderItem.create(id)) as FolderItem; break;
+      case 'file':   
+            item = new FileItem(id); break;
+      default:
+        throw new Error(`getOrMakeItemById, Unknown item type: ${itemType}`);
+    }
+  }
+  if(item) {
+    setItemInMap(item);
+    await saveItemStorage();
+  }
+  return item;
+}
+
+async function loadItemStorage() {
+  if(LOAD_ITEMS_ON_START) {
+    const items = context.workspaceState.get('items', []);
+    for (const itemObj of items) {
+      const item = Object.create(Item.prototype);
+      Object.assign(item, itemObj);
+      setItemInMap(item!);
+    }
+  }
+  await saveItemStorage();
+}
+
+export async function saveItemStorage() {
+  await context.workspaceState.update('items', itemsById.values());
 }
 
 export function revealItem(item: Item) {
@@ -72,41 +114,8 @@ export function updateTree(item?: Item) {
   sidebarProvider.refresh(item);
 }
 
-export function updateWsFolderItem(fsPath: string) {
-  const oldWsFolderItem = itemsById.get(fsPath) as WsFolderItem;
-  const wsFolderItem    = new WsFolderItem(oldWsFolderItem.wsFolder);
-  itemsById.set(wsFolderItem.id!, wsFolderItem);
-  updateTree(wsFolderItem);
-}
-
-export async function updateWsAndFolderItem(fsPath: string) {
-  const oldItem = itemsById.get(fsPath) as WsAndFolderItem;
-  if(oldItem && oldItem instanceof WsFolderItem) {
-    updateWsFolderItem(oldItem.id!);
-    return;
-  }
-  let folderItem = await FolderItem.create(fsPath);
-  if(!folderItem) {
-    folderItem = itemsById.get(fsPath) as WsAndFolderItem;
-    itemsById.delete(fsPath);
-    if(folderItem && folderItem.parentId)
-      await updateWsAndFolderItem(folderItem.parentId);
-    return;
-  }
-  itemsById.set(folderItem.id!, folderItem);
-  updateTree(folderItem);
-}
-
-export function updateFileItem(fsPath: string) {
-  const fileItem = new FileItem(fsPath);
-  itemsById.set(fileItem.id!, fileItem);
-  updateTree(fileItem);
-}
-
-export function updateFuncItem(func: Func) {
-  const funcItem = new FuncItem(func);
-  itemsById.set(funcItem.id!, funcItem);
-  updateTree(funcItem);
+export function treeExpandChg(item: Item, expanded: boolean) {
+  gutt.updateGutter();
 }
 
 export function itemExpandChg(item: WsAndFolderItem | FileItem, 
@@ -148,7 +157,7 @@ export class SidebarProvider {
     log(++count, 'provider getChildren', item?.label || 'undefined');
     if(!item) return Item.getTree();
     const children = item.contextValue !== 'func' 
-               ? await (item as WsAndFolderItem).getChildren() : [];
+            ? await (item as WsAndFolderItem | FileItem).getChildren() : [];
     return children;
   }
 }

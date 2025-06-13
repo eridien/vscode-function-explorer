@@ -14,9 +14,6 @@ const {log, start, end} = utils.getLog('func');
 const LOAD_FUNCS_ON_START = true;
 // const LOAD_FUNCS_ON_START = false;
 
-const VERIFY_FUNCS_IN_DUMP = true;
-// const VERIFY_FUNCS_IN_DUMP = false;
-
 let context:   vscode.ExtensionContext;
 let funcsById: Map<string, Func> = new Map();
 
@@ -68,33 +65,29 @@ export class Func {
 }
 
 export async function updateFuncsInFile(
-               document: vscode.TextDocument|null = null): 
-                  Promise<{updatedFuncs: Func[], structureChanged: boolean}> {
+                         document: vscode.TextDocument | null = null) {
   start('updateFuncsInFile', true);
-  const updatedFuncs: Func[] = [];
-  let   structureChanged = false;
   let addCount    = 0;
   let removeCount = 0;
   let chgCount    = 0;
-  const nullReturn = {updatedFuncs: [], structureChanged: false};
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
     if(activeEditor) document = activeEditor.document;
   }
-  if(!document) return nullReturn;
+  if(!document) return;
 
   const uri = document.uri;
-  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return nullReturn;
+  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return;
 
   const docText = document.getText();
-  if (!docText || docText.length === 0) return nullReturn;
+  if (!docText || docText.length === 0) return;
 
   let ast: any;
   try{
       ast = acorn.parse(docText, { ecmaVersion: 'latest' });
   } catch (err) {
     log('err', 'parse error', (err as any).message);
-    return nullReturn;
+    return;
   }
   let funcs: Func[] = [];
   function addFunc(name: string, type: string, start: number, end: number) {
@@ -180,7 +173,6 @@ export async function updateFuncsInFile(
     if(newIdx >= funcs.length) {
       while(oldIdx < oldFuncs.length) {
         funcsById.delete(oldFuncs[oldIdx].id!);
-        structureChanged = true;
         oldIdx++;
         removeCount++;
       }
@@ -189,18 +181,16 @@ export async function updateFuncsInFile(
     if(oldIdx >= oldFuncs.length) {
       while(newIdx < funcs.length) {
         funcsById.set(funcs[newIdx].id!, funcs[newIdx]);
-        structureChanged = true;
         newIdx++;
         addCount++;
       }
       break;
     }
-    const oldFunc = oldFuncs[oldIdx];
-    const newFunc = funcs[newIdx];
+    const oldFunc  = oldFuncs[oldIdx];
+    const newFunc  = funcs[newIdx];
+    newFunc.marked = oldFunc.marked;
     if(oldFunc.equalsPos(newFunc)) {
       if(oldFunc.id !== newFunc.id) {
-        structureChanged = true;
-        newFunc.marked = oldFunc.marked;
         funcsById.delete(oldFunc.id!);
         funcsById.set(newFunc.id!, newFunc);
         oldIdx++; newIdx++;
@@ -209,12 +199,10 @@ export async function updateFuncsInFile(
       }
       oldIdx++; newIdx++;
     } else if(oldFunc.start < newFunc.start) {
-      structureChanged = true;
       funcsById.delete(oldFunc.id!);
       oldIdx++;
       removeCount++;
     } else {
-      structureChanged = true;
       funcsById.set(newFunc.id!, newFunc);
       newIdx++;
       addCount++;
@@ -222,11 +210,10 @@ export async function updateFuncsInFile(
   } 
 
   await saveFuncStorage();
-  const msg = `${path.basename(uri.fsPath)}, `+
-      (structureChanged ? 'structureChanged, ' : '') +
-    `+${addCount} -${removeCount} m${chgCount}`;
+  const msg = `updated funcs in ${path.basename(uri.fsPath)}, `+
+             `+${addCount} -${removeCount} m${chgCount}`;
   end('updateFuncsInFile', false, msg);
-  return {updatedFuncs, structureChanged};
+  return;
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {

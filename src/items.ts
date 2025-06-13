@@ -7,6 +7,7 @@ import {Func}      from './funcs';
 import * as sett   from './settings';
 import {settings}  from './settings';
 import * as utils  from './utils';
+import { getOrMakeItemById } from './sidebar';
 const {log} = utils.getLog('item');
 
 let context: vscode.ExtensionContext;
@@ -31,8 +32,6 @@ export class Item extends vscode.TreeItem {
 }
 
 export class WsAndFolderItem extends Item {
-  private children?: Item[];
-  expanded: boolean = false;
   private async _getFolderFileChildren(
        parentFsPath: string, folders: Item[], files: Item[]) {
     const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
@@ -43,14 +42,16 @@ export class WsAndFolderItem extends Item {
       const isDir = entry.isDirectory();
       if(!sett.includeFile(fsPath, isDir)) continue;
       if (isDir) {
-        const folderItem = await FolderItem.create(fsPath);
+        const folderItem = 
+                  await sbar.getOrMakeItemById(fsPath, 'folder') as FolderItem;
         if(!folderItem) continue;
         folderItem.parentId = parentFsPath;
         folders.push(folderItem);
         continue;
       }
       if (entry.isFile()) {
-        const fileItem = new FileItem(fsPath);
+        const fileItem = 
+                 await sbar.getOrMakeItemById(fsPath, 'file') as FileItem;
         if(!fileItem) continue;
         fileItem.parentId = parentFsPath;
         files.push(fileItem);
@@ -59,19 +60,19 @@ export class WsAndFolderItem extends Item {
     }
   }
   async getChildren() {
-    if(this.children) return this.children;
     const folders: Item[] = [];
     const files:   Item[] = [];
     await this._getFolderFileChildren(this.id!, folders, files);
-    this.children = [...folders, ...files];
-    return this.children;
+    return [...folders, ...files];
   }
 }
 
 export class WsFolderItem extends WsAndFolderItem {
   wsFolder: vscode.WorkspaceFolder;
+  expanded: boolean;
   constructor(wsFolder: vscode.WorkspaceFolder) {
     super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
+    this.expanded = true;
     this.wsFolder = wsFolder;
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
@@ -86,8 +87,10 @@ export class WsFolderItem extends WsAndFolderItem {
 }
 
 export class FolderItem extends WsAndFolderItem {
+  expanded: boolean;
   private constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Expanded);
+    this.expanded = true;
   }
   static async create(fsPath: string) {
     if (!await utils.hasChildTest(fsPath, sett.includeFile)) return null;
@@ -106,15 +109,13 @@ export class FolderItem extends WsAndFolderItem {
 }
 
 export class FileItem extends Item {
-  expanded: boolean = false;
-  private children?: Item[];
-  marked: boolean;
+  expanded: boolean;
   constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
-    const id = fsPath;
-    const iconPath = new vscode.ThemeIcon('file');
-    Object.assign(this, {id, contextValue:'file', iconPath});
-    this.marked = sbar.isMarksOnly(fsPath);
+    this.expanded     = false;
+    this.id           = fsPath;
+    this.iconPath     = new vscode.ThemeIcon('file');
+    this.contextValue = 'file';
     this.command = {
       command:   'vscode-function-explorer.fileClickCmd',
       title:     'Item Clicked',
@@ -122,18 +123,20 @@ export class FileItem extends Item {
     };
     sbar.setItemInMap(this);
   }
-  async getChildren(): Promise<Item[]> {
-    if(this.children) return this.children;
+  async getChildren(): Promise<FuncItem[]> {
     const uri = vscode.Uri.file(this.id!);
     const document = await vscode.workspace.openTextDocument(uri);
-    await  fnct.updateFuncsInFile(document);
-    return fnct.getSortedFuncs(
+    await fnct.updateFuncsInFile(document);
+    const funcItems = fnct.getSortedFuncs(
             {fsPath: this.id!, alpha:settings.alphaSortFuncs,
-            markedOnly: sbar.isMarksOnly(this.id!)})
-        .map(func => {const item = new FuncItem(func);
-                      item.parentId = this.id;
-                      return item;
-                     });
+             markedOnly: sbar.isMarksOnly(this.id!)})
+      .map(async func => {
+        const item = 
+                await sbar.getOrMakeItemById(func.id!, func) as FuncItem;
+        item.parentId = this.id;
+        return item;
+      });
+    return Promise.all(funcItems);
   }
 }
 
@@ -146,8 +149,6 @@ export class FuncItem extends Item {
     Object.assign(this, {id, contextValue:'func'});
     this.func = func;
     if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
-    // else            this.iconPath = vscode.Uri.file(
-    //     path.join(context.extensionPath, 'images', 'transparent.svg'));
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',
