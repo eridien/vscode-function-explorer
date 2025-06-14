@@ -1,9 +1,12 @@
 bugs ...
   marked-only on at boot
   sel subfunc selects parents
-  'vscode-function-explorer.toggleFuncMark' not found
 
 todo ...
+  handle file filtered with no marks?
+    don't close?
+    show message?
+    item indicator?
   clean updateFuncsInFile
   don't show files with no funcs
     use stored funcs

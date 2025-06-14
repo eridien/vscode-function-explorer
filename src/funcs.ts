@@ -211,7 +211,7 @@ export async function updateFuncsInFile(
   const msg = `updated funcs in ${path.basename(uri.fsPath)}, `+
              `+${addCount} -${removeCount} m${chgCount}`;
   end('updateFuncsInFile', false, msg);
-  return;
+  return (addCount + removeCount + chgCount) > 0;
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {
@@ -269,12 +269,11 @@ export function getFuncAtLine( fsPath: string,
   return match;
 }
 
-export async function getFuncsOverlappingSelections() : Promise<Func[]> {
+export function getFuncsOverlappingSelections() : Func[]{
   const editor = vscode.window.activeTextEditor;
   if (!editor) return [];
   const document = editor.document;
   const fsPath = document.uri.fsPath;
-  await updateFuncsInFile(document);
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return [];
   let funcs = getSortedFuncs({fsPath});

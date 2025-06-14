@@ -10,7 +10,7 @@ const {log} = utils.getLog('cmds');
 
 export async function toggle() {
   log('toggle');
-  const funcs = await fnct.getFuncsOverlappingSelections();
+  const funcs = fnct.getFuncsOverlappingSelections();
   if(funcs.length === 0) return;
   let markedCount = 0;
   funcs.forEach(func => { if(func.marked) markedCount++; });
@@ -27,7 +27,7 @@ export async function toggle() {
   });
   if(firstFunc && funcs.length > 1) await fnct.revealFunc(null, firstFunc);
   await fnct.saveFuncStorage();
-  await updateSide();
+  updateSide();
 }
 
 async function prevNext(next: boolean) {
@@ -82,7 +82,16 @@ export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  await updateSide(document);
+  await fnct.updateFuncsInFile();
+  updateSide(document);
+}
+
+export async function textChg(event :vscode.TextDocumentChangeEvent) {
+  const document = event.document;
+  if (document.uri.scheme !== 'file' ||
+     !sett.includeFile(document.uri.fsPath)) return;
+  await fnct.updateFuncsInFile();
+  updateSide(document);
 }
 
 export async function selectionChg(
@@ -90,20 +99,12 @@ export async function selectionChg(
   await sbar.updatePointers();
 }
 
-export async function textChg(event :vscode.TextDocumentChangeEvent) {
-  const document = event.document;
-  if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(document.uri.fsPath)) return;
-  await updateSide(document);
-}
-
-export async function updateSide(document?: vscode.TextDocument) {
+export function updateSide(document?: vscode.TextDocument) {
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
     if(activeEditor) document = activeEditor.document;
   }
   if(!document) return;
-  await fnct.updateFuncsInFile(document);
   sbar.updateTree();
   gutt.updateGutter();
 };

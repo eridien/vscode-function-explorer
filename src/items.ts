@@ -108,7 +108,6 @@ export class FileItem extends Item {
   async getChildren(): Promise<FuncItem[]> {
     const uri = vscode.Uri.file(this.id!);
     const document = await vscode.workspace.openTextDocument(uri);
-    await fnct.updateFuncsInFile(document);
     const funcItems = fnct.getSortedFuncs(
           {fsPath: this.id!, alpha: this.alphaSorted, filtered: this.filtered})
       .map(async func => {
