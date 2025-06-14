@@ -211,7 +211,7 @@ export async function updateFuncsInFile(
   const msg = `updated funcs in ${path.basename(uri.fsPath)}, `+
              `+${addCount} -${removeCount} m${chgCount}`;
   end('updateFuncsInFile', false, msg);
-  return (addCount + removeCount + chgCount) > 0;
+  return;
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {

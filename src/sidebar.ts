@@ -1,10 +1,9 @@
 // @@ts-nocheck
 
 import vscode     from 'vscode';
-import path       from 'path';
 import * as fnct  from './funcs';
 import {Func}     from './funcs';
-import {Item, WsAndFolderItem, WsFolderItem, 
+import {Item, WsAndFolderItem, 
         FolderItem, FileItem, FuncItem} 
                   from './items';
 import * as gutt  from './gutter';
@@ -12,10 +11,6 @@ import * as utils from './utils.js';
 import { updateSide } from './commands';
 const {log, start, end} = utils.getLog('side');
 
-// const LOAD_ITEMS_ON_START = true;
-const LOAD_ITEMS_ON_START = false;
-
-let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
 
@@ -23,11 +18,9 @@ let itemsById: Map<string, Item> = new Map();
 let marksOnlySet                 = new Set<string>();
 
 export function activate(treeViewIn: vscode.TreeView<Item>, 
-                         sidebarProviderIn: SidebarProvider,
-                         contextIn: vscode.ExtensionContext) {
+                         sidebarProviderIn: SidebarProvider) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
-  context         = contextIn;
 }
 
 export function setItemInMap(item: Item) {
@@ -67,9 +60,9 @@ function removeAllPointers() {
   }
 }
 
-export async function updatePointers() {
+export function updatePointers() {
   removeAllPointers();
-  const funcs = await fnct.getFuncsOverlappingSelections();
+  const funcs = fnct.getFuncsOverlappingSelections();
   for(const func of funcs) {
     const funcItem = itemsById.get(func.id!);
     if(!funcItem) continue;
@@ -128,7 +121,7 @@ export async function toggleFuncMark(funcItem: FuncItem) {
   await fnct.saveFuncStorage();
   funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
                                   : undefined;
-  await updateSide();
+  updateSide();
 }
 
 export function removeMarks(item: Item) {
@@ -158,7 +151,7 @@ export function updateTree() {
   sidebarProvider.refresh();
 }
 
-export function treeExpandChg(item: Item, expanded: boolean) {
+export function treeExpandChg() {
   gutt.updateGutter();
 }
 
@@ -177,7 +170,7 @@ export class SidebarProvider {
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
   }
   
-  refresh(item?: Item): void {
+  refresh(): void {
     // log(++count, 'refresh', item?.label || 'undefined');
     this._onDidChangeTreeData.fire(undefined);
   }

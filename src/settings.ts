@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import {minimatch} from 'minimatch';
-import {glob}      from "glob";
 import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 

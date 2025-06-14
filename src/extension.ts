@@ -4,7 +4,6 @@ import * as fnct         from './funcs';
 import * as file         from './files';
 import * as sbar         from './sidebar';
 import {SidebarProvider} from './sidebar';
-import * as itms         from './items';
 import {Item, FileItem, FuncItem}
                          from './items';
 import * as gutt         from './gutter';
@@ -75,11 +74,11 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  SETTINGS  ////////////
 
   const loadSettings = vscode.workspace
-                             .onDidChangeConfiguration(async event => {
+                             .onDidChangeConfiguration(event => {
     if (event.affectsConfiguration('function-explorer')) {
       sett.loadSettings();
       file.setFileWatcher();
-      await cmds.updateSide();
+      cmds.updateSide();
     }
   });
 
@@ -90,11 +89,11 @@ export async function activate(context: vscode.ExtensionContext) {
     treeDataProvider: sidebarProvider,
   });
 
-  const sidebarVisChg = treeView.onDidChangeVisibility(event => {
+  const sidebarVisChg = treeView.onDidChangeVisibility(() => {
      // boolean whether the sidebar is now visible
   });
 
-  const treeSelChg = treeView.onDidChangeSelection(event => {
+  const treeSelChg = treeView.onDidChangeSelection(() => {
      // item selection[]
   });
 
@@ -111,9 +110,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
 
-  const selectionChg = vscode.window.onDidChangeTextEditorSelection(async event => {
+  const selectionChg = vscode.window.onDidChangeTextEditorSelection(event => {
     if (event.textEditor?.document.uri.scheme !== 'file') return;
-    await cmds.selectionChg(event);
+    cmds.selectionChg();
   });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
@@ -128,14 +127,13 @@ export async function activate(context: vscode.ExtensionContext) {
   sett.loadSettings();
   gutt.activate(context);
   file.setFileWatcher();
-  sbar.activate(treeView, sidebarProvider, context);
-  itms.activate(context);
+  sbar.activate(treeView, sidebarProvider);
   await fnct.activate(context);
-  await cmds.updateSide();
+  cmds.updateSide();
 
 	context.subscriptions.push(
     toggle, prev, next, funcClickCmd, loadSettings,
-    editorChg, selectionChg, textChg,
+    editorChg, selectionChg, textChg, toggleFuncMark,
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu

@@ -5,16 +5,8 @@ import * as sbar   from './sidebar';
 import * as fnct   from './funcs';
 import {Func}      from './funcs';
 import * as sett   from './settings';
-import {settings}  from './settings';
 import * as utils  from './utils';
-import { getOrMakeItemById } from './sidebar';
 const {log} = utils.getLog('item');
-
-let context: vscode.ExtensionContext;
-
-export function activate(contextIn: vscode.ExtensionContext) {
-  context = contextIn;
-}
 
 export class Item extends vscode.TreeItem {
   parentId?: string;
@@ -106,8 +98,6 @@ export class FileItem extends Item {
     sbar.setItemInMap(this);
   }
   async getChildren(): Promise<FuncItem[]> {
-    const uri = vscode.Uri.file(this.id!);
-    const document = await vscode.workspace.openTextDocument(uri);
     const funcItems = fnct.getSortedFuncs(
           {fsPath: this.id!, alpha: this.alphaSorted, filtered: this.filtered})
       .map(async func => {

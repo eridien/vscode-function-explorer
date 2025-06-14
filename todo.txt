@@ -7,12 +7,11 @@ todo ...
     don't close?
     show message?
     item indicator?
-  clean updateFuncsInFile
-  don't show files with no funcs
-    use stored funcs
   turn off filter
     when file opens (collapsed state is in item)
     when no marks
+  don't show files with no funcs
+    use stored funcs
   many settings don't immediately change sidebar
   focus editor with a mark on prev/next
   add classes to func list
