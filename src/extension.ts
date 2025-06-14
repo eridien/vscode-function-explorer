@@ -5,7 +5,7 @@ import * as file         from './files';
 import * as sbar         from './sidebar';
 import {SidebarProvider} from './sidebar';
 import * as itms         from './items';
-import {Item, WsFolderItem, FolderItem, FileItem}
+import {Item, FileItem, FuncItem}
                          from './items';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
@@ -60,6 +60,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	const removeMarksMenu = vscode.commands.registerCommand(
                   'vscode-function-explorer.removeMarksMenu', (item: Item) => {
 		sbar.removeMarks(item);
+	});
+
+	const toggleFuncMark = vscode.commands.registerCommand(
+		'vscode-function-explorer.toggleFuncMark', async (funcItem: FuncItem) => {
+		await sbar.toggleFuncMark(funcItem);
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(

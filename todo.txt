@@ -2,7 +2,6 @@ bugs ...
   marked-only on at boot
   sel subfunc selects parents
   'vscode-function-explorer.toggleFuncMark' not found
-  eslint.config.js missing func data
 
 todo ...
   clean updateFuncsInFile

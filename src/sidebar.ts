@@ -9,6 +9,7 @@ import {Item, WsAndFolderItem, WsFolderItem,
                   from './items';
 import * as gutt  from './gutter';
 import * as utils from './utils.js';
+import { updateSide } from './commands';
 const {log, start, end} = utils.getLog('side');
 
 // const LOAD_ITEMS_ON_START = true;
@@ -119,6 +120,15 @@ export function toggleMarkedFilter(fileItem: FileItem) {
 export function toggleAlphaSort(fileItem: FileItem) {
   fileItem.alphaSorted = !fileItem.alphaSorted;
   updateTree();
+}
+
+export async function toggleFuncMark(funcItem: FuncItem) {
+  const func = funcItem.func;
+  func.marked = !func.marked;
+  await fnct.saveFuncStorage();
+  funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
+                                  : undefined;
+  await updateSide();
 }
 
 export function removeMarks(item: Item) {
