@@ -26,8 +26,6 @@ export async function toggle() {
     }
   });
   if(firstFunc && funcs.length > 1) await fnct.revealFunc(null, firstFunc);
-  await fnct.saveFuncStorage();
-  updateSide();
 }
 
 async function prevNext(next: boolean) {
@@ -94,7 +92,26 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
   updateSide(document);
 }
 
-export function selectionChg() {
+let clickDelaying = false;
+
+export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
+  const {textEditor, selections, kind} = p;
+  if (textEditor.document.uri.scheme !== 'file' ||
+     !sett.includeFile(textEditor.document.uri.fsPath)) return;
+  const document = textEditor.document;
+  const fsPath   = document.uri.fsPath;
+  if(!clickDelaying) {
+    for(const selection of selections) {
+      const func = fnct.getFuncAtLine(fsPath, selection.start.line);
+      if(func && document.offsetAt(selection.start) >= func.start &&
+                document.offsetAt(selection.end)   <= func.endName) {
+        func.marked = !func.marked;
+        await sbar.updateAllByFunc(func);
+      }
+      clickDelaying = true;
+      setTimeout(() => { clickDelaying = false; }, 500);
+    }
+  }
   sbar.updatePointers();
 }
 

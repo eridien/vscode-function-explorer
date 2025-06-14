@@ -11,16 +11,26 @@ import * as sett  from './settings';
 import * as utils from './utils.js';
 const {log, start, end} = utils.getLog('func');
 
-const LOAD_FUNCS_ON_START = true;
-// const LOAD_FUNCS_ON_START = false;
+// const LOAD_FUNCS_ON_START = true;
+const LOAD_FUNCS_ON_START = false;
 
-let context:   vscode.ExtensionContext;
-let funcsById: Map<string, Func> = new Map();
+let context:       vscode.ExtensionContext;
+let funcsById:     Map<string, Func> = new Map();
+
+// const funcsLoaded: Set<string> = new Set();
+// export async function ensureFsPathIsLoaded(fsPath: string) {
+//   if(!funcsLoaded.has(fsPath)) {
+//     funcsLoaded.add(fsPath);
+//     await updateFuncsInFile(
+//       vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === fsPath));
+//   }
+// }
 
 export async function activate(contextIn: vscode.ExtensionContext) {
   start('activate funcs');
   context = contextIn;
   await loadFuncStorage();
+  await updateFuncsInFile();
   end('activate funcs');
 }
 
@@ -29,6 +39,7 @@ export class Func {
   name:       string;
   type:       string;
   start:      number;
+  endName:    number;
   end:        number;
   marked:     boolean;
   parents?:   Func[];
@@ -39,23 +50,24 @@ export class Func {
   endKey?:    string;
   fsPath?:    string;
   constructor(p:any) {
-    const {document, name, type, start, end} = p;
+    const {document, name, type, start, endName, end} = p;
     this.document = document;
     this.name     = name;
     this.type     = type;
     this.start    = start;
+    this.endName  = endName;
     this.end      = end;
     this.marked   = false;
   }
-  getFsPath()    { return this.fsPath    ??= 
+  getFsPath()      { return this.fsPath    ??= 
                           this.document.uri.fsPath;                    }
-  getStartLine() { return this.startLine ??= 
+  getStartLine()   { return this.startLine ??= 
                           this.document.positionAt(this.start).line;   }
-  getEndLine()   { return this.endLine   ??= 
+  getEndLine()     { return this.endLine   ??= 
                           this.document.positionAt(this.end).line;     }
-  getStartKey()  { return this.startKey  ??= utils.createSortKey( 
+  getStartKey()    { return this.startKey  ??= utils.createSortKey( 
                           this.getFsPath(), this.getStartLine());      }
-  getEndKey()    { return this.endKey    ??= utils.createSortKey(
+  getEndKey()      { return this.endKey    ??= utils.createSortKey(
                           this.getFsPath(), this.getEndLine());        }
   equalsPos(func:Func) { 
     return (this.start === func.start && this.end === func.end);
@@ -88,7 +100,8 @@ export async function updateFuncsInFile(
     return;
   }
   let funcs: Func[] = [];
-  function addFunc(name: string, type: string, start: number, end: number) {
+  function addFunc(name: string, type: string, 
+                   start: number, endName: number, end: number) {
     if(type != 'FunctionDeclaration'     && 
        type != 'FunctionExpression'      &&
        type != 'ArrowFunctionExpression' &&
@@ -96,7 +109,7 @@ export async function updateFuncsInFile(
        type != 'Method') {
       return;
     }
-    funcs.push(new Func({document, name, type, start, end}));
+    funcs.push(new Func({document, name, type, start, endName, end}));
   }
   walk.ancestor(ast, {
     VariableDeclarator(node) {
@@ -104,25 +117,28 @@ export async function updateFuncsInFile(
       if (init &&
          (init.type === 'ArrowFunctionExpression' ||
           init.type === 'FunctionExpression')) {
-        const name = docText.slice(start, id.end!);
+        const endName = id.end!;
+        const name = docText.slice(start, endName);
         const type  = init.type;
-        addFunc(name, type, start, end);
+        addFunc(name, type, start, endName, end);
       }
       return;
     },
     FunctionDeclaration(node) {
-      const start = node.id!.start;
-      const end   = node.end;
-      const name  = docText.slice(start, node.id!.end!);
-      const type  = 'FunctionDeclaration';
-      addFunc(name, type, start, end);
+      const start   = node.id!.start;
+      const endName = node.id!.end;
+      const end     = node.end;
+      const name    = docText.slice(start, endName);
+      const type    = 'FunctionDeclaration';
+      addFunc(name, type, start, endName, end);
       return;
     },
     AssignmentExpression(node) {
       const {start, end, left, right} = node;
-      const name = docText.slice(left.start!, left.end!);
+      const endName = left.end!;
+      const name = docText.slice(left.start!, endName);
       const type = right.type;
-      addFunc(name, type, start, end);
+      addFunc(name, type, start, endName, end);
       return;
     },
     MethodDefinition(node, _state, ancestors) {
@@ -143,9 +159,10 @@ export async function updateFuncsInFile(
         name = (node.key as any).name + ' @ ' + className;
         type = 'Method';
       }
-      const start = node.start;
-      const end   = node.end;
-      addFunc(name, type, start, end);
+      const start   = node.start;
+      const endName = start + (node.key as any).name.length;
+      const end     = node.end;
+      addFunc(name, type, start, endName, end);
       return;
     }
   });
@@ -259,7 +276,7 @@ export function getSortedFuncs(p: any = {}) : Func[] {
 
 export function getFuncAtLine( fsPath: string, 
                                lineNumber: number) : Func | null {
-  const funcs = getSortedFuncs({fsPath});
+  const funcs = getFuncs({fsPath});
   if (funcs.length === 0) return null;
   let match: Func | null = null;
   for(const func of funcs) {

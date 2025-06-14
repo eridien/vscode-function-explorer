@@ -56,7 +56,7 @@
       },
       {
         "command": "vscode-function-explorer.toggleFuncMark",
-        "title": "  ƒ  ",
+        "title": "mark",
         "category": "Function Explorer: Toggle Function Mark"
       },
       {

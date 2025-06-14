@@ -110,9 +110,10 @@ export async function activate(context: vscode.ExtensionContext) {
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => { if(editor) await cmds.editorChg(editor); });
 
-  const selectionChg = vscode.window.onDidChangeTextEditorSelection(event => {
-    if (event.textEditor?.document.uri.scheme !== 'file') return;
-    cmds.selectionChg();
+  const selectionChg = vscode.window.onDidChangeTextEditorSelection(
+    async event => {
+      if (event.textEditor?.document.uri.scheme !== 'file') return;
+    await cmds.selectionChg(event);
   });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {

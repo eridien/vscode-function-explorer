@@ -1,8 +1,10 @@
 bugs ...
   marked-only on at boot
   sel subfunc selects parents
+  funcs not loaded at boot
 
 todo ...
+  reveal mark when using item icon click to turn on mark
   handle file filtered with no marks?
     don't close?
     show message?
@@ -15,7 +17,6 @@ todo ...
   many settings don't immediately change sidebar
   focus editor with a mark on prev/next
   add classes to func list
-  dbl-click on fn name in text toggles
   show parent chain in func label
     including methods b / a @ c
   handle fs changes

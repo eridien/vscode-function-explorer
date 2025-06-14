@@ -78,6 +78,12 @@ export function updateMarkByFunc(func: Func) {
                                     : undefined;
 }
 
+export async function updateAllByFunc(func: Func) {
+  await fnct.saveFuncStorage();
+  updateMarkByFunc(func);
+  updateSide();
+}
+
 export function fileChanged(uri: vscode.Uri) {
 
 }
@@ -118,10 +124,7 @@ export function toggleAlphaSort(fileItem: FileItem) {
 export async function toggleFuncMark(funcItem: FuncItem) {
   const func = funcItem.func;
   func.marked = !func.marked;
-  await fnct.saveFuncStorage();
-  funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
-                                  : undefined;
-  updateSide();
+  await updateAllByFunc(func);
 }
 
 export function removeMarks(item: Item) {
