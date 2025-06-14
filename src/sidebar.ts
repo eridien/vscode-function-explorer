@@ -128,7 +128,7 @@ export async function toggleFuncMark(funcItem: FuncItem) {
   await updateAllByFunc(func);
 }
 
-export function removeMarks(item: Item) {
+export async function removeMarks(item: Item) {
   function hasParent(item: Item, parentId: string) {
     if(item.parentId === parentId) return true;
     if(!item.parentId) return false;
@@ -136,18 +136,18 @@ export function removeMarks(item: Item) {
     if(!parentItem) return false;
     return hasParent(parentItem, parentId);
   }
-  function removeMarks(parentItem: Item) {
+  async function removeMarks(parentItem: Item) {
     for(const funcItem of itemsById.values()) {
       if(funcItem.contextValue !== 'func') continue;
       const func = (funcItem as FuncItem).func;
       if(func.marked && hasParent(funcItem, parentItem.id!)) 
-         func.marked = false;
-         funcItem.iconPath = undefined;
+        func.marked = false;
+        await updateAllByFunc(func);
     }
   }
   if(item.contextValue === 'func') 
     (item as FuncItem).func.marked = false;
-  else removeMarks(item);
+  else await removeMarks(item);
   updateTree();
 }
 
