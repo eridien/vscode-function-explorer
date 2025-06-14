@@ -19,10 +19,9 @@ let context:       vscode.ExtensionContext;
 let funcsById:     Map<string, Func> = new Map();
 
 export async function activate(contextIn: vscode.ExtensionContext) {
-  start('activate funcs');
   context = contextIn;
   await loadFuncStorage();
-  // await updateFuncsInFile();
+  await updateFuncsInFile();
   end('activate funcs');
 }
 
@@ -350,7 +349,7 @@ async function loadFuncStorage() {
       funcsById.set(func.id!, func);
     }
   }
-  await saveFuncStorage();
+  else await saveFuncStorage();
 }
 
 export async function saveFuncStorage() {

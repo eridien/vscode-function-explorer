@@ -43,7 +43,7 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
         throw new Error(`getOrMakeItemById, Unknown item type: ${itemType}`);
     }
   }
-  itemsById.set(id, item);
+  if(item) itemsById.set(id, item);
   return item;
 }
 
@@ -173,6 +173,7 @@ export async function ensureFsPathIsLoaded(fsPath: string) {
       updateMarkByFunc(func);
     }
     updateSide(document);
+    updatePointers();
   }
 }
 
@@ -213,7 +214,6 @@ export class SidebarProvider {
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    log(++count, 'provider getChildren', item?.label || 'undefined');
     if(!item) return Item.getTree();
     const children = item.contextValue !== 'func' 
             ? await (item as WsAndFolderItem | FileItem).getChildren() : [];

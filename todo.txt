@@ -1,7 +1,6 @@
 bugs ...
   marks diappearing in func explorer project
   sel subfunc selects parents
-  pointers broken
 
 todo ...
   reveal mark when using item icon click to turn on mark
