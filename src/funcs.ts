@@ -277,7 +277,7 @@ export function getFuncAtLine( fsPath: string,
   return match;
 }
 
-export function getFuncsOverlappingSelections() : Func[]{
+export function getFuncsOverlappingSelections(lineOnly = false) : Func[]{
   const editor = vscode.window.activeTextEditor;
   if (!editor) return [];
   const document = editor.document;
@@ -295,7 +295,8 @@ export function getFuncsOverlappingSelections() : Func[]{
       const funcStartLine = func.getStartLine();
       const funcEndLine   = func.getEndLine();
       if (utils.rangesOverlap(selStartLine,  selEndLine, 
-                              funcStartLine, funcStartLine))
+                              funcStartLine, lineOnly ? funcStartLine 
+                                                      : funcEndLine))
         overlaps.push(func);
     }
     if(!settings.includeSubFunctions) {

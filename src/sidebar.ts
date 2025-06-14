@@ -63,7 +63,7 @@ function removeAllPointers() {
 
 export function updatePointers() {
   removeAllPointers();
-  const funcs = fnct.getFuncsOverlappingSelections();
+  const funcs = fnct.getFuncsOverlappingSelections(false);
   for(const func of funcs) {
     const funcItem = itemsById.get(func.id!);
     if(!funcItem) continue;

@@ -1,7 +1,5 @@
 bugs ...
   marks diappearing in func explorer project
-  sel subfunc selects parents
-  function selectionChg doesn't toggle on name click
   remove all from file (x) doesn't work before first expand
   remove all from file (x) only removes mark icons, not any other action
 
@@ -33,6 +31,7 @@ unlikely ...
     
   
 options ...
+  lines above jump point
   reveal func item when text selected  (sidebar already visible)
   reveal func item when toggled on     (sidebar already visible)
 
