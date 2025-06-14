@@ -135,6 +135,7 @@ export function removeMarks(item: Item) {
       const func = (funcItem as FuncItem).func;
       if(func.marked && hasParent(funcItem, parentItem.id!)) 
          func.marked = false;
+         funcItem.iconPath = undefined;
     }
   }
   if(item.contextValue === 'func') 
@@ -143,8 +144,8 @@ export function removeMarks(item: Item) {
   updateTree();
 }
 
-export function updateTree(item?: Item) {
-  sidebarProvider.refresh(item);
+export function updateTree() {
+  sidebarProvider.refresh();
 }
 
 export function treeExpandChg(item: Item, expanded: boolean) {

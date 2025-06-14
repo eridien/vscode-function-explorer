@@ -2,11 +2,12 @@ bugs ...
   marked-only on at boot
   sel subfunc selects parents
   'vscode-function-explorer.toggleFuncMark' not found
+  eslint.config.js missing func data
 
 todo ...
+  clean updateFuncsInFile
   don't show files with no funcs
     use stored funcs
-  alpha sort, filter, and remove mark actions
   turn off filter
     when file opens (collapsed state is in item)
     when no marks
