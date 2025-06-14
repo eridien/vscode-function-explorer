@@ -1,7 +1,7 @@
 bugs ...
-  marked-only on at boot
+  marks diappearing in func explorer project
   sel subfunc selects parents
-  funcs not loaded at boot
+  pointers broken
 
 todo ...
   reveal mark when using item icon click to turn on mark

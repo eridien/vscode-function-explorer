@@ -97,12 +97,12 @@ export async function activate(context: vscode.ExtensionContext) {
      // item selection[]
   });
 
-  const itemExpandChg = treeView.onDidExpandElement(event => {
-    sbar.itemExpandChg(event.element as FileItem, true);
+  const itemExpandChg = treeView.onDidExpandElement(async event => {
+    await sbar.itemExpandChg(event.element as FileItem, true);
   });
 
-  const itemCollapseChg = treeView.onDidCollapseElement(event => {
-    sbar.itemExpandChg(event.element as FileItem, false);
+  const itemCollapseChg = treeView.onDidCollapseElement(async event => {
+    await sbar.itemExpandChg(event.element as FileItem, false);
   });
 
 ////////////  EDITOR  ////////////

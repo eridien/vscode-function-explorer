@@ -43,6 +43,7 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
         throw new Error(`getOrMakeItemById, Unknown item type: ${itemType}`);
     }
   }
+  itemsById.set(id, item);
   return item;
 }
 
@@ -158,7 +159,26 @@ export function treeExpandChg() {
   gutt.updateGutter();
 }
 
-export function itemExpandChg(fileItem: FileItem, expanded: boolean) {
+const fsPathFuncsLoaded: Set<string> = new Set();
+
+export async function ensureFsPathIsLoaded(fsPath: string) {
+  if(!fsPathFuncsLoaded.has(fsPath)) {
+    fsPathFuncsLoaded.add(fsPath);
+    const uri      = vscode.Uri.file(fsPath);
+    const document = await vscode.workspace.openTextDocument(uri);
+    await fnct.updateFuncsInFile(document);
+    const funcs = fnct.getFuncs({fsPath});
+    for(const func of funcs) {
+      await getOrMakeItemById(func.id!, func);
+      updateMarkByFunc(func);
+    }
+    updateSide(document);
+  }
+}
+
+export async function itemExpandChg(fileItem: FileItem, expanded: boolean) {
+  if(!fileItem.expanded && expanded && fileItem.contextValue === 'file') 
+    await ensureFsPathIsLoaded(fileItem.id!);
   fileItem.expanded = expanded;
 }
 
