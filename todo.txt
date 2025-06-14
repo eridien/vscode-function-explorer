@@ -1,8 +1,13 @@
 bugs ...
   marks diappearing in func explorer project
   sel subfunc selects parents
+  function selectionChg doesn't toggle on name click
+  remove all from file (x) doesn't work before first expand
+  remove all from file (x) only removes mark icons, not any other action
 
 todo ...
+  do something when expanding empty file
+  add reveal selection command
   reveal mark when using item icon click to turn on mark
   handle file filtered with no marks?
     don't close?

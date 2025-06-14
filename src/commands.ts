@@ -8,7 +8,7 @@ import * as gutt    from './gutter';
 import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
-export async function toggle() {
+export function toggle() {
   log('toggle');
   const funcs = fnct.getFuncsOverlappingSelections();
   if(funcs.length === 0) return;
@@ -25,7 +25,7 @@ export async function toggle() {
       firstFunc    = func;
     }
   });
-  if(firstFunc && funcs.length > 1) await fnct.revealFunc(null, firstFunc);
+  updateSide();
 }
 
 async function prevNext(next: boolean) {
@@ -104,7 +104,7 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
     for(const selection of selections) {
       const func = fnct.getFuncAtLine(fsPath, selection.start.line);
       if(func && document.offsetAt(selection.start) >= func.start &&
-                document.offsetAt(selection.end)   <= func.endName) {
+                document.offsetAt(selection.end)    <= func.endName) {
         func.marked = !func.marked;
         await sbar.updateAllByFunc(func);
       }

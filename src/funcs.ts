@@ -289,13 +289,13 @@ export function getFuncsOverlappingSelections() : Func[]{
   let touching: Func[] = [];
   for (const selection of editor.selections) {
     const selStartLine = selection.start.line;
-    const selEndLine = selection.end.line;
+    const selEndLine   = selection.end.line;
     const overlaps: Func[] = [];
     for(const func of funcs) {
       const funcStartLine = func.getStartLine();
       const funcEndLine   = func.getEndLine();
       if (utils.rangesOverlap(selStartLine,  selEndLine, 
-                              funcStartLine, funcEndLine))
+                              funcStartLine, funcStartLine))
         overlaps.push(func);
     }
     if(!settings.includeSubFunctions) {
