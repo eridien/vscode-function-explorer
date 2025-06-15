@@ -68,9 +68,6 @@ export class Func {
 export async function updateFuncsInFile(
                          document: vscode.TextDocument | null = null) {
   start('updateFuncsInFile', true);
-  let addCount    = 0;
-  let removeCount = 0;
-  let chgCount    = 0;
   if(!document) {
     const activeEditor = vscode.window.activeTextEditor;
     if(activeEditor) document = activeEditor.document;
@@ -157,68 +154,37 @@ export async function updateFuncsInFile(
       return;
     }
   });
-  funcs.sort((a, b) => a.start - b.start);
-  for(const func of funcs) {
+  const newFuncs = funcs.sort((a, b) => a.start - b.start);
+  for(const newFunc of newFuncs) {
     const parents: Func[] = [];
-    for(const innerFunc of funcs) {
-      if(innerFunc === func) continue;
-      if(innerFunc.start > func.start) break;
-      if(innerFunc.end  >= func.end) parents.unshift(innerFunc);
+    for(const innerFunc of newFuncs) {
+      if(innerFunc === newFunc) continue;
+      if(innerFunc.start > newFunc.start) break;
+      if(innerFunc.end  >= newFunc.end) parents.unshift(innerFunc);
     }
-    func.parents = parents;
-    let id = func.name  + "\x00" + func.type   + "\x00";
+    newFunc.parents = parents;
+    let id = newFunc.name  + "\x00" + newFunc.type   + "\x00";
     for(let parent of parents) 
       id += parent.name + "\x00" + parent.type + "\x00";
-    id += func.getFsPath();
-    func.id = id;
+    id += newFunc.getFsPath();
+    newFunc.id = id;
   }
-  const oldFuncs = getSortedFuncs({fsPath: uri.fsPath, alpha:false});
-  let oldIdx = 0;
-  let newIdx = 0;
-  while(true) {
-    if(newIdx >= funcs.length) {
-      while(oldIdx < oldFuncs.length) {
-        funcsById.delete(oldFuncs[oldIdx].id!);
-        oldIdx++;
-        removeCount++;
+  const oldFuncs = getFuncs({fsPath: uri.fsPath});
+  let matchCount = 0;
+  for(const newFunc of newFuncs) {
+    funcsById.set(newFunc.id!, newFunc);
+    for(const oldFunc of oldFuncs) {
+      if(newFunc.id === oldFunc.id) {
+        newFunc.marked = oldFunc.marked;
+        matchCount++;
+        break;
       }
-      break;
     }
-    if(oldIdx >= oldFuncs.length) {
-      while(newIdx < funcs.length) {
-        funcsById.set(funcs[newIdx].id!, funcs[newIdx]);
-        newIdx++;
-        addCount++;
-      }
-      break;
-    }
-    const oldFunc  = oldFuncs[oldIdx];
-    const newFunc  = funcs[newIdx];
-    newFunc.marked = oldFunc.marked;
-    if(oldFunc.equalsPos(newFunc)) {
-      if(oldFunc.id !== newFunc.id) {
-        funcsById.delete(oldFunc.id!);
-        funcsById.set(newFunc.id!, newFunc);
-        oldIdx++; newIdx++;
-        chgCount++;
-        continue;
-      }
-      oldIdx++; newIdx++;
-    } else if(oldFunc.start < newFunc.start) {
-      funcsById.delete(oldFunc.id!);
-      oldIdx++;
-      removeCount++;
-    } else {
-      funcsById.set(newFunc.id!, newFunc);
-      newIdx++;
-      addCount++;
-    }
-  } 
-
+  }
+  funcs = newFuncs;
   await saveFuncStorage();
   const msg = `updated funcs in ${path.basename(uri.fsPath)}, `+
-             `+${addCount} -${removeCount} m${chgCount}`;
-  end('updateFuncsInFile', false, msg);
+                      `matched: ${matchCount} of ${funcs.length}`;
   return;
 }
 

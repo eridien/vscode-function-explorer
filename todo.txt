@@ -1,9 +1,9 @@
 bugs ...
   func pos number doesn't change on move func
     funcs between after and before moved func screwed up
-    can't toggle
 
 todo ...
+  support multiple funcs with same id
   add reveal selection command
     cmd, key, editor context menu, and button at top of sidebar
     (copilot: how to add context menu at top of sidebar)
