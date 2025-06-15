@@ -144,8 +144,7 @@ export async function hasChildFuncTest(fsPath: string): Promise<boolean> {
       if (await hasChildFuncTest(childPath)) return true;
     }
   }
-  else if(sett.includeFile(fsPath, false) &&
-          fnct.getFuncs({fsPath}).length > 0) return true;
+  else if(sett.includeFile(fsPath, false)) return true;
   return false;
 }
 
