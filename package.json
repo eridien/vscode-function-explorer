@@ -182,43 +182,49 @@
         "function-explorer.scrollPosition": {
           "type": "string",
           "order": 2,
-          "default": "Minimal Scrolling",
+          "default": "At Top (with Margin)",
           "enum": [
             "Minimal Scrolling",
             "In Center",
             "In Center If Needed",
-            "At Top"
+            "At Top (with Margin)"
           ],
           "enumDescriptions": [
             "Reveal with minimal scrolling",
             "Reveal in the center of the viewport",
             "Center only if not visible",
-            "Reveal at the top of the viewport"
+            "Reveal at the top of the viewport (with margin above function)"
           ],
-          "description": "Controls the scroll position when revealing a function mark."
+          "description": "Controls the scroll position when revealing a function."
+        },
+        "function-explorer.topMargin": {
+          "type": "number",
+          "default": 3,
+          "order": 3,
+          "description": "Number of margin lines above function when scrolling with \"At Top (with Margin)\"."
         },
         "function-explorer.includeSubFunctions": {
           "type": "boolean",
           "default": false,
-          "order": 3,
+          "order": 4,
           "description": "Include nested functions when marking with a selection."
         },
         "function-explorer.alphaSortFuncs": {
           "type": "boolean",
           "default": false,
-          "order": 4,
-          "description": "Sort functions in the file alphabetically instead of by position."
+          "order": 5,
+          "description": "Sort functions in the file alphabetically instead of by position. This can be overidden in the sidebar file \"A\" button."
         },
         "function-explorer.filesToInclude": {
           "type": "string",
           "default": "**/*.js, **/*.ts",
-          "order": 5,
+          "order": 6,
           "description": "Files to include in the function explorer. Separate glob patterns with commas."
         },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
-          "order": 6,
+          "order": 7,
           "description": "Files to exclude in the function explorer. Separate glob patterns with commas."
         }
       }

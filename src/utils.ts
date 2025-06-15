@@ -16,20 +16,10 @@ export function rangesOverlap(start1: number, end1: number,
   return start1 <= end2 && start2 <= end1;
 }
 
-export function scrollToMarginTop(editor: vscode.TextEditor, 
+export function scrollToTopMargin(editor: vscode.TextEditor, 
                                   lineNum: number, margin: number) {
-  const visibleRanges = editor.visibleRanges;
-  lineloop:
-  for(; lineNum > 0; lineNum--) {
-    if(--margin < 0) break;
-    vrloop:
-    for (const vr of visibleRanges) {
-      while(rangesOverlap(vr.start.line, vr.end.line, lineNum, lineNum)) {
-        if(--lineNum == 0) break lineloop;
-        break vrloop;
-      }
-    } 
-  }
+  lineNum -= margin;
+  if(lineNum < 0) lineNum = 0;
   const position = new vscode.Position(lineNum, 0);
   const range = new vscode.Range(position, position);
   editor.revealRange(range, vscode.TextEditorRevealType.AtTop);

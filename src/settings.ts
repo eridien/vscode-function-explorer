@@ -7,7 +7,8 @@ interface FunctionMarksSettings {
   scrollPosition:      vscode.TextEditorRevealType;
   fileWrap:            boolean;
   includeSubFunctions: boolean;
-  alphaSortFuncs?:     boolean; 
+  alphaSortFuncs:      boolean;
+  topMargin:           number;
 }
 
 export let settings: FunctionMarksSettings = {
@@ -15,6 +16,7 @@ export let settings: FunctionMarksSettings = {
   fileWrap:            true,
   includeSubFunctions: false,
   alphaSortFuncs:      false,
+  topMargin:           3,
 };
 
 export let filesGlobPattern: string;
@@ -31,7 +33,7 @@ export function loadSettings() {
       scrollPos = vscode.TextEditorRevealType.InCenter; break;
     case 'In Center If Needed':
       scrollPos = vscode.TextEditorRevealType.InCenterIfOutsideViewport; break;
-    case 'At Top':
+    case 'At Top (with Margin)':
     default:
       scrollPos = vscode.TextEditorRevealType.AtTop;
   }
@@ -39,7 +41,8 @@ export function loadSettings() {
     scrollPosition:      scrollPos,
     fileWrap:            config.get('fileWrap',            true),
     includeSubFunctions: config.get('includeSubFunctions', false),
-    alphaSortFuncs:      config.get('alphaSortFuncs',      false)
+    alphaSortFuncs:      config.get('alphaSortFuncs',      false),
+    topMargin: Math.max(0, Math.min(20, config.get('topMargin', 3))),
   };
   const incParts = config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                          .split(",").map(p => p.trim());
