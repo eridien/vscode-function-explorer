@@ -1,7 +1,6 @@
 bugs ...
-  marks diappearing in func explorer project
-  remove all from file (x) doesn't work before first expand
-
+  marks disappearing in func explorer project
+  
 todo ...
   do something when expanding empty file
   add reveal selection command

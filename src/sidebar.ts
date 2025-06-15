@@ -137,6 +137,7 @@ export async function removeMarks(item: Item) {
     return hasParent(parentItem, parentId);
   }
   async function removeMarks(parentItem: Item) {
+    await ensureFsPathIsLoaded(parentItem.id!);    
     for(const funcItem of itemsById.values()) {
       if(funcItem.contextValue !== 'func') continue;
       const func = (funcItem as FuncItem).func;
@@ -169,7 +170,8 @@ export async function ensureFsPathIsLoaded(fsPath: string) {
     await fnct.updateFuncsInFile(document);
     const funcs = fnct.getFuncs({fsPath});
     for(const func of funcs) {
-      await getOrMakeItemById(func.id!, func);
+      const funcItem = await getOrMakeItemById(func.id!, func);
+      funcItem.parentId = fsPath;
       updateMarkByFunc(func);
     }
     updateSide(document);

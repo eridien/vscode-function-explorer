@@ -52,13 +52,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const removeMarks = vscode.commands.registerCommand(
-                      'vscode-function-explorer.removeMarks', (item: Item) => {
-		sbar.removeMarks(item);
+                      'vscode-function-explorer.removeMarks', async (item: Item) => {
+		await sbar.removeMarks(item);
 	});
 
 	const removeMarksMenu = vscode.commands.registerCommand(
-                  'vscode-function-explorer.removeMarksMenu', (item: Item) => {
-		sbar.removeMarks(item);
+                  'vscode-function-explorer.removeMarksMenu', async (item: Item) => {
+		await sbar.removeMarks(item);
 	});
 
 	const toggleFuncMark = vscode.commands.registerCommand(
