@@ -1,28 +1,16 @@
 bugs ...
-  func pos number doesn't change on move func
-    funcs between after and before moved func screwed up
 
 todo ...
-  support multiple funcs with same id
-  add reveal selection command
-    cmd, key, editor context menu, and button at top of sidebar
-    (copilot: how to add context menu at top of sidebar)
-    automatic reveal in preview mode on every selection?
-      use expanded tracking
   scrolling with margin above
+  flash line (entire function?) when revealed
+
   add classes to func list
   many settings don't immediately change sidebar
   focus editor with a mark on prev/next
   show parent chain in func label
     including methods b / a @ c
   handle fs changes
-  flash line (entire function?) when revealed
-
-behavior ...
-  do something when expanding empty file
-
-unlikely ...
-  keep mark during cut/paste
+  support multiple funcs with same id
   
 options ...
   lines above jump point
