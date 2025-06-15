@@ -120,20 +120,18 @@ export class FileItem extends Item {
 }
 
 export class FuncItem extends Item {
-  func: Func;
   constructor(func: Func) {
     super(func.name, vscode.TreeItemCollapsibleState.None);
     const id = func.id;
     Object.assign(this, {id, contextValue:'func'});
-    this.func = func;
     if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
-    (this as any).buttons = [
-  {
-    command: 'vscode-function-explorer.toggleMarkedFilter',
-    tooltip: 'Toggle marked functions',
-    iconPath: new vscode.ThemeIcon('add')
-  }
-];
+    // (this as any).buttons = [
+    //   {
+    //     command: 'vscode-function-explorer.toggleMarkedFilter',
+    //     tooltip: 'Toggle marked functions',
+    //     iconPath: new vscode.ThemeIcon('add')
+    //   }
+    // ];
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',

@@ -4,7 +4,7 @@ import vscode     from 'vscode';
 import * as fs    from 'fs/promises';
 import * as path  from 'path';
 import * as fnct  from './funcs';
-import {Func}     from './funcs';
+import {Func, getFuncById}     from './funcs';
 import {Item, WsAndFolderItem, 
         FolderItem, FileItem, FuncItem} 
                   from './items';
@@ -58,7 +58,8 @@ function removeAllPointers() {
   for(const item of itemsById.values()) {
     if(item.contextValue == 'func') {
       const funcItem = item as FuncItem;
-      const func     = funcItem.func;
+      const func = getFuncById(funcItem.id!);
+      if(!func) continue;
       funcItem.label = func.name;
     }
   }
@@ -112,7 +113,8 @@ export function fileClickCmd(fsPath: string) {
 
 export async function funcClickCmd(id: string) { 
   const item = itemsById.get(id) as FuncItem;
-  if (item) await fnct.revealFunc(null, item.func!, true);
+  const func = item ? getFuncById(id) : null;
+  if (item) await fnct.revealFunc(null, func!, true);
 }
 
 export function toggleMarkedFilter(fileItem: FileItem) {
@@ -126,7 +128,8 @@ export function toggleAlphaSort(fileItem: FileItem) {
 }
 
 export async function toggleFuncMark(funcItem: FuncItem) {
-  const func = funcItem.func;
+  const func = getFuncById(funcItem.id!);
+  if(!func) return;
   func.marked = !func.marked;
   await updateAllByFunc(func);
 }
@@ -160,14 +163,17 @@ export async function removeMarks(item: Item) {
     await ensureFsPathIsLoaded(parentItem.id!);    
     for(const funcItem of itemsById.values()) {
       if(funcItem.contextValue !== 'func') continue;
-      const func = (funcItem as FuncItem).func;
-      if(func.marked && hasParent(funcItem, parentItem.id!)) 
+      const func = getFuncById((funcItem as FuncItem).id!);
+      if(func && func.marked && hasParent(funcItem, parentItem.id!)) {
         func.marked = false;
         await updateAllByFunc(func);
+      }
     }
   }
-  if(item.contextValue === 'func') 
-    (item as FuncItem).func.marked = false;
+  if(item.contextValue === 'func') {
+    const func = getFuncById((item as FuncItem).id!);
+    if(func) func.marked = false;
+  }
   else await removeMarks(item);
   updateTree();
 }
