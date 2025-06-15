@@ -13,13 +13,6 @@ todo ...
 
 behavior ...
   do something when expanding empty file
-  handle file filtered with no marks?
-    don't close?
-    show message?
-    item indicator?
-  turn off filter
-    when file opens (collapsed state is in item)
-    when no marks
 
 unlikely ...
   custom scroll

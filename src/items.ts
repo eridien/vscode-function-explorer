@@ -98,11 +98,16 @@ export class FileItem extends Item {
     sbar.setItemInMap(this);
   }
   async getChildren(): Promise<FuncItem[]> {
-    const funcItems = fnct.getSortedFuncs(
-          {fsPath: this.id!, alpha: this.alphaSorted, filtered: this.filtered})
-      .map(async func => {
-        const item = 
-                await sbar.getOrMakeItemById(func.id!, func) as FuncItem;
+    let sortedFuncs = fnct.getSortedFuncs(
+                     {fsPath: this.id!, 
+                      alpha: this.alphaSorted, filtered: this.filtered});
+    if(this.filtered && sortedFuncs.length == 0) {
+      this.filtered = false;
+      sortedFuncs = fnct.getSortedFuncs(
+           {fsPath: this.id!, alpha: this.alphaSorted, filtered: false});
+    }
+    const funcItems = sortedFuncs.map(async func => {
+        const item = await sbar.getOrMakeItemById(func.id!, func) as FuncItem;
         item.parentId = this.id;
         return item;
       });
