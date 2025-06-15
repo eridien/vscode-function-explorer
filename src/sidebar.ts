@@ -199,10 +199,11 @@ export async function ensureFsPathIsLoaded(fsPath: string) {
   }
 }
 
-export async function itemExpandChg(fileItem: FileItem, expanded: boolean) {
-  if(!fileItem.expanded && expanded && fileItem.contextValue === 'file') 
-    await ensureFsPathIsLoaded(fileItem.id!);
-  fileItem.expanded = expanded;
+export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
+                                    expanded: boolean) {
+  if(!item.expanded && expanded && item.contextValue === 'file') 
+    await ensureFsPathIsLoaded(item.id!);
+  item.expanded = expanded;
 }
 
 let count = 0;

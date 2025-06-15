@@ -4,7 +4,7 @@ import * as fnct         from './funcs';
 import * as file         from './files';
 import * as sbar         from './sidebar';
 import {SidebarProvider} from './sidebar';
-import {Item, FileItem, FuncItem}
+import {Item, FileItem, FuncItem, WsAndFolderItem}
                          from './items';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
@@ -98,11 +98,13 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const itemExpandChg = treeView.onDidExpandElement(async event => {
-    await sbar.itemExpandChg(event.element as FileItem, true);
+    await sbar.itemExpandChg(
+                   event.element as WsAndFolderItem | FileItem, true);
   });
 
   const itemCollapseChg = treeView.onDidCollapseElement(async event => {
-    await sbar.itemExpandChg(event.element as FileItem, false);
+    await sbar.itemExpandChg(
+                   event.element as WsAndFolderItem | FileItem, false);
   });
 
 ////////////  EDITOR  ////////////

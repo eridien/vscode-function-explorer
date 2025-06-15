@@ -1,9 +1,16 @@
 bugs ...
-  marks disappearing in func explorer project
+  func pos number doesn't change on move func
+    funcs between after and before moved func screwed up
+    can't toggle
 
 todo ...
-  add classes to func list
   add reveal selection command
+    cmd, key, editor context menu, and button at top of sidebar
+    (copilot: how to add context menu at top of sidebar)
+    automatic reveal in preview mode on every selection?
+      use expanded tracking
+  scrolling with margin above
+  add classes to func list
   many settings don't immediately change sidebar
   focus editor with a mark on prev/next
   show parent chain in func label
@@ -15,7 +22,6 @@ behavior ...
   do something when expanding empty file
 
 unlikely ...
-  custom scroll
   keep mark during cut/paste
   
 options ...
@@ -26,6 +32,7 @@ options ...
 testing ...
   settings changes
   error test files
+  adding, deleting, moving, and copying funcs
 
 release checks ...
   version

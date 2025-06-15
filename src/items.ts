@@ -24,6 +24,7 @@ export class Item extends vscode.TreeItem {
 }
 
 export class WsAndFolderItem extends Item {
+  expanded: boolean = false;
   private async _getFolderFileChildren(
        parentFsPath: string, folders: Item[], files: Item[]) {
     const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
@@ -63,6 +64,7 @@ export class WsFolderItem extends WsAndFolderItem {
   wsFolder: vscode.WorkspaceFolder;
   constructor(wsFolder: vscode.WorkspaceFolder) {
     super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
+    this.expanded = true;
     this.wsFolder = wsFolder;
     const id = wsFolder.uri.fsPath;
     const iconPath = new vscode.ThemeIcon('root-folder');
@@ -74,6 +76,7 @@ export class WsFolderItem extends WsAndFolderItem {
 export class FolderItem extends WsAndFolderItem {
   private constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Expanded);
+    this.expanded = true;
   }
   static async create(fsPath: string) {
     if (!await sbar.hasChildFuncTest(fsPath)) return null;
@@ -87,11 +90,12 @@ export class FolderItem extends WsAndFolderItem {
 }
 
 export class FileItem extends Item {
-  expanded:    boolean = false;
+  expanded:    boolean;
   filtered:    boolean = false;
   alphaSorted: boolean = false;
   constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
+    this.expanded     = false;
     this.id           = fsPath;
     this.iconPath     = new vscode.ThemeIcon('file');
     this.contextValue = 'file';
