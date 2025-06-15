@@ -12,8 +12,8 @@ import * as utils from './utils.js';
 import { updateSide } from './commands';
 const {log, start, end} = utils.getLog('func');
 
-const LOAD_FUNCS_ON_START = true;
-// const LOAD_FUNCS_ON_START = false;
+// const LOAD_FUNCS_ON_START = true;
+const LOAD_FUNCS_ON_START = false;
 
 let context:       vscode.ExtensionContext;
 let funcsById:     Map<string, Func> = new Map();

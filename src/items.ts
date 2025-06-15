@@ -76,7 +76,7 @@ export class FolderItem extends WsAndFolderItem {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Expanded);
   }
   static async create(fsPath: string) {
-    if (!await utils.hasChildTest(fsPath, sett.includeFile)) return null;
+    if (!await sbar.hasChildFuncTest(fsPath)) return null;
     const id = fsPath;
     const iconPath = new vscode.ThemeIcon('folder');
     const newThis = new FolderItem(fsPath);

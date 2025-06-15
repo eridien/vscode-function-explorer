@@ -1,11 +1,14 @@
 // @@ts-nocheck
 
 import vscode     from 'vscode';
+import * as fs    from 'fs/promises';
+import * as path  from 'path';
 import * as fnct  from './funcs';
 import {Func}     from './funcs';
 import {Item, WsAndFolderItem, 
         FolderItem, FileItem, FuncItem} 
                   from './items';
+import * as sett  from './settings';
 import * as gutt  from './gutter';
 import * as utils from './utils.js';
 import { updateSide } from './commands';
@@ -126,6 +129,24 @@ export async function toggleFuncMark(funcItem: FuncItem) {
   const func = funcItem.func;
   func.marked = !func.marked;
   await updateAllByFunc(func);
+}
+
+export async function hasChildFuncTest(fsPath: string): Promise<boolean> {
+  let stat;
+  try { stat = await fs.stat(fsPath);
+  } catch { return false; }
+  if (stat.isDirectory()) {
+    let entries: string[];
+    try { entries = await fs.readdir(fsPath); } 
+    catch { return false; }
+    for (const entry of entries) {
+      const childPath = path.join(fsPath, entry);
+      if (await hasChildFuncTest(childPath)) return true;
+    }
+  }
+  else if(sett.includeFile(fsPath, false) &&
+          fnct.getFuncs({fsPath}).length > 0) return true;
+  return false;
 }
 
 export async function removeMarks(item: Item) {

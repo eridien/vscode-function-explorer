@@ -1,10 +1,18 @@
 bugs ...
   marks disappearing in func explorer project
-  
+
 todo ...
-  do something when expanding empty file
+  add classes to func list
   add reveal selection command
-  reveal mark when using item icon click to turn on mark
+  many settings don't immediately change sidebar
+  focus editor with a mark on prev/next
+  show parent chain in func label
+    including methods b / a @ c
+  handle fs changes
+  flash line (entire function?) when revealed
+
+behavior ...
+  do something when expanding empty file
   handle file filtered with no marks?
     don't close?
     show message?
@@ -12,21 +20,10 @@ todo ...
   turn off filter
     when file opens (collapsed state is in item)
     when no marks
-  don't show files with no funcs
-    use stored funcs
-  many settings don't immediately change sidebar
-  focus editor with a mark on prev/next
-  add classes to func list
-  show parent chain in func label
-    including methods b / a @ c
-  handle fs changes
-  flash line (entire function?) when revealed
 
 unlikely ...
   custom scroll
   keep mark during cut/paste
-  has mark indicator on file
-    
   
 options ...
   lines above jump point

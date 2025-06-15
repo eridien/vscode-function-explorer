@@ -1,6 +1,4 @@
 import vscode     from 'vscode';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 const { log } = getLog('util');
 
 function timeInSecs(ms: number): string {
@@ -9,25 +7,6 @@ function timeInSecs(ms: number): string {
 
 export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
-}
-
-export async function hasChildTest(fsPath: string, 
-          includeFile: (fsPath: string, folder?: boolean) => boolean): 
-          Promise<boolean> {
-  let stat;
-  try { stat = await fs.stat(fsPath);
-  } catch { return false; }
-  if (stat.isDirectory()) {
-    let entries: string[];
-    try { entries = await fs.readdir(fsPath); } 
-    catch { return false; }
-    for (const entry of entries) {
-      const childPath = path.join(fsPath, entry);
-      if (await hasChildTest(childPath, includeFile)) return true;
-    }
-  }
-  else if(includeFile(fsPath, false)) return true;
-  return false;
 }
 
 export function rangesOverlap(start1: number, end1: number, 
