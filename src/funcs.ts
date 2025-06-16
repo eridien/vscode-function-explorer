@@ -293,11 +293,12 @@ export async function revealFunc(document: vscode.TextDocument | null,
   if(document && start !== null) {
     const editor = await vscode.window.showTextDocument(
                           document, { preview: true });
-    const position = document.positionAt(start);
-    const funcLine = position.line;
-    utils.scrollToTopMargin(editor, funcLine, settings.topMargin);
-    if(selection) 
-      editor.selection = new vscode.Selection(funcLine, 0, funcLine, 0);
+    const startPos = document.positionAt(func?.start ?? 0);
+    const endPos   = document.positionAt(func?.end   ?? 0);
+    utils.scrollToTopMarginAndFlash(editor, startPos!, endPos!, 
+                                            settings.topMargin);
+    if(selection) editor.selection = 
+                   new vscode.Selection(startPos.line, 0, startPos.line, 0);
   }
   else if(document) {
     await vscode.window.showTextDocument(document.uri, 

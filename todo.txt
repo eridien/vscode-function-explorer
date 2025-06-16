@@ -1,7 +1,6 @@
 bugs ...
 
 todo ...
-  scrolling with margin above
   flash line (entire function?) when revealed
 
   add classes to func list
