@@ -93,6 +93,7 @@ export async function updateFuncsInFile(
     if(type != 'FunctionDeclaration'     && 
        type != 'FunctionExpression'      &&
        type != 'ArrowFunctionExpression' &&
+       type != 'ClassDeclaration'        &&
        type != 'Constructor'             &&
        type != 'Method') {
       return;
@@ -126,6 +127,14 @@ export async function updateFuncsInFile(
       const endName = left.end!;
       const name = docText.slice(left.start!, endName);
       const type = right.type;
+      addFunc(name, type, start, endName, end);
+      return;
+    },
+    Class(node) {
+      if(!node.id) return;
+      const {id, start, end, type} = node;
+      const endName = id.end;
+      const name    = id.name;
       addFunc(name, type, start, endName, end);
       return;
     },

@@ -1,18 +1,16 @@
 bugs ...
 
 todo ...
-  flash line (entire function?) when revealed
-
   add classes to func list
-  many settings don't immediately change sidebar
   focus editor with a mark on prev/next
   show parent chain in func label
     including methods b / a @ c
   handle fs changes
+  many settings don't immediately change sidebar
   support multiple funcs with same id
-  
+    test it now
+
 options ...
-  lines above jump point
   reveal func item when text selected  (sidebar already visible)
   reveal func item when toggled on     (sidebar already visible)
 
@@ -20,14 +18,17 @@ testing ...
   settings changes
   error test files
   adding, deleting, moving, and copying funcs
+  changing files in other editor
+  multiple selections
+  mark persistence
+  dark theme
 
 release checks ...
-  version
-  log('
-  todo
+  package.json version
+  log
   console.log
-  debug
-  dbg
+  todo to-do
+  debug dbg
   check problems
   run and check console
 
