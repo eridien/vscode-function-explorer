@@ -1,11 +1,12 @@
 bugs ...
-  remove items X button doesn't work
-  pointer only works on item click
+  overlap broken in nesting
+  deleting marked function leaves mark on next func
+  nested items show multiple times (function ccc)
+  class mark disappears with item click
 
 todo ...
+  add "Minimal Fit Function (with margin)" as scroll option
   focus editor with a mark on prev/next
-  show parent chain in func label
-    including methods b / a @ c
   handle fs changes
   many settings don't immediately change sidebar
   support multiple funcs with same id
