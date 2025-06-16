@@ -119,19 +119,25 @@ export class FileItem extends Item {
   }
 }
 
+export function getFuncItemLabel(func: Func): string {
+  let label = '';
+  function addParent(funcParent: Func, first: boolean = false) {
+    if (funcParent.type == 'ClassDeclaration') 
+          label += first ? `   © ${funcParent.name}` 
+                        :   ` © ${funcParent.name}`;
+    else label += ` / ${funcParent.name}`;
+  }
+  addParent(func, true);
+  for(const funcParent of func.parents!) addParent(funcParent);
+  return label.slice(3);
+}
+
 export class FuncItem extends Item {
   constructor(func: Func) {
-    super(func.name, vscode.TreeItemCollapsibleState.None);
+    super(getFuncItemLabel(func), vscode.TreeItemCollapsibleState.None);
     const id = func.id;
     Object.assign(this, {id, contextValue:'func'});
     if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
-    // (this as any).buttons = [
-    //   {
-    //     command: 'vscode-function-explorer.toggleMarkedFilter',
-    //     tooltip: 'Toggle marked functions',
-    //     iconPath: new vscode.ThemeIcon('add')
-    //   }
-    // ];
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',

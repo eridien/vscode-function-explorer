@@ -4,10 +4,10 @@ import vscode     from 'vscode';
 import * as fs    from 'fs/promises';
 import * as path  from 'path';
 import * as fnct  from './funcs';
-import {Func, getFuncById}     from './funcs';
+import {Func}     from './funcs';
+import * as itms  from './items';
 import {Item, WsAndFolderItem, 
-        FolderItem, FileItem, FuncItem} 
-                  from './items';
+        FolderItem, FileItem, FuncItem} from './items';
 import * as sett  from './settings';
 import * as gutt  from './gutter';
 import * as utils from './utils.js';
@@ -58,9 +58,9 @@ function removeAllPointers() {
   for(const item of itemsById.values()) {
     if(item.contextValue == 'func') {
       const funcItem = item as FuncItem;
-      const func = getFuncById(funcItem.id!);
+      const func = fnct.getFuncById(funcItem.id!);
       if(!func) continue;
-      funcItem.label = func.name;
+      funcItem.label = itms.getFuncItemLabel(func);
     }
   }
 }
@@ -71,7 +71,7 @@ export function updatePointers() {
   for(const func of funcs) {
     const funcItem = itemsById.get(func.id!);
     if(!funcItem) continue;
-    funcItem.label = `➤ ${func.name}`; 
+    funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`; 
   }
   updateTree();
 }
@@ -113,7 +113,7 @@ export function fileClickCmd(fsPath: string) {
 
 export async function funcClickCmd(id: string) { 
   const item = itemsById.get(id) as FuncItem;
-  const func = item ? getFuncById(id) : null;
+  const func = item ? fnct.getFuncById(id) : null;
   if (item) await fnct.revealFunc(null, func!, true);
 }
 
@@ -128,7 +128,7 @@ export function toggleAlphaSort(fileItem: FileItem) {
 }
 
 export async function toggleFuncMark(funcItem: FuncItem) {
-  const func = getFuncById(funcItem.id!);
+  const func = fnct.getFuncById(funcItem.id!);
   if(!func) return;
   func.marked = !func.marked;
   await updateAllByFunc(func);
@@ -163,7 +163,7 @@ export async function removeMarks(item: Item) {
     await ensureFsPathIsLoaded(parentItem.id!);    
     for(const funcItem of itemsById.values()) {
       if(funcItem.contextValue !== 'func') continue;
-      const func = getFuncById((funcItem as FuncItem).id!);
+      const func = fnct.getFuncById((funcItem as FuncItem).id!);
       if(func && func.marked && hasParent(funcItem, parentItem.id!)) {
         func.marked = false;
         await updateAllByFunc(func);
@@ -171,7 +171,7 @@ export async function removeMarks(item: Item) {
     }
   }
   if(item.contextValue === 'func') {
-    const func = getFuncById((item as FuncItem).id!);
+    const func = fnct.getFuncById((item as FuncItem).id!);
     if(func) func.marked = false;
   }
   else await removeMarks(item);

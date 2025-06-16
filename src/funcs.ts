@@ -138,29 +138,21 @@ export async function updateFuncsInFile(
       addFunc(name, type, start, endName, end);
       return;
     },
-    MethodDefinition(node, _state, ancestors) {
-      let type:string;
-      const classDecNode = ancestors.find(
-                    cn => cn.type === 'ClassDeclaration');
-      if (!classDecNode) {
-        log('err', 'Method without Class');
+    MethodDefinition(node) {
+      const {start, end, key, kind} = node;
+      const endName = key.end;
+      if(kind == 'constructor') {
+        const name = 'constructor';
+        const type = 'Constructor';
+        addFunc(name, type, start, endName, end);
         return;
       }
-      let className = (classDecNode as any).id.name ;
-      let name: string;
-      if(node.kind == 'constructor') {
-        name = className + '.constructor';
-        type = 'Constructor';
-      }
       else {
-        name = (node.key as any).name + ' @ ' + className;
-        type = 'Method';
+        const name = docText.slice(start, endName);
+        const type = 'Method';
+        addFunc(name, type, start, endName, end);
+        return;
       }
-      const start   = node.start;
-      const endName = start + (node.key as any).name.length;
-      const end     = node.end;
-      addFunc(name, type, start, endName, end);
-      return;
     }
   });
   const newFuncs = funcs.sort((a, b) => a.start - b.start);

@@ -1,7 +1,8 @@
 bugs ...
+  remove items X button doesn't work
+  pointer only works on item click
 
 todo ...
-  add classes to func list
   focus editor with a mark on prev/next
   show parent chain in func label
     including methods b / a @ c
