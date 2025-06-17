@@ -155,6 +155,7 @@ export class FuncItem extends Item {
   constructor(func: Func) {
     super(getFuncItemLabel(func), vscode.TreeItemCollapsibleState.None);
     const id = func.id;
+    this.parentId = func.getFsPath();
     Object.assign(this, {id, contextValue:'func'});
     if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
     this.command = {

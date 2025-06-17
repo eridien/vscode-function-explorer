@@ -50,7 +50,9 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
   return item;
 }
 
-export function revealItem(item: Item) {
+export async function revealItemByFunc(func: Func) {
+  updateTree();
+  const item = await getOrMakeItemById(func.id!, func);
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }
 
@@ -65,27 +67,29 @@ function removeAllPointers() {
   }
 }
 
-export function updatePointers() {
+export async function updatePointers() {
   removeAllPointers();
   const funcs = fnct.getFuncsOverlappingSelections(false);
+  let firstFunc : Func | null = null;
   for(const func of funcs) {
     const funcItem = itemsById.get(func.id!);
     if(!funcItem) continue;
     funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`; 
+    firstFunc ??= func;
   }
-  updateTree();
+  if(firstFunc) await revealItemByFunc(firstFunc);
 }
 
-export function updateMarkByFunc(func: Func) {
+export function updateMarkIconInFunc(func: Func) {
   const funcItem = itemsById.get(func.id!);
   if(funcItem) 
     funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
                                     : undefined;
 }
 
-export async function updateAllByFunc(func: Func) {
+export async function saveFuncAndUpdate(func: Func) {
   await fnct.saveFuncStorage();
-  updateMarkByFunc(func);
+  updateMarkIconInFunc(func);
   updateSide();
 }
 
@@ -131,7 +135,7 @@ export async function toggleFuncMark(funcItem: FuncItem) {
   const func = fnct.getFuncById(funcItem.id!);
   if(!func) return;
   func.marked = !func.marked;
-  await updateAllByFunc(func);
+  await saveFuncAndUpdate(func);
 }
 
 export async function hasChildFuncTest(fsPath: string): Promise<boolean> {
@@ -166,7 +170,7 @@ export async function removeMarks(item: Item) {
       const func = fnct.getFuncById((funcItem as FuncItem).id!);
       if(func && func.marked && hasParent(funcItem, parentItem.id!)) {
         func.marked = false;
-        await updateAllByFunc(func);
+        await saveFuncAndUpdate(func);
       }
     }
   }
@@ -198,10 +202,10 @@ export async function ensureFsPathIsLoaded(fsPath: string) {
     for(const func of funcs) {
       const funcItem = await getOrMakeItemById(func.id!, func);
       funcItem.parentId = fsPath;
-      updateMarkByFunc(func);
+      updateMarkIconInFunc(func);
     }
     updateSide(document);
-    updatePointers();
+    await updatePointers();
   }
 }
 

@@ -42,6 +42,8 @@ export class Func {
   id?:        string;
   startLine?: number;
   endLine?:   number;
+  startPos?:  vscode.Position;
+  endPos?:    vscode.Position;
   startKey?:  string;
   endKey?:    string;
   fsPath?:    string;
@@ -56,13 +58,17 @@ export class Func {
     this.marked   = false;
   }
   getFsPath()      { return this.fsPath    ??= 
-                          this.document.uri.fsPath;                    }
+                          this.document.uri.fsPath;}
+  getStartPos()    { return this.startPos  ??= 
+                            this.document.positionAt(this.start);}
+  getEndPos()      { return this.endPos    ??= 
+                            this.document.positionAt(this.end);}
   getStartLine()   { return this.startLine ??= 
-                          this.document.positionAt(this.start).line;   }
+                            this.getStartPos().line;}
   getEndLine()     { return this.endLine   ??= 
-                          this.document.positionAt(this.end).line;     }
+                            this.getEndPos().line;}
   getStartKey()    { return this.startKey  ??= utils.createSortKey( 
-                          this.getFsPath(), this.getStartLine());      }
+                            this.getFsPath(), this.getStartLine());      }
   getEndKey()      { return this.endKey    ??= utils.createSortKey(
                           this.getFsPath(), this.getEndLine());        }
   equalsPos(func:Func) { 

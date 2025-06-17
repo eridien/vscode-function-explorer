@@ -16,9 +16,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 ////////////  COMMANDS  ////////////
   
-	const toggle = vscode.commands.registerCommand(
-           'vscode-function-explorer.toggle', () => {
-		cmds.toggle();
+	const toggleCmd = vscode.commands.registerCommand(
+           'vscode-function-explorer.toggle', async () => {
+		await cmds.toggleCmd();
 	});
 
 	const prev = vscode.commands.registerCommand(
@@ -135,7 +135,7 @@ export async function activate(context: vscode.ExtensionContext) {
   cmds.updateSide();
 
 	context.subscriptions.push(
-    toggle, prev, next, funcClickCmd, loadSettings,
+    toggleCmd, prev, next, funcClickCmd, loadSettings,
     editorChg, selectionChg, textChg, toggleFuncMark,
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,

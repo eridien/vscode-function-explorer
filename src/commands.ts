@@ -8,24 +8,34 @@ import * as gutt    from './gutter';
 import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
-export function toggle() {
-  log('toggle');
+async function setMarks(funcs: Func[], 
+                        toggle = false, mark = false) {
+  let firstFunc: Func | null = null;
+  for (const func of funcs) {
+    if (toggle) func.marked = !func.marked;
+    else        func.marked = mark;
+    if (func.marked) firstFunc ??= func;
+    await sbar.saveFuncAndUpdate(func);
+    await sbar.revealItemByFunc(func);
+  }
+  if (firstFunc) {
+    await sbar.revealItemByFunc(firstFunc);
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor)
+      utils.flashRange(activeEditor,
+        (firstFunc as Func).getStartPos(),
+        (firstFunc as Func).getEndPos());
+  }
+}
+
+export async function toggleCmd() {
+  log('toggleCmd');
   const funcs = fnct.getFuncsOverlappingSelections();
   if(funcs.length === 0) return;
   let markedCount = 0;
   funcs.forEach(func => { if(func.marked) markedCount++; });
   const mark = markedCount/funcs.length < 0.5;
-  let firstFunc: Func | null = null;
-  let minFuncStart = Number.MAX_SAFE_INTEGER;
-  funcs.forEach(func => {
-    func.marked = mark!;
-    sbar.updateMarkByFunc(func);
-    if(mark && func.start < minFuncStart) {
-      minFuncStart = func.start;
-      firstFunc    = func;
-    }
-  });
-  updateSide();
+  await setMarks(funcs, false, mark);
 }
 
 async function prevNext(next: boolean) {
@@ -101,18 +111,19 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const document = textEditor.document;
   const fsPath   = document.uri.fsPath;
   if(!clickDelaying) {
+    const funcs: Func[] = [];
     for(const selection of selections) {
       const func = fnct.getFuncAtLine(fsPath, selection.start.line);
       if(func && document.offsetAt(selection.start) >= func.start &&
                 document.offsetAt(selection.end)    <= func.endName) {
-        func.marked = !func.marked;
-        await sbar.updateAllByFunc(func);
+        funcs.push(func);
       }
       clickDelaying = true;
       setTimeout(() => { clickDelaying = false; }, 500);
     }
+    await setMarks(funcs, true);
   }
-  sbar.updatePointers();
+  await sbar.updatePointers();
 }
 
 export function updateSide(document?: vscode.TextDocument) {

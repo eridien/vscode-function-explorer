@@ -1,10 +1,10 @@
 bugs ...
   old x=class not deleted when changed to x=1;class
   left name in class exp assign not clickable
-  can't click on vscode in "vscode = require"
   overlap broken in nesting
   deleting marked function leaves mark on next func
-  class mark disappears with item click
+  class item mark removed with item click
+  pointers not updating
 
 todo ...
   reveal item and flash text on mark toggle

@@ -16,21 +16,26 @@ export function rangesOverlap(start1: number, end1: number,
   return start1 <= end2 && start2 <= end1;
 }
 
+export function flashRange(editor: vscode.TextEditor, 
+                           startPos: vscode.Position, 
+                           endPos: vscode.Position) {
+  const decorationType = vscode.window.createTextEditorDecorationType({
+    backgroundColor: 'rgba(255, 255, 0, 0.25)',
+    borderRadius: '2px'
+  });
+  editor.setDecorations(decorationType, [new vscode.Range(startPos, endPos)]);
+  setTimeout(() => {
+    decorationType.dispose();
+  }, 750);
+}
+
 export function scrollToTopMarginAndFlash(editor: vscode.TextEditor, 
           startPos: vscode.Position, endPos: vscode.Position, margin: number) {
   let topLine = startPos.line - margin;
   if(topLine < 0) topLine = 0;
   const selRange = new vscode.Range(topLine, 0, topLine, 0);
   editor.revealRange(selRange, vscode.TextEditorRevealType.AtTop);
-  const decorationType = vscode.window.createTextEditorDecorationType({
-    backgroundColor: 'rgba(255, 255, 0, 0.25)',
-    borderRadius: '2px'
-  });
-  const decRange = new vscode.Range(startPos, endPos);
-  editor.setDecorations(decorationType, [decRange]);
-  setTimeout(() => {
-    decorationType.dispose();
-  }, 750);
+  flashRange(editor, startPos, endPos);
 }
 
 const outputChannel = vscode.window.createOutputChannel('function-explorer');
