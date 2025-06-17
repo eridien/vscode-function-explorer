@@ -3,9 +3,7 @@ bugs ...
   left name in class exp assign not clickable
   can't click on vscode in "vscode = require"
   overlap broken in nesting
-  
   deleting marked function leaves mark on next func
-  nested items show multiple times (function ccc)
   class mark disappears with item click
 
 todo ...

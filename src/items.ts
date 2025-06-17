@@ -131,14 +131,19 @@ function funcIsFunction(func: Func): boolean {
 export function getFuncItemLabel(func: Func): string {
   let label = '  ';
   function addParent(funcParent: Func) {
-    if(funcIsFunction(funcParent))         label += ` ƒ ${funcParent.name}`;
-    else if(funcParent.type == 'ClassDeclaration' || 
-            funcParent.type == 'ClassExpression') 
-                                           label += ` © ${funcParent.name}`;
-    else if(funcParent.type == 'Property') label += ` : ${funcParent.name}`;
-    else if(funcParent.type == 'CallExpression') 
-                                           label += ` ( ${funcParent.name}`;
-    else                                   label += ` = ${funcParent.name}`;
+    if(funcIsFunction(funcParent)) {
+      label += ` ƒ ${funcParent.name}`;
+      return;
+    }
+    let pfx: string;
+    switch (funcParent.type) {
+      case 'Property':            pfx = ':'; break;
+      case 'CallExpression':      pfx = '('; break;
+      case 'ClassDeclaration':
+      case 'ClassExpression':     pfx = '©'; break;
+      default:                    pfx = '='; break;
+    }
+    label += ` ${pfx} ${funcParent.name}`;
   }
   addParent(func);
   for(const funcParent of func.parents!) addParent(funcParent);
