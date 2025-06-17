@@ -110,26 +110,40 @@ export class FileItem extends Item {
       sortedFuncs = fnct.getSortedFuncs(
            {fsPath: this.id!, alpha: this.alphaSorted, filtered: false});
     }
-    const funcItems = sortedFuncs.map(async func => {
+    const funcItems: FuncItem[] = [];
+    for(const func of sortedFuncs) {
+      if(func.marked || funcIsFunction(func)) {
         const item = await sbar.getOrMakeItemById(func.id!, func) as FuncItem;
         item.parentId = this.id;
-        return item;
-      });
+        funcItems.push(item);
+      }
+    }
     return Promise.all(funcItems);
   }
 }
 
+function funcIsFunction(func: Func): boolean {
+  return ['FunctionDeclaration', 'FunctionExpression',
+          'ArrowFunctionExpression', 'MethodDefinition',
+          'Constructor', 'Method']
+          .includes(func.type);
+}
 export function getFuncItemLabel(func: Func): string {
-  let label = '';
-  function addParent(funcParent: Func, first: boolean = false) {
-    if (funcParent.type == 'ClassDeclaration') 
-          label += first ? `   © ${funcParent.name}` 
-                        :   ` © ${funcParent.name}`;
-    else label += ` / ${funcParent.name}`;
+  let label = '  ';
+  function addParent(funcParent: Func) {
+    if(funcIsFunction(funcParent))         label += ` ƒ ${funcParent.name}`;
+    else if(funcParent.type == 'ClassDeclaration' || 
+            funcParent.type == 'ClassExpression') 
+                                           label += ` © ${funcParent.name}`;
+    else if(funcParent.type == 'Property') label += ` : ${funcParent.name}`;
+    else if(funcParent.type == 'CallExpression') 
+                                           label += ` ( ${funcParent.name}`;
+    else                                   label += ` = ${funcParent.name}`;
   }
-  addParent(func, true);
+  addParent(func);
   for(const funcParent of func.parents!) addParent(funcParent);
-  return label.slice(3);
+  // label += ` (${func.type})`;
+  return label.slice(funcIsFunction(func) ? 5 : 3);
 }
 
 export class FuncItem extends Item {

@@ -1,16 +1,22 @@
 bugs ...
+  old x=class not deleted when changed to x=1;class
+  left name in class exp assign not clickable
+  can't click on vscode in "vscode = require"
   overlap broken in nesting
+  
   deleting marked function leaves mark on next func
   nested items show multiple times (function ccc)
   class mark disappears with item click
 
 todo ...
+  reveal item and flash text on mark toggle
+  handle fs changes
+  support multiple funcs with same id -- test it now
+  when toggle in text and no func, find one
   add "Minimal Fit Function (with margin)" as scroll option
   focus editor with a mark on prev/next
-  handle fs changes
+  collapse empty folders into one
   many settings don't immediately change sidebar
-  support multiple funcs with same id
-    test it now
 
 options ...
   reveal func item when text selected  (sidebar already visible)

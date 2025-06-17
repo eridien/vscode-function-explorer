@@ -1,7 +1,12 @@
 // @@ts-nocheck
 // https://github.com/acornjs/acorn/tree/master/acorn-loose/
 // https://github.com/acornjs/acorn/tree/master/acorn-walk/
-
+// https://github.com/estree/estree/blob/master/es5.md
+// https://hexdocs.pm/estree/api-reference.html
+/*
+ClassExpression
+YieldExpression
+*/
 import vscode     from 'vscode';
 import * as path  from 'path';
 import * as acorn from "acorn-loose";
@@ -90,22 +95,29 @@ export async function updateFuncsInFile(
   let funcs: Func[] = [];
   function addFunc(name: string, type: string, 
                    start: number, endName: number, end: number) {
-    if(type != 'FunctionDeclaration'     && 
-       type != 'FunctionExpression'      &&
-       type != 'ArrowFunctionExpression' &&
-       type != 'ClassDeclaration'        &&
-       type != 'Constructor'             &&
-       type != 'Method') {
-      return;
-    }
     funcs.push(new Func({document, name, type, start, endName, end}));
   }
   walk.ancestor(ast, {
+    CallExpression(node) {
+      const {start, end, callee} = node;
+      if(callee.type === 'Identifier') {
+        const endName = callee.end;
+        const name    = docText.slice(start, endName);
+        const type    = 'CallExpression';
+        addFunc(name, type, start, endName, end);
+      }
+      return;
+    },
+    Property(node){
+      const {start, end, key} = node;
+      const endName = key.end;
+      const name = docText.slice(start, endName);
+      const type = 'Property';
+      addFunc(name, type, start, endName, end);
+    },
     VariableDeclarator(node) {
       const {id, start, end, init} = node;
-      if (init &&
-         (init.type === 'ArrowFunctionExpression' ||
-          init.type === 'FunctionExpression')) {
+      if (init) {
         const endName = id.end!;
         const name = docText.slice(start, endName);
         const type  = init.type;
@@ -126,7 +138,7 @@ export async function updateFuncsInFile(
       const {start, end, left, right} = node;
       const endName = left.end!;
       const name = docText.slice(left.start!, endName);
-      const type = right.type;
+      const type = 'AssignmentExpression';
       addFunc(name, type, start, endName, end);
       return;
     },
