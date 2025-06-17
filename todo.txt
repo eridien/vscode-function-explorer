@@ -3,9 +3,9 @@ bugs ...
   left name in class exp assign not clickable
   overlap broken in nesting, clicks and toggle
   deleting marked function leaves mark on next func
-  class item mark removed with item click
+  class item removed with item click
   remove marks in folder (X) broken
-  open folder focuses current selection
+  open file focuses current selection
 
 todo ...
   load editor on file item click 
@@ -18,7 +18,6 @@ todo ...
   many settings don't immediately change sidebar
 
 options ...
-  reveal func item when toggled on     (sidebar already visible)
 
 testing ...
   settings changes

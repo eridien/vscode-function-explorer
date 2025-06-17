@@ -40,6 +40,19 @@ export function scrollToTopMarginAndFlash(editor: vscode.TextEditor,
   flashRange(editor, startPos, endPos, red);
 }
 
+export async function revealEditorByFspath(fsPath: string) {
+  const uri = vscode.Uri.file(fsPath);
+  const editor = vscode.window.visibleTextEditors.find(
+    ed => ed.document.uri.fsPath === fsPath
+  );
+  if (editor) {
+    await vscode.window.showTextDocument(editor.document, editor.viewColumn);
+  } else {
+    const document = await vscode.workspace.openTextDocument(uri);
+    await vscode.window.showTextDocument(document);
+  }
+}
+
 const outputChannel = vscode.window.createOutputChannel('function-explorer');
 
 export function getLog(module: string) : {
