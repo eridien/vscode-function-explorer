@@ -63,7 +63,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const toggleFuncMark = vscode.commands.registerCommand(
 		'vscode-function-explorer.toggleFuncMark', async (funcItem: FuncItem) => {
-		await sbar.toggleFuncMark(funcItem);
+		await cmds.toggleFuncMarkCmd(funcItem);
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(

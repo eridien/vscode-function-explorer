@@ -1,10 +1,10 @@
 bugs ...
   old x=class not deleted when changed to x=1;class
   left name in class exp assign not clickable
-  overlap broken in nesting
+  overlap broken in nesting, clicks and toggle
   deleting marked function leaves mark on next func
   class item mark removed with item click
-  pointers not updating
+  remove marks in folder (X) broken
 
 todo ...
   reveal item and flash text on mark toggle

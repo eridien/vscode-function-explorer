@@ -2,6 +2,7 @@ import * as vscode  from 'vscode';
 import * as sbar    from './sidebar';
 import * as fnct    from './funcs';
 import {Func}       from './funcs';
+import {FuncItem}   from './items';
 import * as sett    from './settings';
 import {settings}   from './settings';
 import * as gutt    from './gutter';
@@ -16,15 +17,13 @@ async function setMarks(funcs: Func[],
     else        func.marked = mark;
     if (func.marked) firstFunc ??= func;
     await sbar.saveFuncAndUpdate(func);
-    await sbar.revealItemByFunc(func);
   }
   if (firstFunc) {
     await sbar.revealItemByFunc(firstFunc);
     const activeEditor = vscode.window.activeTextEditor;
-    if (activeEditor)
-      utils.flashRange(activeEditor,
-        (firstFunc as Func).getStartPos(),
-        (firstFunc as Func).getEndPos());
+    if (activeEditor) utils.flashRange(activeEditor,
+                      (firstFunc as Func).getStartPos(),
+                      (firstFunc as Func).getEndPos());
   }
 }
 
@@ -36,6 +35,12 @@ export async function toggleCmd() {
   funcs.forEach(func => { if(func.marked) markedCount++; });
   const mark = markedCount/funcs.length < 0.5;
   await setMarks(funcs, false, mark);
+}
+
+export async function toggleFuncMarkCmd(funcItem: FuncItem) {
+  const func = fnct.getFuncById(funcItem.id!);
+  if(!func) return;
+  await setMarks([func], true);
 }
 
 async function prevNext(next: boolean) {

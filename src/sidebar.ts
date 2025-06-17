@@ -131,13 +131,6 @@ export function toggleAlphaSort(fileItem: FileItem) {
   updateTree();
 }
 
-export async function toggleFuncMark(funcItem: FuncItem) {
-  const func = fnct.getFuncById(funcItem.id!);
-  if(!func) return;
-  func.marked = !func.marked;
-  await saveFuncAndUpdate(func);
-}
-
 export async function hasChildFuncTest(fsPath: string): Promise<boolean> {
   let stat;
   try { stat = await fs.stat(fsPath);
