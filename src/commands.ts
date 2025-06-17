@@ -11,26 +11,33 @@ const {log} = utils.getLog('cmds');
 
 async function setMarks(funcs: Func[], 
                         toggle = false, mark = false) {
+  if(funcs.length === 0) return;
+  if(funcs.length > 1 && toggle) {
+    log('err', 'setMarks, toggle only for single function');
+    return;
+  }
   let firstFunc: Func | null = null;
+  let red = false;
   for (const func of funcs) {
     if (toggle) func.marked = !func.marked;
     else        func.marked = mark;
-    if (func.marked) firstFunc ??= func;
+    if (!func.marked) red = true;
+    firstFunc ??= func;
     await sbar.saveFuncAndUpdate(func);
   }
   if (firstFunc) {
     await sbar.revealItemByFunc(firstFunc);
-    const activeEditor = vscode.window.activeTextEditor;
-    if (activeEditor) utils.flashRange(activeEditor,
-                      (firstFunc as Func).getStartPos(),
-                      (firstFunc as Func).getEndPos());
+    await fnct.revealFunc(null, firstFunc, true, red);
   }
 }
 
 export async function toggleCmd() {
   log('toggleCmd');
   const funcs = fnct.getFuncsOverlappingSelections();
-  if(funcs.length === 0) return;
+  if(funcs.length === 0) {
+    await prevNext(true, true);
+    return;
+  }
   let markedCount = 0;
   funcs.forEach(func => { if(func.marked) markedCount++; });
   const mark = markedCount/funcs.length < 0.5;
@@ -43,14 +50,14 @@ export async function toggleFuncMarkCmd(funcItem: FuncItem) {
   await setMarks([func], true);
 }
 
-async function prevNext(next: boolean) {
+async function prevNext(next: boolean, markIt = false) {
   const activeEditor = vscode.window.activeTextEditor;
   if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath)) {
     const fsPath   = activeEditor.document.uri.fsPath;
-    const fileWrap = settings.fileWrap;
-    const sortArgs = {filtered: true};
+    const fileWrap = settings.fileWrap && !markIt;
+    const sortArgs = {filtered: !markIt};
     if(!fileWrap) (sortArgs as any).fsPath = fsPath;
     const funcs = fnct.getSortedFuncs(sortArgs);
     if(funcs.length == 0) return;
@@ -59,18 +66,19 @@ async function prevNext(next: boolean) {
           selFsPath, activeEditor.selection.active.line);
     let func: Func;
     for(let i = (next? 0 : funcs.length-1); 
-           (next? (i < funcs.length) : (i >= 0)); 
-            i += (next? 1 : -1)) {
+                (next? (i < funcs.length) : (i >= 0)); 
+           i += (next? 1 : -1)) {
       func = funcs[i];
       const funcFsPath = (fileWrap ? func.getFsPath() : '');
       if(next ? (funcFsPath < selFsPath) 
               : (funcFsPath > selFsPath)) continue;
       if(funcFsPath !== selFsPath) break;
       const funcKey = utils.createSortKey(
-            funcFsPath, func.getStartLine());
+                               funcFsPath, func.getStartLine());
       if(next) {
         if(selKey < funcKey) break;
         else if(i == funcs.length-1) {
+          if(markIt) return;
           func = funcs[0];
           break;
         }
@@ -78,12 +86,14 @@ async function prevNext(next: boolean) {
       else {
         if(selKey > funcKey) break;
         else if(i == 0) {
+          if(markIt) return;
           func = funcs[funcs.length-1];
           break;
         }
       }
     }
-    await fnct.revealFunc(null, func!, true);
+    if(markIt) await setMarks([func!], true);
+    else       await fnct.revealFunc(null, func!, true);
   }
 }
 

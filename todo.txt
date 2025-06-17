@@ -5,10 +5,11 @@ bugs ...
   deleting marked function leaves mark on next func
   class item mark removed with item click
   remove marks in folder (X) broken
+  open folder focuses current selection
 
 todo ...
-  when toggle in text and no func, find one
-    use to find more syntax funcs
+  load editor on file item click 
+    if that file not active and file is collapsed
   handle fs changes
   support multiple funcs with same id
   add "Fit Function (with margin)" as scroll option
