@@ -51,7 +51,15 @@ export async function toggleFuncMarkCmd(funcItem: FuncItem) {
 }
 
 async function prevNext(next: boolean, markIt = false) {
-  const activeEditor = vscode.window.activeTextEditor;
+  let activeEditor = vscode.window.activeTextEditor;
+  if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
+                     !sett.includeFile(activeEditor.document.uri.fsPath)) {
+    for(activeEditor of vscode.window.visibleTextEditors) {
+      if(activeEditor.document.uri.scheme === 'file' &&
+         sett.includeFile(activeEditor.document.uri.fsPath))
+      break;
+    }
+  }
   if (activeEditor && 
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath)) {

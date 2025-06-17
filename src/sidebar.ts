@@ -206,12 +206,7 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
                                     expanded: boolean) {
   if(!item.expanded && expanded && item.contextValue === 'file') {
     await ensureFsPathIsLoaded(item.id!);
-    const editor = vscode.window.activeTextEditor;
-    if(editor) {
-      const document = editor.document;
-      if(document.uri.fsPath !== item.id) 
-        await utils.revealEditorByFspath(item.id!);
-    }
+    await utils.revealEditorByFspath(item.id!);
   }
   item.expanded = expanded;
 }

@@ -8,12 +8,9 @@ bugs ...
   open file focuses current selection
 
 todo ...
-  load editor on file item click 
-    if that file not active and file is collapsed
+  add "Fit Function (with margin)" as scroll option
   handle fs changes
   support multiple funcs with same id
-  add "Fit Function (with margin)" as scroll option
-  focus editor with a mark on prev/next
   collapse empty folders into one
   many settings don't immediately change sidebar
 
