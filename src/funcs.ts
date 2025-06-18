@@ -105,16 +105,6 @@ export async function updateFuncsInFile(
     funcs.push(new Func({document, name, type, start, endName, end}));
   }
   walk.ancestor(ast, {
-    // CallExpression(node) {
-    //   const {start, end, callee} = node;
-    //   if(callee.type === 'Identifier') {
-    //     const endName = callee.end;
-    //     const name    = docText.slice(start, endName);
-    //     const type    = 'CallExpression';
-    //     addFunc(name, type, start, endName, end);
-    //   }
-    //   return;
-    // },
     Property(node){
       const {start, end, key} = node;
       const endName = key.end;
@@ -125,13 +115,6 @@ export async function updateFuncsInFile(
     VariableDeclarator(node) {
       const {id, start, end, init} = node;
       if (init) {
-        // if(init.type === 'ClassExpression') {
-        //   const start   = init.start;
-        //   const endName = init.id!.end!;
-        //   const name = docText.slice(start, endName);
-        //   const type = 'ClassExpression';
-        //   addFunc(name, type, start, endName, end);
-        // }
         const endName = id.end!;
         const name = docText.slice(start, endName);
         const type  = 'VariableDeclarator';
@@ -148,14 +131,6 @@ export async function updateFuncsInFile(
       addFunc(name, type, start, endName, end);
       return;
     },
-    // AssignmentExpression(node) {
-    //   const {start, end, left, right} = node;
-    //   const endName = left.end!;
-    //   const name = docText.slice(left.start!, endName);
-    //   const type = 'AssignmentExpression';
-    //   addFunc(name, type, start, endName, end);
-    //   return;
-    // },
     Class(node) {
       if(!node.id) return;
       const {id, start, end, type} = node;
