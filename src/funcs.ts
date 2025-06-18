@@ -286,7 +286,7 @@ export function getFuncsOverlappingSelections(lineOnly = false) : Func[]{
 }
 
 export async function revealFunc(document: vscode.TextDocument | null, 
-                       func: Func | null, selection = false, red = false) {
+                       func: Func | null, red = false) {
   if(func) {
     document = func.document;
     const editor = await vscode.window.showTextDocument(
@@ -295,8 +295,6 @@ export async function revealFunc(document: vscode.TextDocument | null,
     const endPos   = document.positionAt(func.end);
     utils.scrollToTopMarginAndFlash(editor, startPos, endPos, 
                                     settings.topMargin, red);
-    if(selection) editor.selection = 
-                   new vscode.Selection(startPos.line, 0, startPos.line, 0);
   }
   else if(document) {
     await vscode.window.showTextDocument(document.uri, 

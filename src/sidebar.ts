@@ -118,7 +118,7 @@ export function fileClickCmd(fsPath: string) {
 export async function funcClickCmd(id: string) { 
   const item = itemsById.get(id) as FuncItem;
   const func = item ? fnct.getFuncById(id) : null;
-  if (item) await fnct.revealFunc(null, func!, true);
+  if (item) await fnct.revealFunc(null, func!);
 }
 
 export function toggleMarkedFilter(fileItem: FileItem) {

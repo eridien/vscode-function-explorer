@@ -30,7 +30,7 @@ async function setMarks(funcs: Func[],
   }
   if (firstFunc) {
     await sbar.revealItemByFunc(firstFunc);
-    await fnct.revealFunc(null, firstFunc, true, red);
+    await fnct.revealFunc(null, firstFunc, red);
   }
 }
 
@@ -104,7 +104,7 @@ async function prevNext(next: boolean, markIt = false) {
       }
     }
     if(markIt) await setMarks([func!], true);
-    else       await fnct.revealFunc(null, func!, true);
+    else       await fnct.revealFunc(null, func!);
   }
 }
 
