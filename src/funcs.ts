@@ -253,14 +253,14 @@ export function getSortedFuncs(p: any = {}) : Func[] {
 
 export function getFuncAtLine( fsPath: string, 
                                lineNumber: number) : Func | null {
-  const funcs = getFuncs({fsPath});
-  if (funcs.length === 0) return null;
-  let match: Func | null = null;
+  const funcs = getSortedFuncs({fsPath});
+  if (funcs.length === 0) 
+    return null;
   for(const func of funcs) {
-    if(func.getStartLine() >  lineNumber) return match;
-    if(func.getEndLine()   >= lineNumber) match = func;
+    if(func.getStartLine() >  lineNumber) return null; 
+    if(func.getEndLine()   >= lineNumber) return func;
   }
-  return match;
+  return null;
 }
 
 export function getFuncsOverlappingSelections(lineOnly = false) : Func[]{
