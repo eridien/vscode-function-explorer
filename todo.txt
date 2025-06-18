@@ -5,6 +5,7 @@ bugs ...
   overlap broken in nesting, clicks and toggle
   class item removed with item click
   pointers broken
+  func type 'literal'
 
 todo ...
   add "Fit Function (with margin)" as scroll option

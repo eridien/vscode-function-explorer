@@ -9,6 +9,9 @@ import * as gutt    from './gutter';
 import * as utils   from './utils';
 const {log} = utils.getLog('cmds');
 
+const NEXT_DEBUG = false;
+// const NEXT_DEBUG = true;
+
 async function setMarks(funcs: Func[], 
                         toggle = false, mark = false) {
   if(funcs.length === 0) return;
@@ -65,7 +68,7 @@ async function prevNext(next: boolean, markIt = false) {
       sett.includeFile(activeEditor.document.uri.fsPath)) {
     const fsPath   = activeEditor.document.uri.fsPath;
     const fileWrap = settings.fileWrap && !markIt;
-    const sortArgs = {filtered: !markIt};
+    const sortArgs = {filtered: !markIt && !NEXT_DEBUG};
     if(!fileWrap) (sortArgs as any).fsPath = fsPath;
     const funcs = fnct.getSortedFuncs(sortArgs);
     if(funcs.length == 0) return;
@@ -128,12 +131,12 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
 let clickDelaying = false;
 
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
-  const {textEditor, selections, kind} = p;
+  const {textEditor, selections} = p;
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
-  const document = textEditor.document;
-  const fsPath   = document.uri.fsPath;
   if(!clickDelaying) {
+    const document = textEditor.document;
+    const fsPath   = document.uri.fsPath;
     const funcs: Func[] = [];
     for(const selection of selections) {
       const func = fnct.getFuncAtLine(fsPath, selection.start.line);

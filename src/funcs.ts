@@ -24,10 +24,11 @@ let context:       vscode.ExtensionContext;
 let funcsById:     Map<string, Func> = new Map();
 
 export async function activate(contextIn: vscode.ExtensionContext) {
+  start('activate funcs');
   context = contextIn;
   await loadFuncStorage();
   await updateFuncsInFile();
-  end('activate funcs');
+  end('activate funcs', false);
 }
 
 export class Func {
@@ -104,16 +105,16 @@ export async function updateFuncsInFile(
     funcs.push(new Func({document, name, type, start, endName, end}));
   }
   walk.ancestor(ast, {
-    CallExpression(node) {
-      const {start, end, callee} = node;
-      if(callee.type === 'Identifier') {
-        const endName = callee.end;
-        const name    = docText.slice(start, endName);
-        const type    = 'CallExpression';
-        addFunc(name, type, start, endName, end);
-      }
-      return;
-    },
+    // CallExpression(node) {
+    //   const {start, end, callee} = node;
+    //   if(callee.type === 'Identifier') {
+    //     const endName = callee.end;
+    //     const name    = docText.slice(start, endName);
+    //     const type    = 'CallExpression';
+    //     addFunc(name, type, start, endName, end);
+    //   }
+    //   return;
+    // },
     Property(node){
       const {start, end, key} = node;
       const endName = key.end;
@@ -124,9 +125,16 @@ export async function updateFuncsInFile(
     VariableDeclarator(node) {
       const {id, start, end, init} = node;
       if (init) {
+        // if(init.type === 'ClassExpression') {
+        //   const start   = init.start;
+        //   const endName = init.id!.end!;
+        //   const name = docText.slice(start, endName);
+        //   const type = 'ClassExpression';
+        //   addFunc(name, type, start, endName, end);
+        // }
         const endName = id.end!;
         const name = docText.slice(start, endName);
-        const type  = init.type;
+        const type  = 'VariableDeclarator';
         addFunc(name, type, start, endName, end);
       }
       return;
@@ -140,14 +148,14 @@ export async function updateFuncsInFile(
       addFunc(name, type, start, endName, end);
       return;
     },
-    AssignmentExpression(node) {
-      const {start, end, left, right} = node;
-      const endName = left.end!;
-      const name = docText.slice(left.start!, endName);
-      const type = 'AssignmentExpression';
-      addFunc(name, type, start, endName, end);
-      return;
-    },
+    // AssignmentExpression(node) {
+    //   const {start, end, left, right} = node;
+    //   const endName = left.end!;
+    //   const name = docText.slice(left.start!, endName);
+    //   const type = 'AssignmentExpression';
+    //   addFunc(name, type, start, endName, end);
+    //   return;
+    // },
     Class(node) {
       if(!node.id) return;
       const {id, start, end, type} = node;
@@ -254,8 +262,7 @@ export function getSortedFuncs(p: any = {}) : Func[] {
 export function getFuncAtLine( fsPath: string, 
                                lineNumber: number) : Func | null {
   const funcs = getSortedFuncs({fsPath});
-  if (funcs.length === 0) 
-    return null;
+  if (funcs.length === 0) return null;
   for(const func of funcs) {
     if(func.getStartLine() >  lineNumber) return null; 
     if(func.getEndLine()   >= lineNumber) return func;
@@ -305,17 +312,13 @@ export function getFuncsOverlappingSelections(lineOnly = false) : Func[]{
 
 export async function revealFunc(document: vscode.TextDocument | null, 
                        func: Func | null, selection = false, red = false) {
-  let start: number | null = null;
   if(func) {
     document = func.document;
-    start    = func.start;
-  }
-  if(document && start !== null) {
     const editor = await vscode.window.showTextDocument(
                           document, { preview: true });
-    const startPos = document.positionAt(func?.start ?? 0);
-    const endPos   = document.positionAt(func?.end   ?? 0);
-    utils.scrollToTopMarginAndFlash(editor, startPos!, endPos!, 
+    const startPos = document.positionAt(func.start);
+    const endPos   = document.positionAt(func.end);
+    utils.scrollToTopMarginAndFlash(editor, startPos, endPos, 
                                     settings.topMargin, red);
     if(selection) editor.selection = 
                    new vscode.Selection(startPos.line, 0, startPos.line, 0);
@@ -332,9 +335,13 @@ async function loadFuncStorage() {
     for (const funcObj of funcs) {
       const func = Object.create(Func.prototype);
       Object.assign(func, funcObj);
-      func.document = await vscode.workspace.openTextDocument(
-                            vscode.Uri.file(func.getFsPath()));
-      funcsById.set(func.id!, func);
+      try {
+        func.document = await vscode.workspace.openTextDocument(
+                              vscode.Uri.file(func.getFsPath()));
+        funcsById.set(func.id!, func);
+      } catch(err) {
+        log('loadFuncStorage', func, err);
+      }
     }
   }
   else await saveFuncStorage();
