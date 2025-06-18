@@ -156,23 +156,22 @@ export async function removeMarks(item: Item) {
     if(!parentItem) return false;
     return hasParent(parentItem, parentId);
   }
-  async function removeMarks(parentItem: Item) {
-    await ensureFsPathIsLoaded(parentItem.id!);    
-    for(const funcItem of itemsById.values()) {
-      if(funcItem.contextValue !== 'func') continue;
-      const func = fnct.getFuncById((funcItem as FuncItem).id!);
-      if(func && func.marked && hasParent(funcItem, parentItem.id!)) {
-        func.marked = false;
-        await saveFuncAndUpdate(func);
-      }
-    }
-  }
   if(item.contextValue === 'func') {
     const func = fnct.getFuncById((item as FuncItem).id!);
     if(func) func.marked = false;
   }
-  else await removeMarks(item);
-  updateTree();
+  else {
+    const funcs = fnct.getFuncs({});
+    for(const func of funcs) {
+      const funcItem = await getOrMakeItemById('', func);
+      if(hasParent(funcItem, item.id!)) {
+        func.marked = false;
+        updateMarkIconInFunc(func);
+      }
+    }
+  }
+  await fnct.saveFuncStorage();
+  updateSide();
 }
 
 export function updateTree() {
@@ -183,11 +182,11 @@ export function treeExpandChg() {
   gutt.updateGutter();
 }
 
-const fsPathFuncsLoaded: Set<string> = new Set();
+const fileItemsLoaded: Set<string> = new Set();
 
-export async function ensureFsPathIsLoaded(fsPath: string) {
-  if(!fsPathFuncsLoaded.has(fsPath)) {
-    fsPathFuncsLoaded.add(fsPath);
+export async function ensureFileItemsLoaded(fsPath: string) {
+  if(!fileItemsLoaded.has(fsPath)) {
+    fileItemsLoaded.add(fsPath);
     const uri      = vscode.Uri.file(fsPath);
     const document = await vscode.workspace.openTextDocument(uri);
     await fnct.updateFuncsInFile(document);
@@ -205,7 +204,7 @@ export async function ensureFsPathIsLoaded(fsPath: string) {
 export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
                                     expanded: boolean) {
   if(!item.expanded && expanded && item.contextValue === 'file') {
-    await ensureFsPathIsLoaded(item.id!);
+    await ensureFileItemsLoaded(item.id!);
     await utils.revealEditorByFspath(item.id!);
   }
   item.expanded = expanded;

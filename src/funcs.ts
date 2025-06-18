@@ -204,6 +204,7 @@ export async function updateFuncsInFile(
   await saveFuncStorage();
   const msg = `updated funcs in ${path.basename(uri.fsPath)}, `+
                       `matched: ${matchCount} of ${funcs.length}`;
+  end('updateFuncsInFile');
   return;
 }
 
