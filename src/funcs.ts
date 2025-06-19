@@ -163,6 +163,7 @@ export async function updateFuncsInFile(
   }
   const oldFuncs = getFuncs({fsPath: uri.fsPath});
   let matchCount = 0;
+  funcsById.clear();
   for(const newFunc of newFuncs) {
     funcsById.set(newFunc.id, newFunc);
     for(const oldFunc of oldFuncs) {
@@ -173,7 +174,6 @@ export async function updateFuncsInFile(
       }
     }
   }
-  funcs = newFuncs;
   await saveFuncStorage();
   console.log(`updated funcs in ${path.basename(uri.fsPath)}, `+
                       `marks copied: ${matchCount} of ${funcs.length}`);

@@ -3,6 +3,7 @@ bugs ...
   deleting marked function leaves mark on next func
   left name in class exp assign now clickable
   overlap broken in nesting, clicks and toggle
+  adding line at top didn't update
 
 todo ...
   add "Fit Function (with margin)" as scroll option
