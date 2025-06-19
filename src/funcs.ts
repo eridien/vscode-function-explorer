@@ -161,9 +161,8 @@ export async function updateFuncsInFile(
     id += newFunc.getFsPath();
     newFunc.id = id;
   }
-  const oldFuncs = getFuncs({fsPath: uri.fsPath});
+  const oldFuncs = getFuncs({fsPath: uri.fsPath, deleteFuncsById: true});
   let matchCount = 0;
-  funcsById.clear();
   for(const newFunc of newFuncs) {
     funcsById.set(newFunc.id, newFunc);
     for(const oldFunc of oldFuncs) {
@@ -182,7 +181,7 @@ export async function updateFuncsInFile(
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {
-  const {fsPath, filtered = false} = p;
+  const {fsPath, filtered = false, deleteFuncsById = false} = p;
   let funcs;
   if(fsPath) {
     funcs = Array.from(funcsById.values())
@@ -190,6 +189,8 @@ export function getFuncs(p: any | {} = {}) : Func[] {
   }
   else funcs = [...funcsById.values()];
   if(filtered) funcs = funcs.filter(func => func.marked);
+  if(deleteFuncsById) 
+    for(const func of funcs) {funcsById.delete(func.fsPath!); }
   return funcs;
 }
 
