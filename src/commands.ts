@@ -38,7 +38,7 @@ export async function toggleFuncMarkCmd(funcItem: FuncItem) {
   await setMark(func, true);
 }
 
-async function prevNext(next: boolean, markIt = false) {
+async function prevNext(next: boolean, markIt = false, setPointer = false) {
   let activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
                      !sett.includeFile(activeEditor.document.uri.fsPath)) {
@@ -52,8 +52,8 @@ async function prevNext(next: boolean, markIt = false) {
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath)) {
     const fsPath   = activeEditor.document.uri.fsPath;
-    const fileWrap = settings.fileWrap && !markIt;
-    const sortArgs = {filtered: !markIt && !NEXT_DEBUG};
+    const fileWrap = settings.fileWrap && !markIt && !setPointer;
+    const sortArgs = {filtered: !markIt && !setPointer && !NEXT_DEBUG};
     if(!fileWrap) (sortArgs as any).fsPath = fsPath;
     const funcs = fnct.getSortedFuncs(sortArgs);
     if(funcs.length == 0) return;
@@ -74,7 +74,7 @@ async function prevNext(next: boolean, markIt = false) {
       if(next) {
         if(selKey < funcKey) break;
         else if(i == funcs.length-1) {
-          if(markIt) return;
+          if(markIt || setPointer) return;
           func = funcs[0];
           break;
         }
@@ -82,14 +82,15 @@ async function prevNext(next: boolean, markIt = false) {
       else {
         if(selKey > funcKey) break;
         else if(i == 0) {
-          if(markIt) return;
+          if(markIt || setPointer) return;
           func = funcs[funcs.length-1];
           break;
         }
       }
     }
-    if(markIt && func) await setMark(func, true);
-    else               await fnct.revealFunc(null, func!);
+    if(markIt && func)          await setMark(func, true);
+    else if(setPointer && func) await sbar.setPointer(func);
+    else                        await fnct.revealFunc(null, func);
   }
 }
 
@@ -122,17 +123,17 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   if(!clickDelaying) {
     const document = textEditor.document;
     const fsPath   = document.uri.fsPath;
-    for(const selection of selections) {
-      const func = fnct.getFuncAtLine(fsPath, selection.start.line);
-      if(func && document.offsetAt(selection.start) >= func.start &&
-                 document.offsetAt(selection.end)   <= func.endName) {
-        await setMark(func, true);
-        await sbar.updatePointers();
-        return;
-      }
-      clickDelaying = true;
-      setTimeout(() => { clickDelaying = false; }, 500);
+    const selection = selections[0];
+    const func = fnct.getFuncAtLine(fsPath, selection.start.line);
+    if(func && document.offsetAt(selection.start) >= func.start &&
+                document.offsetAt(selection.end)   <= func.endName) {
+      await setMark(func, true);
+      return;
     }
+    clickDelaying = true;
+    setTimeout(() => { clickDelaying = false; }, 500);
+    if(!await sbar.updatePointers())
+      await prevNext(true, false, true);
   }
 }
 

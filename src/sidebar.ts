@@ -60,21 +60,27 @@ function removeAllPointers() {
   for(const item of itemsById.values()) {
     if(item.contextValue == 'func') {
       const funcItem = item as FuncItem;
-      const func = fnct.getFuncById(funcItem.id!);
+      const func = fnct.getFuncById(funcItem.id);
       if(!func) continue;
       funcItem.label = itms.getFuncItemLabel(func);
     }
   }
 }
 
-export async function updatePointers() {
-  removeAllPointers();
-  const func = fnct.getBiggestFuncInSelection();
-  if(!func) return;
+export async function setPointer(func: Func) {
   const funcItem = itemsById.get(func.id);
-  if(!funcItem) return;
-  funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`;
-  await revealItemByFunc(func);
+  if(funcItem) {
+    funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`;
+    await revealItemByFunc(func);
+  }
+}
+
+export async function updatePointers() : Promise<boolean>{
+  removeAllPointers();
+  const funcs = fnct.getFuncsOverlappingSelections();
+  for(const func of funcs) await setPointer(func);
+  updateTree();
+  return funcs.length > 0;
 }
 
 export function updateMarkIconInFunc(func: Func) {

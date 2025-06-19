@@ -240,6 +240,7 @@ export function getFuncAtLine( fsPath: string,
   }
   return minFunc;
 }
+
 export function getBiggestFuncInSelection() : Func | null {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return null;
@@ -272,6 +273,31 @@ export function getBiggestFuncInSelection() : Func | null {
     }
   }
   return biggestFuncInSelection;
+}
+
+export function getFuncsOverlappingSelections(): Func[] {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return [];
+  const document = editor.document;
+  const fsPath = document.uri.fsPath;
+  if (document.uri.scheme !== 'file' ||
+     !sett.includeFile(fsPath)) return [];
+  let funcs = getSortedFuncs({fsPath});
+  if (funcs.length === 0) return [];
+  const overlapping: Func[] = [];
+  for (const selection of editor.selections) {
+    const selStart = selection.start.line;
+    const selEnd   = selection.end.line;
+    for (const func of funcs) {
+      const funcStart = func.getStartLine();
+      if(funcStart > selEnd) break;
+      const funcEnd = func.getEndLine();
+      if (selStart <= funcEnd && funcStart <= selEnd) {
+        overlapping.push(func);
+      }
+    }
+  }
+  return overlapping;
 }
 
 export async function revealFunc(document: vscode.TextDocument | null, 
