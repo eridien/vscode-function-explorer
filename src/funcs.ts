@@ -240,16 +240,16 @@ export function getFuncAtLine( fsPath: string,
   }
   return minFunc;
 }
-export function getbiggestFuncsContainingSelections() : Func[] {
+export function getBiggestFuncInSelection() : Func | null {
   const editor = vscode.window.activeTextEditor;
-  if (!editor) return [];
+  if (!editor) return null;
   const document = editor.document;
   const fsPath = document.uri.fsPath;
   if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(fsPath)) return [];
+     !sett.includeFile(fsPath)) return null;
   let funcs = getSortedFuncs({fsPath});
-  if (funcs.length === 0) return [];
-  let biggestFuncsContainingSelections: Func[] = [];
+  if (funcs.length === 0) return null;
+  let biggestFuncInSelection: Func | null = null;
   for (const selection of editor.selections) {
     const selStartLine = selection.start.line;
     const selEndLine   = selection.end.line;
@@ -257,26 +257,21 @@ export function getbiggestFuncsContainingSelections() : Func[] {
     for(const func of funcs) {
       const funcStartLine = func.getStartLine();
       const funcEndLine   = func.getEndLine();
-      log('gbfcs', {selStartLine, selEndLine,   
-                    funcStartLine,funcEndLine});
       const selRange  = new vscode.Range(selStartLine, 0,  selEndLine, 0);
       const funcRange = new vscode.Range(funcStartLine, 0, funcEndLine, 0);
       if (selRange.contains(funcRange)) 
         funcsContainingSelection.push(func);
     }
     let maxFuncLen = -1;
-    let biggestFuncContainingSelection: Func | null = null;
     for(const func of funcsContainingSelection) {
       const funcLen = func.getEndLine() - func.getStartLine();
       if(funcLen > maxFuncLen) {
         maxFuncLen = funcLen;
-        biggestFuncContainingSelection = func;
+        biggestFuncInSelection = func;
       }
     }
-    if(biggestFuncContainingSelection) biggestFuncsContainingSelections
-                                 .push(biggestFuncContainingSelection);
   }
-  return biggestFuncsContainingSelections;
+  return biggestFuncInSelection;
 }
 
 export async function revealFunc(document: vscode.TextDocument | null, 

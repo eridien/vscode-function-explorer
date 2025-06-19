@@ -12,45 +12,30 @@ const {log} = utils.getLog('cmds');
 const NEXT_DEBUG = false;
 // const NEXT_DEBUG = true;
 
-async function setMarks(funcs: Func[], 
-                        toggle = false, mark = false) {
-  if(funcs.length === 0) return;
-  if(funcs.length > 1 && toggle) {
-    log('err', 'setMarks, toggle only for single function');
-    return;
-  }
-  let firstFunc: Func | null = null;
-  let red = false;
-  for (const func of funcs) {
-    if (toggle) func.marked = !func.marked;
-    else        func.marked = mark;
-    if (!func.marked) red = true;
-    firstFunc ??= func;
-    await sbar.saveFuncAndUpdate(func);
-  }
-  if (firstFunc) {
-    await sbar.revealItemByFunc(firstFunc);
-    await fnct.revealFunc(null, firstFunc, red);
-  }
+async function setMark(func: Func, toggle = false, mark = false) {
+  if(!func) return;
+  if (toggle) func.marked = !func.marked;
+  else        func.marked = mark;
+  const red = !func.marked;
+  await sbar.saveFuncAndUpdate(func);
+  await sbar.revealItemByFunc(func);
+  await fnct.revealFunc(null, func, red);
 }
 
 export async function toggleCmd() {
   log('toggleCmd');
-  const funcs = fnct.getbiggestFuncsContainingSelections();
-  if(funcs.length === 0) {
+  const func = fnct.getBiggestFuncInSelection();
+  if(!func) {
     await prevNext(true, true);
     return;
   }
-  let markedCount = 0;
-  funcs.forEach(func => { if(func.marked) markedCount++; });
-  const mark = markedCount/funcs.length < 0.5;
-  await setMarks(funcs, false, mark);
+  await setMark(func, true);
 }
 
 export async function toggleFuncMarkCmd(funcItem: FuncItem) {
-  const func = fnct.getFuncById(funcItem.id!);
+  const func = fnct.getFuncById(funcItem.id);
   if(!func) return;
-  await setMarks([func], true);
+  await setMark(func, true);
 }
 
 async function prevNext(next: boolean, markIt = false) {
@@ -75,7 +60,7 @@ async function prevNext(next: boolean, markIt = false) {
     const selFsPath = (fileWrap ? fsPath : '');
     const selKey = utils.createSortKey(
           selFsPath, activeEditor.selection.active.line);
-    let func: Func;
+    let func: Func | null = null;
     for(let i = (next? 0 : funcs.length-1); 
                 (next? (i < funcs.length) : (i >= 0)); 
            i += (next? 1 : -1)) {
@@ -103,8 +88,8 @@ async function prevNext(next: boolean, markIt = false) {
         }
       }
     }
-    if(markIt) await setMarks([func!], true);
-    else       await fnct.revealFunc(null, func!);
+    if(markIt && func) await setMark(func, true);
+    else               await fnct.revealFunc(null, func!);
   }
 }
 
@@ -137,19 +122,18 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   if(!clickDelaying) {
     const document = textEditor.document;
     const fsPath   = document.uri.fsPath;
-    const funcs: Func[] = [];
     for(const selection of selections) {
       const func = fnct.getFuncAtLine(fsPath, selection.start.line);
       if(func && document.offsetAt(selection.start) >= func.start &&
                  document.offsetAt(selection.end)   <= func.endName) {
-        funcs.push(func);
+        await setMark(func, true);
+        await sbar.updatePointers();
+        return;
       }
       clickDelaying = true;
       setTimeout(() => { clickDelaying = false; }, 500);
     }
-    await setMarks(funcs, true);
   }
-  await sbar.updatePointers();
 }
 
 export function updateSide(document?: vscode.TextDocument) {

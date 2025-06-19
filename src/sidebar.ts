@@ -69,15 +69,12 @@ function removeAllPointers() {
 
 export async function updatePointers() {
   removeAllPointers();
-  const funcs = fnct.getbiggestFuncsContainingSelections();
-  let firstFunc : Func | null = null;
-  for(const func of funcs) {
-    const funcItem = itemsById.get(func.id);
-    if(!funcItem) continue;
-    funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`; 
-    firstFunc ??= func;
-  }
-  if(firstFunc) await revealItemByFunc(firstFunc);
+  const func = fnct.getBiggestFuncInSelection();
+  if(!func) return;
+  const funcItem = itemsById.get(func.id);
+  if(!funcItem) return;
+  funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`;
+  await revealItemByFunc(func);
 }
 
 export function updateMarkIconInFunc(func: Func) {

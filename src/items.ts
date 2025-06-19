@@ -9,6 +9,7 @@ import * as utils  from './utils';
 const {log} = utils.getLog('item');
 
 export class Item extends vscode.TreeItem {
+  id = '';
   parentId?: string;
   static getTree() {
     const wsFolders = vscode.workspace.workspaceFolders;
