@@ -9,11 +9,16 @@ export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
 }
 
-export function rangesOverlap(start1: number, end1: number, 
-                              start2: number, end2: number): boolean {
-  if (start1 > end1) [start1, end1] = [end1, start1];
-  if (start2 > end2) [start2, end2] = [end2, start2];
-  return start1 <= end2 && start2 <= end1;
+export function rangesOverlap(
+                      selStartLine: number, selEndLine: number, 
+                      funcStartLine: number, funcEndLine: number): boolean {
+  if (selStartLine >  selEndLine) 
+     [selStartLine, selEndLine]  = 
+     [selEndLine,   selStartLine]; 
+  if (funcStartLine > funcEndLine) 
+     [funcStartLine,  funcEndLine] = 
+     [funcEndLine, funcStartLine];
+  return selStartLine <= funcEndLine && funcStartLine <= selEndLine;
 }
 
 export function flashRange(editor: vscode.TextEditor, 

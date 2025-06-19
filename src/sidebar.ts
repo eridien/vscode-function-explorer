@@ -52,7 +52,7 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
 
 export async function revealItemByFunc(func: Func) {
   updateTree();
-  const item = await getOrMakeItemById(func.id!, func);
+  const item = await getOrMakeItemById(func.id, func);
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }
 
@@ -69,10 +69,10 @@ function removeAllPointers() {
 
 export async function updatePointers() {
   removeAllPointers();
-  const funcs = fnct.getFuncsOverlappingSelections(false);
+  const funcs = fnct.getbiggestFuncsContainingSelections();
   let firstFunc : Func | null = null;
   for(const func of funcs) {
-    const funcItem = itemsById.get(func.id!);
+    const funcItem = itemsById.get(func.id);
     if(!funcItem) continue;
     funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`; 
     firstFunc ??= func;
@@ -81,7 +81,7 @@ export async function updatePointers() {
 }
 
 export function updateMarkIconInFunc(func: Func) {
-  const funcItem = itemsById.get(func.id!);
+  const funcItem = itemsById.get(func.id);
   if(funcItem) 
     funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
                                     : undefined;
@@ -192,7 +192,7 @@ export async function ensureFileItemsLoaded(fsPath: string) {
     await fnct.updateFuncsInFile(document);
     const funcs = fnct.getFuncs({fsPath});
     for(const func of funcs) {
-      const funcItem = await getOrMakeItemById(func.id!, func);
+      const funcItem = await getOrMakeItemById(func.id, func);
       funcItem.parentId = fsPath;
       updateMarkIconInFunc(func);
     }

@@ -14,7 +14,6 @@ import * as walk  from 'acorn-walk';
 import {settings} from './settings';
 import * as sett  from './settings';
 import * as utils from './utils.js';
-import { updateSide } from './commands';
 const {log, start, end} = utils.getLog('func');
 
 const LOAD_FUNCS_ON_START = true;
@@ -39,12 +38,10 @@ export class Func {
   endName:    number;
   end:        number;
   marked:     boolean;
-  parents?:   Func[];
-  id?:        string;
+  parents:   Func[] = [];
+  id=         '';
   startLine?: number;
   endLine?:   number;
-  startPos?:  vscode.Position;
-  endPos?:    vscode.Position;
   startKey?:  string;
   endKey?:    string;
   fsPath?:    string;
@@ -59,22 +56,15 @@ export class Func {
     this.marked   = false;
   }
   getFsPath()      { return this.fsPath    ??= 
-                          this.document.uri.fsPath;}
-  getStartPos()    { return this.startPos  ??= 
-                            this.document.positionAt(this.start);}
-  getEndPos()      { return this.endPos    ??= 
-                            this.document.positionAt(this.end);}
+                            this.document.uri.fsPath;}
   getStartLine()   { return this.startLine ??= 
-                            this.getStartPos().line;}
+                            this.document.positionAt(this.start).line;}
   getEndLine()     { return this.endLine   ??= 
-                            this.getEndPos().line;}
+                            this.document.positionAt(this.end).line;}
   getStartKey()    { return this.startKey  ??= utils.createSortKey( 
                             this.getFsPath(), this.getStartLine());      }
   getEndKey()      { return this.endKey    ??= utils.createSortKey(
-                          this.getFsPath(), this.getEndLine());        }
-  equalsPos(func:Func) { 
-    return (this.start === func.start && this.end === func.end);
-  }
+                            this.getFsPath(), this.getEndLine());        }
 }
 
 export async function updateFuncsInFile(
@@ -174,7 +164,7 @@ export async function updateFuncsInFile(
   const oldFuncs = getFuncs({fsPath: uri.fsPath});
   let matchCount = 0;
   for(const newFunc of newFuncs) {
-    funcsById.set(newFunc.id!, newFunc);
+    funcsById.set(newFunc.id, newFunc);
     for(const oldFunc of oldFuncs) {
       if(newFunc.id === oldFunc.id) {
         newFunc.marked = oldFunc.marked;
@@ -185,8 +175,8 @@ export async function updateFuncsInFile(
   }
   funcs = newFuncs;
   await saveFuncStorage();
-  const msg = `updated funcs in ${path.basename(uri.fsPath)}, `+
-                      `matched: ${matchCount} of ${funcs.length}`;
+  console.log(`updated funcs in ${path.basename(uri.fsPath)}, `+
+                      `marks copied: ${matchCount} of ${funcs.length}`);
   end('updateFuncsInFile');
   return;
 }
@@ -238,14 +228,19 @@ export function getFuncAtLine( fsPath: string,
                                lineNumber: number) : Func | null {
   const funcs = getSortedFuncs({fsPath});
   if (funcs.length === 0) return null;
+  let minFunc: Func | null = null;
+  let minFuncLen = 1e9;
   for(const func of funcs) {
-    if(func.getStartLine() >  lineNumber) return null; 
-    if(func.getEndLine()   >= lineNumber) return func;
+    if(lineNumber >= func.getStartLine() && lineNumber < (func.getEndLine() + 1)) {
+      if((func.getEndLine() - func.getStartLine()) < minFuncLen) {
+        minFuncLen = func.getEndLine() - func.getStartLine();
+        minFunc = func;
+      }
+    }
   }
-  return null;
+  return minFunc;
 }
-
-export function getFuncsOverlappingSelections(lineOnly = false) : Func[]{
+export function getbiggestFuncsContainingSelections() : Func[] {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return [];
   const document = editor.document;
@@ -254,35 +249,34 @@ export function getFuncsOverlappingSelections(lineOnly = false) : Func[]{
      !sett.includeFile(fsPath)) return [];
   let funcs = getSortedFuncs({fsPath});
   if (funcs.length === 0) return [];
-  let touching: Func[] = [];
+  let biggestFuncsContainingSelections: Func[] = [];
   for (const selection of editor.selections) {
     const selStartLine = selection.start.line;
     const selEndLine   = selection.end.line;
-    const overlaps: Func[] = [];
+    const funcsContainingSelection: Func[] = [];
     for(const func of funcs) {
       const funcStartLine = func.getStartLine();
       const funcEndLine   = func.getEndLine();
-      if (utils.rangesOverlap(selStartLine,  selEndLine, 
-                              funcStartLine, lineOnly ? funcStartLine 
-                                                      : funcEndLine))
-        overlaps.push(func);
+      log('gbfcs', {selStartLine, selEndLine,   
+                    funcStartLine,funcEndLine});
+      const selRange  = new vscode.Range(selStartLine, 0,  selEndLine, 0);
+      const funcRange = new vscode.Range(funcStartLine, 0, funcEndLine, 0);
+      if (selRange.contains(funcRange)) 
+        funcsContainingSelection.push(func);
     }
-    if(!settings.includeSubFunctions) {
-      let minDepth = 1e9;
-      for(const func of overlaps) {
-        const depth = func.parents!.length;
-        if(depth < minDepth) minDepth = depth;
+    let maxFuncLen = -1;
+    let biggestFuncContainingSelection: Func | null = null;
+    for(const func of funcsContainingSelection) {
+      const funcLen = func.getEndLine() - func.getStartLine();
+      if(funcLen > maxFuncLen) {
+        maxFuncLen = funcLen;
+        biggestFuncContainingSelection = func;
       }
-      const nonSubFuncs = [];
-      for(const func of overlaps) {
-        const depth = func.parents!.length;
-        if(depth == minDepth) nonSubFuncs.push(func);
-      }
-      touching.push(...nonSubFuncs);
     }
-    else touching.push(...overlaps);
+    if(biggestFuncContainingSelection) biggestFuncsContainingSelections
+                                 .push(biggestFuncContainingSelection);
   }
-  return touching;
+  return biggestFuncsContainingSelections;
 }
 
 export async function revealFunc(document: vscode.TextDocument | null, 

@@ -3,9 +3,6 @@ bugs ...
   deleting marked function leaves mark on next func
   left name in class exp assign now clickable
   overlap broken in nesting, clicks and toggle
-  class item removed with item click
-  pointers broken
-  func type 'literal'
 
 todo ...
   add "Fit Function (with margin)" as scroll option

@@ -113,7 +113,7 @@ export class FileItem extends Item {
     const funcItems: FuncItem[] = [];
     for(const func of sortedFuncs) {
       if(func.marked || funcIsFunction(func)) {
-        const item = await sbar.getOrMakeItemById(func.id!, func) as FuncItem;
+        const item = await sbar.getOrMakeItemById(func.id, func) as FuncItem;
         item.parentId = this.id;
         funcItems.push(item);
       }

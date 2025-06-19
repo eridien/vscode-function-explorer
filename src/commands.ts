@@ -36,7 +36,7 @@ async function setMarks(funcs: Func[],
 
 export async function toggleCmd() {
   log('toggleCmd');
-  const funcs = fnct.getFuncsOverlappingSelections();
+  const funcs = fnct.getbiggestFuncsContainingSelections();
   if(funcs.length === 0) {
     await prevNext(true, true);
     return;
@@ -141,7 +141,7 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
     for(const selection of selections) {
       const func = fnct.getFuncAtLine(fsPath, selection.start.line);
       if(func && document.offsetAt(selection.start) >= func.start &&
-                document.offsetAt(selection.end)    <= func.endName) {
+                 document.offsetAt(selection.end)   <= func.endName) {
         funcs.push(func);
       }
       clickDelaying = true;
