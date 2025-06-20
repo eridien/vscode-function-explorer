@@ -51,7 +51,6 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
 }
 
 export async function revealItemByFunc(func: Func) {
-  updateTree();
   const item = await getOrMakeItemById(func.id, func);
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }

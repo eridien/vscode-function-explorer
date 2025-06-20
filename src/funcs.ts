@@ -310,7 +310,8 @@ export async function revealFunc(document: vscode.TextDocument | null,
     const startPos = document.positionAt(func.start);
     const endPos   = document.positionAt(func.end);
     utils.scrollToTopMarginAndFlash(editor, startPos, endPos, 
-                                    settings.topMargin, red);
+                                     settings.topMargin, red);
+    editor.selection = new vscode.Selection(startPos, startPos);
   }
   else if(document) {
     await vscode.window.showTextDocument(document.uri, 

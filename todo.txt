@@ -1,8 +1,8 @@
 bugs ...
   class repeated many times with missing letters (start/end wrong)
-  deleting marked function leaves mark on next func
   prev/next broken
   click in constructor assignment content selects next method
+  deleting marked function leaves mark on next func
 
 todo ...
   remove subfunction option

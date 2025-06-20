@@ -17,6 +17,7 @@ async function setMark(func: Func, toggle = false, mark = false) {
   if (toggle) func.marked = !func.marked;
   else        func.marked = mark;
   const red = !func.marked;
+  startselectionChgDelay();
   await sbar.saveFuncAndUpdate(func);
   await sbar.revealItemByFunc(func);
   await fnct.revealFunc(null, func, red);
@@ -90,7 +91,9 @@ async function prevNext(next: boolean, markIt = false, setPointer = false) {
     }
     if(markIt && func)          await setMark(func, true);
     else if(setPointer && func) await sbar.setPointer(func);
-    else                        await fnct.revealFunc(null, func);
+    else {
+      await fnct.revealFunc(null, func);
+    }
   }
 }
 
@@ -110,28 +113,33 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
   const document = event.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
+  if (event.contentChanges.length == 0) return;
   await fnct.updateFuncsInFile();
   updateSide(document);
 }
 
-let clickDelaying = false;
+let clickselectionChgDelaying = false;
+
+function startselectionChgDelay() {
+  clickselectionChgDelaying = true;
+  setTimeout(() => { clickselectionChgDelaying = false; }, 500);
+}
 
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const {textEditor, selections} = p;
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
-  if(!clickDelaying) {
+  if(!clickselectionChgDelaying) {
     const document = textEditor.document;
     const fsPath   = document.uri.fsPath;
     const selection = selections[0];
     const func = fnct.getFuncAtLine(fsPath, selection.start.line);
     if(func && document.offsetAt(selection.start) >= func.start &&
-                document.offsetAt(selection.end)   <= func.endName) {
+               document.offsetAt(selection.end)   <= func.endName) {
       await setMark(func, true);
       return;
     }
-    clickDelaying = true;
-    setTimeout(() => { clickDelaying = false; }, 500);
+    startselectionChgDelay();
     if(!await sbar.updatePointers())
       await prevNext(true, false, true);
   }

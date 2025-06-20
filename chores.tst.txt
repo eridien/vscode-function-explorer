@@ -1,0 +1,189 @@
+
+chores ...
+  show marks in sidebar
+    when file opens -- activity change
+      OK
+          sbar.itemExpandChg
+            sbar.ensureFileItemsLoaded
+                 --openTextDocument
+              fnct.updateFuncsInFile
+                  -- id= -- marked= 
+                fnct.getFuncs
+                    -- funcsById.delete
+                sbar.getOrMakeItemById
+                    -- itemsById.set(id
+                fnct.saveFuncStorage
+              fnct.getFuncs
+                  -- funcsById.delete(fsPath
+              sbar.getOrMakeItemById ...
+                  -- itemsById.set(id
+              sbar.updateMarkIconInFunc
+                -- iconPath = marked?
+              sbar.updateSide
+                sbar.updateTree
+                  -- sbar.refresh
+                gutt.updateGutter
+                  -- setDecorations
+              sbar.updatePointers
+                sbar.removeAllPointers
+                  itms.getFuncItemLabel
+                      -- label= 
+            utils.revealEditorByFspath
+                -- showTextDocument
+                -- openTextDocument
+
+    tab changes 
+        highlights ok
+        no item icons
+        scrolls
+            fnct.updateFuncsInFile
+                -- id= -- marked= 
+              fnct.getFuncs
+                  -- funcsById.delete
+              sbar.getOrMakeItemById
+                  -- itemsById.set(id
+              fnct.saveFuncStorage
+            sbar.updateSide
+              sbar.updateTree
+                -- sbar.refresh
+              gutt.updateGutter
+                -- setDecorations
+
+    key togglecmd -- from menu
+      mark in item
+      flakey
+          cmds.toggleCmd
+            fnct.getBiggestFuncInSelection
+              sett.includeFile
+              fnct.getSortedFuncs
+                fnct.getFuncs ...
+                    -- funcsById.delete
+                fnct.sortFuncsByAlpha
+              func.getStartLine
+              func.getEndLine
+            cmds.prevNext
+              sett.includeFile ...
+              fnct.getSortedFuncs ...
+                fnct.getFuncs ...
+                    -- funcsById.delete
+              utils.createSortKey
+              func.getFsPath
+              utils.createSortKey
+              cmds.setMark
+                  -- marked =
+                sbar.saveFuncAndUpdate
+                  fnct.saveFuncStorage
+                sbar.updateMarkIconInFunc
+                    -- iconPath = marked?
+                sbar.updateSide
+                  sbar.updateTree
+                    -- sbar.refresh
+                  gutt.updateGutter
+                    -- setDecorations
+                sbar.revealItemByFunc
+                    -- sbar.refresh
+                  sbar.getOrMakeItemById ...
+                      -- itemsById.set(id
+                fnct.revealFunc
+                    -- showTextDocument
+                  utils.scrollToTopMarginAndFlash
+                      -- editor.revealRange
+                    utils.flashRange
+                        -- editor.setDecorations
+
+    clicking on name -- mark button in item 
+                     -- key togglecmd, multiple selections
+      highlights ok
+      no item icons
+          cmds.selectionChg
+            sett.includeFile ...
+            fnct.getFuncAtLine
+              fnct.getSortedFuncs
+            cmds.setMark ...
+                -- marked =
+              sbar.saveFuncAndUpdate
+                fnct.saveFuncStorage
+              sbar.updateMarkIconInFunc
+                  -- iconPath = marked?
+              sbar.updateSide
+                sbar.updateTree
+                  -- sbar.refresh
+                gutt.updateGutter
+                  -- setDecorations
+              sbar.revealItemByFunc
+                sbar.updateTree ...
+                    -- sbar.refresh
+                sbar.getOrMakeItemById ...
+                    -- itemsById.set(id
+              fnct.revealFunc
+                  -- showTextDocument
+                utils.scrollToTopMarginAndFlash
+                    -- editor.revealRange
+                  utils.flashRange
+                      -- editor.setDecorations
+            cmds.startselectionChgDelay
+            sbar.updatePointers ...
+              sbar.removeAllPointers
+                itms.getFuncItemLabel
+                    -- label= 
+            cmds.prevNext ...
+              sett.includeFile ...
+              fnct.getSortedFuncs ...
+                fnct.getFuncs ...
+                    -- funcsById.delete
+              utils.createSortKey
+              func.getFsPath
+              utils.createSortKey
+              cmds.setMark
+                sbar.saveFuncAndUpdate
+                  fnct.saveFuncStorage
+                sbar.updateMarkIconInFunc
+                    -- iconPath = marked?
+                sbar.updateSide
+                  sbar.updateTree
+                    -- sbar.refresh
+                  gutt.updateGutter
+                    -- setDecorations
+                sbar.revealItemByFunc
+                  sbar.updateTree ...
+                      -- sbar.refresh
+                  sbar.getOrMakeItemById ...
+                      -- itemsById.set(id
+                fnct.revealFunc
+                    -- showTextDocument
+                  utils.scrollToTopMarginAndFlash
+                      -- editor.revealRange
+                    utils.flashRange
+                        -- editor.setDecorations
+  
+  show marks in gutter
+    key              
+             sett.includeFile ...
+              fnct.getSortedFuncs ...
+                fnct.getFuncs ...
+                    -- funcsById.delete
+              utils.createSortKey
+              func.getFsPath
+              utils.createSortKey
+              cmds.setMark
+                sbar.saveFuncAndUpdate
+                  fnct.saveFuncStorage
+                sbar.updateMarkIconInFunc
+                    -- iconPath = marked?
+                sbar.updateSide
+                  sbar.updateTree
+                    -- sbar.refresh
+                  gutt.updateGutter
+                    -- setDecorations
+                sbar.revealItemByFunc
+                  sbar.updateTree ...
+                      -- sbar.refresh
+                  sbar.getOrMakeItemById ...
+                      -- itemsById.set(id
+                fnct.revealFunc
+                    -- showTextDocument
+                  utils.scrollToTopMarginAndFlash
+                      -- editor.revealRange
+                    utils.flashRange
+                        -- editor.setDecorations
+
