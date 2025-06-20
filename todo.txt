@@ -1,8 +1,6 @@
 bugs ...
-  class repeated many times with missing letters (start/end wrong)
   adding/removing mark doesn't move pointer
-  "class xxx" is the name
-  edits reveal sidebar
+  "class xxx" "const comm" are names
 
 todo ...
   don't scroll on set/unset mark

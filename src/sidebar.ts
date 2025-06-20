@@ -51,6 +51,7 @@ export async function getOrMakeItemById(id: string, itemType: string | Func) {
 }
 
 export async function revealItemByFunc(func: Func) {
+  if(!treeView.visible) return;
   const item = await getOrMakeItemById(func.id, func);
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }
@@ -82,7 +83,7 @@ export async function updatePointers() : Promise<boolean>{
   return funcs.length > 0;
 }
 
-export function updateMarkIconInFunc(func: Func) {
+export function updateMarkIconByFunc(func: Func) {
   const funcItem = itemsById.get(func.id);
   if(funcItem) 
     funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
@@ -91,7 +92,7 @@ export function updateMarkIconInFunc(func: Func) {
 
 export async function saveFuncAndUpdate(func: Func) {
   await fnct.saveFuncStorage();
-  updateMarkIconInFunc(func);
+  updateMarkIconByFunc(func);
   updateSide();
 }
 
@@ -162,7 +163,7 @@ export async function removeMarks(item: Item) {
     const func = fnct.getFuncById((item as FuncItem).id!);
     if(func) {
       func.marked = false;
-      updateMarkIconInFunc(func);
+      updateMarkIconByFunc(func);
     }
   }
   else {
@@ -171,7 +172,7 @@ export async function removeMarks(item: Item) {
       const funcItem = await getOrMakeItemById(func.id, func);
       if(hasParent(funcItem, item.id!)) {
         func.marked = false;
-        updateMarkIconInFunc(func);
+        updateMarkIconByFunc(func);
       }
     }
   }
@@ -199,7 +200,7 @@ export async function ensureFileItemsLoaded(fsPath: string) {
     for(const func of funcs) {
       const funcItem = await getOrMakeItemById(func.id, func);
       funcItem.parentId = fsPath;
-      updateMarkIconInFunc(func);
+      updateMarkIconByFunc(func);
     }
     updateSide(document);
     await updatePointers();
