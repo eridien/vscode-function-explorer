@@ -89,6 +89,7 @@ export class WsAndFolderItem extends Item {
 export class WsFolderItem extends WsAndFolderItem {
   wsFolder: vscode.WorkspaceFolder;
   constructor(wsFolder: vscode.WorkspaceFolder) {
+
     super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
     this.id       = getItemId();
     this.expanded = true;
@@ -117,18 +118,26 @@ export class FolderItem extends WsAndFolderItem {
   }
 }
 
+////////////////////// FileItem //////////////////////
+
 export class FileItem extends Item {
   expanded:    boolean;
   filtered:    boolean = false;
   alphaSorted: boolean = false;
+  document:    vscode.TextDocument;
   constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
     this.id           = getItemId();
     this.expanded     = false;
-    this.key          = fsPath;
     this.iconPath     = new vscode.ThemeIcon('file');
     this.contextValue = 'file';
-    sbar.setItemInMap(this);
+    const document = vscode.workspace.textDocuments
+                           .find(doc => doc.uri.fsPath === fsPath);
+    if (!document) {
+      log('err', `FileItem: No document found for ${fsPath}`);
+      throw new Error(`FileItem: No document found for ${fsPath}`);
+    }
+    this.document = document;
   }
   async getChildren(): Promise<FuncItem[]> {
     let sortedFuncs = fnct.getSortedFuncs(
@@ -151,26 +160,11 @@ export class FileItem extends Item {
   }
 }
 
-// export class FuncItem extends Item {
-//   constructor(func: Func) {
-//     super('', vscode.TreeItemCollapsibleState.None);
-//     this.id   = getItemId();
-//     const key = func.key;
-//     this.parentId = func.getFsPath();
-//     Object.assign(this, {key, contextValue:'func'});
-//     if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
-//     this.command = {
-//       command: 'vscode-function-explorer.funcClickCmd',
-//       title:   'Item Clicked',
-//       arguments: [key],
-//     };
-//     sbar.setItemInMap(this);
-//   }
-// }
+////////////////// FuncItem //////////////////////
+
 export class FuncItem extends Item {
   declare parent: FileItem;
   funcParents:    FuncItem[] = [];
-  document:       vscode.TextDocument;
   name:           string = '';
   type:           string = '';
   start:          number = 0;
@@ -179,39 +173,37 @@ export class FuncItem extends Item {
   end:            number = 0;
   marked:         boolean = false;
   funcType:       string = '';
-  fsPath?:        string;
   startLine?:     number;
   endLine?:       number;
   startKey?:      string;
   endKey?:        string;
-  constructor(p:any) {
+  constructor({ parent, name, type, start, endName, end }: 
+              { parent: FileItem; name: string; type: string; 
+                start: number; endName: number; end: number; }) { 
     super('', vscode.TreeItemCollapsibleState.None);
-    this.id       = getItemId();
-    this.parent   = p.parent   as FileItem;
-    this.document = p.document as vscode.TextDocument;
-    this.name     = p.name     as string;
-    this.type     = p.type     as string;
-    this.start    = p.start    as number;
-    this.endName  = p.endName  as number;
-    this.end      = p.end      as number;
-    this.label    = this.getLabel();
+    this.id           = getItemId();
+    this.parent       = parent;
+    this.name         = name;
+    this.type         = type;
+    this.start        = start;
+    this.endName      = endName;
+    this.end          = end;
+    this.label        = this.getLabel();
     this.contextValue = 'func';
-    this.marked       =  false;
+    this.marked       = false;
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked'
     };
   }
-  getFsPath()      { return this.fsPath    ??= 
-                            this.document.uri.fsPath;}
-  getStartLine()   { return this.startLine ??= 
-                            this.document.positionAt(this.start).line;}
-  getEndLine()     { return this.endLine   ??= 
-                            this.document.positionAt(this.end).line;}
-  getStartKey()    { return this.startKey  ??= utils.createSortKey( 
-                            this.getFsPath(), this.getStartLine());      }
-  getEndKey()      { return this.endKey    ??= utils.createSortKey(
-                            this.getFsPath(), this.getEndLine());        }
+  getStartLine() { return this.startLine ??= 
+                          this.parent.document.positionAt(this.start).line;}
+  getEndLine()   { return this.endLine   ??= 
+                          this.parent.document.positionAt(this.end).line;}
+  getStartKey()  { return this.startKey  ??= utils.createSortKey
+                         (this.parent.document.uri.fsPath, this.getStartLine());}
+  getEndKey()    { return this.endKey    ??= utils.createSortKey
+            (this.parent.document.uri.fsPath, this.getEndLine());}
   isFunction(funcItem: FuncItem = this) {
     return ['FunctionDeclaration', 'FunctionExpression',
             'ArrowFunctionExpression', 'MethodDefinition',
