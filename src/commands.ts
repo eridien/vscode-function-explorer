@@ -25,7 +25,7 @@ async function setMark(func: Func, toggle = false, mark = false) {
 
 export async function toggleCmd() {
   log('toggleCmd');
-  const func = fnct.getBiggestFuncInSelection();
+  let func = fnct.getFuncInAroundSelection();
   if(!func) {
     await prevNext(true, true);
     return;

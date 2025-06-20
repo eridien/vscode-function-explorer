@@ -241,7 +241,7 @@ export function getFuncAtLine( fsPath: string,
   return minFunc;
 }
 
-export function getBiggestFuncInSelection() : Func | null {
+export function getFuncInAroundSelection() : Func | null {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return null;
   const document = editor.document;
@@ -250,29 +250,46 @@ export function getBiggestFuncInSelection() : Func | null {
      !sett.includeFile(fsPath)) return null;
   let funcs = getSortedFuncs({fsPath});
   if (funcs.length === 0) return null;
-  let biggestFuncInSelection: Func | null = null;
+  const funcsInSelection:     Func[] = [];
+  const funcsAroundSelection: Func[] = [];
   for (const selection of editor.selections) {
     const selStartLine = selection.start.line;
     const selEndLine   = selection.end.line;
-    const funcsContainingSelection: Func[] = [];
     for(const func of funcs) {
       const funcStartLine = func.getStartLine();
       const funcEndLine   = func.getEndLine();
-      const selRange  = new vscode.Range(selStartLine, 0,  selEndLine, 0);
+      const selRange  = new vscode.Range(selStartLine,  0, selEndLine,  0);
       const funcRange = new vscode.Range(funcStartLine, 0, funcEndLine, 0);
-      if (selRange.contains(funcRange)) 
-        funcsContainingSelection.push(func);
+      if (selRange.contains(funcRange)) funcsInSelection.push(func);
+      if (funcsInSelection.length == 0 && funcRange.contains(selRange))
+         funcsAroundSelection.push(func);
     }
-    let maxFuncLen = -1;
-    for(const func of funcsContainingSelection) {
-      const funcLen = func.getEndLine() - func.getStartLine();
-      if(funcLen > maxFuncLen) {
-        maxFuncLen = funcLen;
+  }
+  if(funcsInSelection.length > 0) {
+    let maxFuncLenIn = -1;
+    let biggestFuncInSelection = null;
+    for(const func of funcsInSelection) {
+      const funcLen = (func.getEndLine() - func.getStartLine());
+      if(funcLen > maxFuncLenIn) {
+        maxFuncLenIn = funcLen;
         biggestFuncInSelection = func;
       }
     }
+    return biggestFuncInSelection;
   }
-  return biggestFuncInSelection;
+  if(funcsAroundSelection.length > 0) {
+    let minFuncLenAround = 1e9;
+    let smallestFuncAroundSelection = null;
+    for(const func of funcsAroundSelection) {
+      const funcLen = (func.getEndLine() - func.getStartLine());
+      if(funcLen < minFuncLenAround) {
+        minFuncLenAround = funcLen;
+        smallestFuncAroundSelection = func;
+      }
+    }
+    return smallestFuncAroundSelection;
+  }
+  return null;
 }
 
 export function getFuncsOverlappingSelections(): Func[] {

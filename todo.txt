@@ -1,7 +1,9 @@
 bugs ...
   class repeated many times with missing letters (start/end wrong)
   click in constructor assignment content selects next method
-
+  name mark doesn't move pointer
+  "class xxx" is the name
+  
 todo ...
   don't scroll on set/unset mark
   remove subfunction option
