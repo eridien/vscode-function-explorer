@@ -1,12 +1,11 @@
 bugs ...
   class repeated many times with missing letters (start/end wrong)
-  click in constructor assignment content selects next method
-  name mark doesn't move pointer
+  adding/removing mark doesn't move pointer
   "class xxx" is the name
-  
+  edits reveal sidebar
+
 todo ...
   don't scroll on set/unset mark
-  remove subfunction option
   add "Fit Function (with margin)" as scroll option
   handle fs changes
   support multiple funcs with same id

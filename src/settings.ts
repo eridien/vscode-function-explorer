@@ -6,7 +6,6 @@ const {log} = utils.getLog('sett');
 interface FunctionMarksSettings {
   scrollPosition:      vscode.TextEditorRevealType;
   fileWrap:            boolean;
-  includeSubFunctions: boolean;
   alphaSortFuncs:      boolean;
   topMargin:           number;
 }
@@ -14,7 +13,6 @@ interface FunctionMarksSettings {
 export let settings: FunctionMarksSettings = {
   scrollPosition:      vscode.TextEditorRevealType.AtTop,
   fileWrap:            true,
-  includeSubFunctions: false,
   alphaSortFuncs:      false,
   topMargin:           3,
 };
@@ -40,7 +38,6 @@ export function loadSettings() {
   settings = {
     scrollPosition:      scrollPos,
     fileWrap:            config.get('fileWrap',            true),
-    includeSubFunctions: config.get('includeSubFunctions', false),
     alphaSortFuncs:      config.get('alphaSortFuncs',      false),
     topMargin: Math.max(0, Math.min(20, config.get('topMargin', 3))),
   };

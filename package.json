@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -198,12 +198,6 @@
           "default": 3,
           "order": 3,
           "description": "Number of margin lines above function when scrolling with \"At Top (with Margin)\"."
-        },
-        "function-explorer.includeSubFunctions": {
-          "type": "boolean",
-          "default": false,
-          "order": 4,
-          "description": "Include nested functions when marking with a selection."
         },
         "function-explorer.alphaSortFuncs": {
           "type": "boolean",
