@@ -160,12 +160,15 @@ export async function removeMarks(item: Item) {
   }
   if(item.contextValue === 'func') {
     const func = fnct.getFuncById((item as FuncItem).id!);
-    if(func) func.marked = false;
+    if(func) {
+      func.marked = false;
+      updateMarkIconInFunc(func);
+    }
   }
   else {
     const funcs = fnct.getFuncs({});
     for(const func of funcs) {
-      const funcItem = await getOrMakeItemById('', func);
+      const funcItem = await getOrMakeItemById(func.id, func);
       if(hasParent(funcItem, item.id!)) {
         func.marked = false;
         updateMarkIconInFunc(func);

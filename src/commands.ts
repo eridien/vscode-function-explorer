@@ -33,7 +33,7 @@ export async function toggleCmd() {
   await setMark(func, true);
 }
 
-export async function toggleFuncMarkCmd(funcItem: FuncItem) {
+export async function toggleItemMarkCmd(funcItem: FuncItem) {
   const func = fnct.getFuncById(funcItem.id);
   if(!func) return;
   await setMark(func, true);

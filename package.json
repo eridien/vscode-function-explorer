@@ -53,7 +53,7 @@
         "title": "Toggle Alpha Sort"
       },
       {
-        "command": "vscode-function-explorer.toggleFuncMark",
+        "command": "vscode-function-explorer.toggleItemMark",
         "title": "M",
         "category": "Function Explorer: Toggle Function Mark"
       },
@@ -136,7 +136,7 @@
           "command": "vscode-function-explorer.toggleAlphaSortMenu",
           "when": "view == sidebarView && viewItem == file"
         },{
-          "command": "vscode-function-explorer.toggleFuncMark",
+          "command": "vscode-function-explorer.toggleItemMark",
           "when": "view == sidebarView && viewItem == func",
           "group": "inline@2"
         },{

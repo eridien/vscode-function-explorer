@@ -61,9 +61,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		await sbar.removeMarks(item);
 	});
 
-	const toggleFuncMark = vscode.commands.registerCommand(
-		'vscode-function-explorer.toggleFuncMark', async (funcItem: FuncItem) => {
-		await cmds.toggleFuncMarkCmd(funcItem);
+	const toggleItemMark = vscode.commands.registerCommand(
+		'vscode-function-explorer.toggleItemMark', async (funcItem: FuncItem) => {
+		await cmds.toggleItemMarkCmd(funcItem);
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(
@@ -136,7 +136,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
     toggleCmd, prev, next, funcClickCmd, loadSettings,
-    editorChg, selectionChg, textChg, toggleFuncMark,
+    editorChg, selectionChg, textChg, toggleItemMark,
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu
