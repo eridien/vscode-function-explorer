@@ -1,6 +1,9 @@
 bugs ...
   adding/removing mark doesn't move pointer
   "class xxx" "const comm" are names
+  changing tabs adds marks (updateGutter)
+  cannot use arrow key through name
+  Element with id c:\...\src is already registered
 
 todo ...
   don't scroll on set/unset mark
@@ -9,6 +12,7 @@ todo ...
   support multiple funcs with same id
   collapse empty folders into one
   many settings don't immediately change sidebar
+  rearrange files
 
 options ...
 

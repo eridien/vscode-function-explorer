@@ -39,7 +39,7 @@ export class Func {
   end:        number;
   marked:     boolean;
   parents:   Func[] = [];
-  id=         '';
+  key=         '';
   startLine?: number;
   endLine?:   number;
   startKey?:  string;
@@ -155,18 +155,18 @@ export async function updateFuncsInFile(
       if(innerFunc.end  >= newFunc.end) parents.unshift(innerFunc);
     }
     newFunc.parents = parents;
-    let id = newFunc.name  + "\x00" + newFunc.type   + "\x00";
+    let key = newFunc.name  + "\x00" + newFunc.type   + "\x00";
     for(let parent of parents) 
-      id += parent.name + "\x00" + parent.type + "\x00";
-    id += newFunc.getFsPath();
-    newFunc.id = id;
+      key += parent.name + "\x00" + parent.type + "\x00";
+    key += newFunc.getFsPath();
+    newFunc.key = key;
   }
   const oldFuncs = getFuncs({fsPath: uri.fsPath, deleteFuncsById: true});
   let matchCount = 0;
   for(const newFunc of newFuncs) {
-    funcsById.set(newFunc.id, newFunc);
+    funcsById.set(newFunc.key, newFunc);
     for(const oldFunc of oldFuncs) {
-      if(newFunc.id === oldFunc.id) {
+      if(newFunc.key === oldFunc.key) {
         newFunc.marked = oldFunc.marked;
         matchCount++;
         break;
@@ -189,12 +189,12 @@ export function getFuncs(p: any | {} = {}) : Func[] {
   if(filtered && !deleteFuncsById) 
         funcs = funcs.filter(func => func.marked);
   if(deleteFuncsById) 
-    for(const func of funcs) funcsById.delete(func.id); 
+    for(const func of funcs) funcsById.delete(func.key); 
   return funcs;
 }
 
-export function getFuncById(id: string) : Func | undefined {
-  return funcsById.get(id);
+export function getFuncById(key: string) : Func | undefined {
+  return funcsById.get(key);
 }
 
 function sortFuncsByAlpha(funcs: Func[]) : Func[]{
@@ -344,7 +344,7 @@ async function loadFuncStorage() {
       try {
         func.document = await vscode.workspace.openTextDocument(
                               vscode.Uri.file(func.getFsPath()));
-        funcsById.set(func.id!, func);
+        funcsById.set(func.key!, func);
       } catch(err) {
         log('loadFuncStorage', func, err);
       }

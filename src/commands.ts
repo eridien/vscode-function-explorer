@@ -34,7 +34,7 @@ export async function toggleCmd() {
 }
 
 export async function toggleItemMarkCmd(funcItem: FuncItem) {
-  const func = fnct.getFuncById(funcItem.id);
+  const func = fnct.getFuncById(funcItem.key);
   if(!func) return;
   await setMark(func, true);
 }
@@ -102,9 +102,9 @@ export async function prev() { await prevNext(false); }
 
 export async function next() { await prevNext(true); }
 
-export async function funcClickCmd(id: string) { 
+export async function funcClickCmd(key: string) { 
   startselectionChgDelay();
-  await sbar.funcClickCmd(id);
+  await sbar.funcClickCmd(key);
 }
 
 export async function editorChg(editor: vscode.TextEditor) {
