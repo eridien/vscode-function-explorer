@@ -38,8 +38,8 @@ export class Func {
   endName:    number;
   end:        number;
   marked:     boolean;
-  parents:   Func[] = [];
-  key=         '';
+  parents:    Func[] = [];
+  key:        string = '';
   startLine?: number;
   endLine?:   number;
   startKey?:  string;
@@ -130,11 +130,11 @@ export async function updateFuncsInFile(
       return;
     },
     MethodDefinition(node) {
-      const {start, end, id, kind} = node;
-      const endName = id.end;
-      if(kind == 'constructor') {
-        const name = 'constructor';
-        const type = 'Constructor';
+      const {start, end, key, kind} = node;
+      const endName = key.end;
+      if(kind      == 'constructor') {
+        const name  = 'constructor';
+        const type  = 'Constructor';
         addFunc(name, type, start, endName, end);
         return;
       }
@@ -344,7 +344,7 @@ async function loadFuncStorage() {
       try {
         func.document = await vscode.workspace.openTextDocument(
                               vscode.Uri.file(func.getFsPath()));
-        funcsByKey.set(func.key!, func);
+        funcsByKey.set(func.key, func);
       } catch(err) {
         log('loadFuncStorage', func, err);
       }

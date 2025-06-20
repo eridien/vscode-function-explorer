@@ -8,6 +8,9 @@ import * as sett   from './settings';
 import * as utils  from './utils';
 const {log} = utils.getLog('item');
 
+let nextItemId = 0;
+function getItemId() { return '' + nextItemId++; }
+
 export class Item extends vscode.TreeItem {
   key = '';
   parentId?: string;
@@ -65,6 +68,7 @@ export class WsFolderItem extends WsAndFolderItem {
   wsFolder: vscode.WorkspaceFolder;
   constructor(wsFolder: vscode.WorkspaceFolder) {
     super(wsFolder.name, vscode.TreeItemCollapsibleState.Expanded);
+    this.id       = getItemId();
     this.expanded = true;
     this.wsFolder = wsFolder;
     const key = wsFolder.uri.fsPath;
@@ -78,6 +82,7 @@ export class FolderItem extends WsAndFolderItem {
   private constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Expanded);
     this.expanded = true;
+    this.id       = getItemId();
   }
   static async create(fsPath: string) {
     if (!await sbar.hasChildFuncTest(fsPath)) return null;
@@ -96,8 +101,9 @@ export class FileItem extends Item {
   alphaSorted: boolean = false;
   constructor(fsPath: string) {
     super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
+    this.id           = getItemId();
     this.expanded     = false;
-    this.key           = fsPath;
+    this.key          = fsPath;
     this.iconPath     = new vscode.ThemeIcon('file');
     this.contextValue = 'file';
     sbar.setItemInMap(this);
@@ -155,6 +161,7 @@ export function getFuncItemLabel(func: Func): string {
 export class FuncItem extends Item {
   constructor(func: Func) {
     super(getFuncItemLabel(func), vscode.TreeItemCollapsibleState.None);
+    this.id   = getItemId();
     const key = func.key;
     this.parentId = func.getFsPath();
     Object.assign(this, {key, contextValue:'func'});

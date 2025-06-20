@@ -158,6 +158,6 @@ export function updateSide(document?: vscode.TextDocument) {
     if(activeEditor) document = activeEditor.document;
   }
   if(!document) return;
-  sbar.updateTree();
+  sbar.updateItem();
   gutt.updateGutter();
 };

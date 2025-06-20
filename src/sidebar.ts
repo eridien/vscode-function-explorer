@@ -79,7 +79,7 @@ export async function updatePointers() : Promise<boolean>{
   removeAllPointers();
   const funcs = fnct.getFuncsOverlappingSelections();
   for(const func of funcs) await setPointer(func);
-  updateTree();
+  updateItem();
   return funcs.length > 0;
 }
 
@@ -109,15 +109,6 @@ export function isMarksOnly(fsPath: string): boolean {
   return marksOnlySet.has(fsPath);
 }
 
-export function fileClickCmd(fsPath: string) { 
-  log('fileClickCmd', fsPath);
-  if(marksOnlySet.has(fsPath))
-     marksOnlySet.delete(fsPath);
-  else 
-     marksOnlySet.add(fsPath);
-  updateTree();
-}
-
 export async function funcClickCmd(key: string) { 
   const item = itemsByKey.get(key) as FuncItem;
   const func = item ? fnct.getFuncBykey(key) : null;
@@ -126,12 +117,12 @@ export async function funcClickCmd(key: string) {
 
 export function toggleMarkedFilter(fileItem: FileItem) {
   fileItem.filtered = !fileItem.filtered;
-  updateTree();
+  updateItem();
 }
 
 export function toggleAlphaSort(fileItem: FileItem) {
   fileItem.alphaSorted = !fileItem.alphaSorted;
-  updateTree();
+  updateItem();
 }
 
 export async function hasChildFuncTest(fsPath: string): Promise<boolean> {
@@ -180,8 +171,8 @@ export async function removeMarks(item: Item) {
   updateSide();
 }
 
-export function updateTree() {
-  sidebarProvider.refresh();
+export function updateItem(item: Item | undefined = undefined) {
+  sidebarProvider.refresh(item);
 }
 
 export function treeExpandChg() {
@@ -227,9 +218,9 @@ export class SidebarProvider {
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
   }
   
-  refresh(): void {
+  refresh(item:Item | undefined): void {
     // log(++count, 'refresh', item?.label || 'undefined');
-    this._onDidChangeTreeData.fire(undefined);
+    this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(item: Item): Item {

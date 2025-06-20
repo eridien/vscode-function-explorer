@@ -3,9 +3,9 @@ bugs ...
   "class xxx" "const comm" are names
   changing tabs adds marks (updateGutter)
   Element with id c:\...\src is already registered
-  cannot use arrow key or search through name
 
 todo ...
+  gesture
   don't scroll on set/unset mark
   add "Fit Function (with margin)" as scroll option
   handle fs changes
