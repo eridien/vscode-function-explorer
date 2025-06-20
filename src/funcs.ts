@@ -183,14 +183,13 @@ export async function updateFuncsInFile(
 export function getFuncs(p: any | {} = {}) : Func[] {
   const {fsPath, filtered = false, deleteFuncsById = false} = p;
   let funcs;
-  if(fsPath) {
-    funcs = Array.from(funcsById.values())
-                 .filter(func => func.getFsPath() === fsPath);
-  }
+  if(fsPath) funcs = Array.from(funcsById.values())
+                          .filter(func => func.getFsPath() === fsPath);
   else funcs = [...funcsById.values()];
-  if(filtered) funcs = funcs.filter(func => func.marked);
+  if(filtered && !deleteFuncsById) 
+        funcs = funcs.filter(func => func.marked);
   if(deleteFuncsById) 
-    for(const func of funcs) {funcsById.delete(func.fsPath!); }
+    for(const func of funcs) funcsById.delete(func.id); 
   return funcs;
 }
 

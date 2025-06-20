@@ -133,9 +133,10 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
     const document = textEditor.document;
     const fsPath   = document.uri.fsPath;
     const selection = selections[0];
+    const selStart = document.offsetAt(selection.start);
+    const selEnd   = document.offsetAt(selection.end);
     const func = fnct.getFuncAtLine(fsPath, selection.start.line);
-    if(func && document.offsetAt(selection.start) >= func.start &&
-               document.offsetAt(selection.end)   <= func.endName) {
+    if(func && selStart >= func.start && selEnd <= func.endName) {
       await setMark(func, true);
       return;
     }
