@@ -17,8 +17,7 @@ const {log, start, end} = utils.getLog('side');
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
 
-let itemsByKey: Map<string, Item> = new Map();
-let marksOnlySet = new Set<string>();
+let itemsById: Map<string, Item> = new Map();
 
 export function activate(treeViewIn: vscode.TreeView<Item>, 
                          sidebarProviderIn: SidebarProvider) {
@@ -27,11 +26,11 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
 }
 
 export function setItemInMap(item: Item) {
-  itemsByKey.set(item.key!, item);
+  itemsById.set(item.id, item);
 }
 
 export async function getOrMakeItemByKey(key: string, itemType: string | Func) {
-  let item = itemsByKey.get(key);
+  let item = itemsById.get(key);
   if(item) return item;
   if(itemType instanceof Func) {
     item = new FuncItem(itemType);
@@ -46,7 +45,7 @@ export async function getOrMakeItemByKey(key: string, itemType: string | Func) {
         throw new Error(`getOrMakeItemByKey, Unknown item type: ${itemType}`);
     }
   }
-  if(item) itemsByKey.set(key, item);
+  if(item) itemsById.set(key, item);
   return item;
 }
 
@@ -57,7 +56,7 @@ export async function revealItemByFunc(func: Func) {
 }
 
 function removeAllPointers() {
-  for(const item of itemsByKey.values()) {
+  for(const item of itemsById.values()) {
     if(item.contextValue == 'func') {
       const funcItem = item as FuncItem;
       const func = fnct.getFuncBykey(funcItem.key);
@@ -68,7 +67,7 @@ function removeAllPointers() {
 }
 
 export async function setPointer(func: Func) {
-  const funcItem = itemsByKey.get(func.key);
+  const funcItem = itemsById.get(func.key);
   if(funcItem) {
     funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`;
     await revealItemByFunc(func);
@@ -84,7 +83,7 @@ export async function updatePointers() : Promise<boolean>{
 }
 
 export function updateMarkIconByFunc(func: Func) {
-  const funcItem = itemsByKey.get(func.key);
+  const funcItem = itemsById.get(func.key);
   if(funcItem) 
     funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
                                     : undefined;
@@ -110,7 +109,7 @@ export function isMarksOnly(fsPath: string): boolean {
 }
 
 export async function funcClickCmd(key: string) { 
-  const item = itemsByKey.get(key) as FuncItem;
+  const item = itemsById.get(key) as FuncItem;
   const func = item ? fnct.getFuncBykey(key) : null;
   if (item) await fnct.revealFunc(null, func!);
 }
@@ -146,7 +145,7 @@ export async function removeMarks(item: Item) {
   function hasParent(item: Item, parentId: string) {
     if(item.parentId === parentId) return true;
     if(!item.parentId) return false;
-    const parentItem = itemsByKey.get(item.parentId);
+    const parentItem = itemsById.get(item.parentId);
     if(!parentItem) return false;
     return hasParent(parentItem, parentId);
   }
@@ -231,7 +230,7 @@ export class SidebarProvider {
   getParent(item: Item): Item | null {
     // log(++count, 'getParent', item?.label || 'undefined');
     if(item?.parentId) {
-      const parentItem = itemsByKey.get(item.parentId);
+      const parentItem = itemsById.get(item.parentId);
       if(parentItem) return parentItem;
     }
     return null;

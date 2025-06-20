@@ -1,12 +1,4 @@
-// @@ts-nocheck
-// https://github.com/acornjs/acorn/tree/master/acorn-loose/
-// https://github.com/acornjs/acorn/tree/master/acorn-walk/
-// https://github.com/estree/estree/blob/master/es5.md
-// https://hexdocs.pm/estree/api-reference.html
-/*
-ClassExpression
-YieldExpression
-*/
+
 import vscode     from 'vscode';
 import * as path  from 'path';
 import * as acorn from "acorn-loose";
@@ -19,8 +11,8 @@ const {log, start, end} = utils.getLog('func');
 const LOAD_FUNCS_ON_START = true;
 // const LOAD_FUNCS_ON_START = false;
 
-let context:    vscode.ExtensionContext;
-let funcsByKey: Map<string, Func> = new Map();
+let context:          vscode.ExtensionContext;
+let funcItemsByFuncId: Map<string, Func> = new Map();
 
 export async function activate(contextIn: vscode.ExtensionContext) {
   start('activate funcs');
@@ -30,23 +22,23 @@ export async function activate(contextIn: vscode.ExtensionContext) {
   end('activate funcs', false);
 }
 
-export class Func {
-  document:   vscode.TextDocument;
-  name:       string;
-  type:       string;
-  start:      number;
-  endName:    number;
-  end:        number;
-  marked:     boolean;
-  parents:    Func[] = [];
-  key:        string = '';
-  startLine?: number;
-  endLine?:   number;
-  startKey?:  string;
-  endKey?:    string;
-  fsPath?:    string;
+export class FuncItem extends Item {
+  document:    vscode.TextDocument;
+  name:        string;
+  type:        string;
+  start:       number;
+  endName:     number;
+  end:         number;
+  marked:      boolean;
+  funcType:    string = '';
+  fsPath?:     string;
+  startLine?:  number;
+  endLine?:    number;
+  startKey?:   string;
+  endKey?:     string;
   constructor(p:any) {
     const {document, name, type, start, endName, end} = p;
+    super('', vscode.TreeItemCollapsibleState.None);
     this.document = document;
     this.name     = name;
     this.type     = type;
@@ -65,6 +57,36 @@ export class Func {
                             this.getFsPath(), this.getStartLine());      }
   getEndKey()      { return this.endKey    ??= utils.createSortKey(
                             this.getFsPath(), this.getEndLine());        }
+}
+getFuncItemLabel() {
+  let label = '  ';
+  function addParentToLabel(funcParent: FuncItem) {
+    if(funcIsFunction(funcParent)) {
+      label += ` ƒ ${funcParent.name}`;
+      return;
+    }
+    let pfx: string;
+    switch (funcParent.type) {
+      case 'Property':            pfx = ':'; break;
+      case 'CallExpression':      pfx = '('; break;
+      case 'ClassDeclaration':
+      case 'ClassExpression':     pfx = '©'; break;
+      default:                    pfx = '='; break;
+    }
+    label += ` ${pfx} ${funcParent.name}`;
+  }
+  addParentToLabel(func);
+  const parents = this.getParents();
+  for(const funcParent of parents) addParentToLabel(funcParent);
+  // label += ` (${func.type})`;
+  return label.slice(funcIsFunction(func) ? 5 : 3);
+}
+
+function funcIsFunction(func: FuncItem): boolean {
+  return ['FunctionDeclaration', 'FunctionExpression',
+          'ArrowFunctionExpression', 'MethodDefinition',
+          'Constructor', 'Method']
+          .includes(func.type);
 }
 
 export async function updateFuncsInFile(
@@ -164,7 +186,7 @@ export async function updateFuncsInFile(
   const oldFuncs = getFuncs({fsPath: uri.fsPath, deleteFuncsBykey: true});
   let matchCount = 0;
   for(const newFunc of newFuncs) {
-    funcsByKey.set(newFunc.key, newFunc);
+    funcItemsByFuncId.set(newFunc.key, newFunc);
     for(const oldFunc of oldFuncs) {
       if(newFunc.key === oldFunc.key) {
         newFunc.marked = oldFunc.marked;
@@ -183,18 +205,18 @@ export async function updateFuncsInFile(
 export function getFuncs(p: any | {} = {}) : Func[] {
   const {fsPath, filtered = false, deleteFuncsBykey = false} = p;
   let funcs;
-  if(fsPath) funcs = Array.from(funcsByKey.values())
+  if(fsPath) funcs = Array.from(funcItemsByFuncId.values())
                           .filter(func => func.getFsPath() === fsPath);
-  else funcs = [...funcsByKey.values()];
+  else funcs = [...funcItemsByFuncId.values()];
   if(filtered && !deleteFuncsBykey) 
         funcs = funcs.filter(func => func.marked);
   if(deleteFuncsBykey) 
-    for(const func of funcs) funcsByKey.delete(func.key); 
+    for(const func of funcs) funcItemsByFuncId.delete(func.key); 
   return funcs;
 }
 
 export function getFuncBykey(key: string) : Func | undefined {
-  return funcsByKey.get(key);
+  return funcItemsByFuncId.get(key);
 }
 
 function sortFuncsByAlpha(funcs: Func[]) : Func[]{
@@ -344,7 +366,7 @@ async function loadFuncStorage() {
       try {
         func.document = await vscode.workspace.openTextDocument(
                               vscode.Uri.file(func.getFsPath()));
-        funcsByKey.set(func.key, func);
+        funcItemsByFuncId.set(func.key, func);
       } catch(err) {
         log('loadFuncStorage', func, err);
       }

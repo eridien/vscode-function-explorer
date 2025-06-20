@@ -3,17 +3,31 @@ import * as fs     from 'fs/promises';
 import * as path   from 'path';
 import * as sbar   from './sidebar';
 import * as fnct   from './funcs';
-import {Func}      from './funcs';
 import * as sett   from './settings';
 import * as utils  from './utils';
 const {log} = utils.getLog('item');
 
+// const LOAD_FUNCS_ON_START = true;
+const LOAD_FUNCS_ON_START = false;
+
+
 let nextItemId = 0;
 function getItemId() { return '' + nextItemId++; }
 
+let context:          vscode.ExtensionContext;
+let funcItemsByFuncId: Map<string, Func> = new Map();
+
+export async function activate(contextIn: vscode.ExtensionContext) {
+  start('activate items');
+  context = contextIn;
+  await loadFuncStorage();
+  await updateFuncsInFile();
+  end('activate items', false);
+}
+
 export class Item extends vscode.TreeItem {
-  key = '';
-  parentId?: string;
+  parent:   Item | null = null;
+  children: Item[] = [];
   static getTree() {
     const wsFolders = vscode.workspace.workspaceFolders;
     if (!wsFolders) {
@@ -24,6 +38,14 @@ export class Item extends vscode.TreeItem {
     for(const wsFolder of wsFolders) 
       tree.push(new WsFolderItem(wsFolder));
     return tree;
+  }
+  getParents() {
+    const parents: Item[] = [];
+    while(this.parent) {
+      parents.push(this.parent);
+      this.parent = this.parent.parent;
+    }
+    return parents;
   }
 }
 
@@ -129,48 +151,104 @@ export class FileItem extends Item {
   }
 }
 
-function funcIsFunction(func: Func): boolean {
-  return ['FunctionDeclaration', 'FunctionExpression',
-          'ArrowFunctionExpression', 'MethodDefinition',
-          'Constructor', 'Method']
-          .includes(func.type);
-}
-export function getFuncItemLabel(func: Func): string {
-  let label = '  ';
-  function addParent(funcParent: Func) {
-    if(funcIsFunction(funcParent)) {
-      label += ` ƒ ${funcParent.name}`;
-      return;
-    }
-    let pfx: string;
-    switch (funcParent.type) {
-      case 'Property':            pfx = ':'; break;
-      case 'CallExpression':      pfx = '('; break;
-      case 'ClassDeclaration':
-      case 'ClassExpression':     pfx = '©'; break;
-      default:                    pfx = '='; break;
-    }
-    label += ` ${pfx} ${funcParent.name}`;
-  }
-  addParent(func);
-  for(const funcParent of func.parents!) addParent(funcParent);
-  // label += ` (${func.type})`;
-  return label.slice(funcIsFunction(func) ? 5 : 3);
-}
-
+// export class FuncItem extends Item {
+//   constructor(func: Func) {
+//     super('', vscode.TreeItemCollapsibleState.None);
+//     this.id   = getItemId();
+//     const key = func.key;
+//     this.parentId = func.getFsPath();
+//     Object.assign(this, {key, contextValue:'func'});
+//     if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
+//     this.command = {
+//       command: 'vscode-function-explorer.funcClickCmd',
+//       title:   'Item Clicked',
+//       arguments: [key],
+//     };
+//     sbar.setItemInMap(this);
+//   }
+// }
 export class FuncItem extends Item {
-  constructor(func: Func) {
-    super(getFuncItemLabel(func), vscode.TreeItemCollapsibleState.None);
-    this.id   = getItemId();
-    const key = func.key;
-    this.parentId = func.getFsPath();
-    Object.assign(this, {key, contextValue:'func'});
-    if(func.marked) this.iconPath = new vscode.ThemeIcon('bookmark');
+  declare parent: FileItem;
+  funcParents:    FuncItem[] = [];
+  document:       vscode.TextDocument;
+  name:           string = '';
+  type:           string = '';
+  start:          number = 0;
+  startName:      number = 0;
+  endName:        number = 0;
+  end:            number = 0;
+  marked:         boolean = false;
+  funcType:       string = '';
+  fsPath?:        string;
+  startLine?:     number;
+  endLine?:       number;
+  startKey?:      string;
+  endKey?:        string;
+  constructor(p:any) {
+    super('', vscode.TreeItemCollapsibleState.None);
+    this.id       = getItemId();
+    this.parent   = p.parent   as FileItem;
+    this.document = p.document as vscode.TextDocument;
+    this.name     = p.name     as string;
+    this.type     = p.type     as string;
+    this.start    = p.start    as number;
+    this.endName  = p.endName  as number;
+    this.end      = p.end      as number;
+    this.label    = this.getLabel();
+    this.contextValue = 'func';
+    this.marked       =  false;
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
-      title:   'Item Clicked',
-      arguments: [key],
+      title:   'Item Clicked'
     };
-    sbar.setItemInMap(this);
+  }
+  getFsPath()      { return this.fsPath    ??= 
+                            this.document.uri.fsPath;}
+  getStartLine()   { return this.startLine ??= 
+                            this.document.positionAt(this.start).line;}
+  getEndLine()     { return this.endLine   ??= 
+                            this.document.positionAt(this.end).line;}
+  getStartKey()    { return this.startKey  ??= utils.createSortKey( 
+                            this.getFsPath(), this.getStartLine());      }
+  getEndKey()      { return this.endKey    ??= utils.createSortKey(
+                            this.getFsPath(), this.getEndLine());        }
+  isFunction(funcItem: FuncItem = this) {
+    return ['FunctionDeclaration', 'FunctionExpression',
+            'ArrowFunctionExpression', 'MethodDefinition',
+            'Constructor', 'Method']
+            .includes(funcItem.type);
+  }
+  getLabel() {
+    let label = '  ';
+    const addParentToLabel = (parent: FuncItem = this) => {
+      if(parent.isFunction(parent)) {
+        label += ` ƒ ${this.name}`;
+        return;
+      }
+      let pfx: string;
+      switch (this.type) {
+        case 'Property':            pfx = ':'; break;
+        case 'CallExpression':      pfx = '('; break;
+        case 'ClassDeclaration':
+        case 'ClassExpression':     pfx = '©'; break;
+        default:                    pfx = '='; break;
+      }
+      label += ` ${pfx} ${this.name}`;
+    }
+    addParentToLabel();
+    const parents = this.funcParents;
+    for(const funcParent of parents) addParentToLabel(funcParent);
+    // label += ` (${this.type})`;
+    return label.slice(this.isFunction() ? 5 : 3);
   }
 }
+
+// @@ts-nocheck
+// https://github.com/acornjs/acorn/tree/master/acorn-loose/
+// https://github.com/acornjs/acorn/tree/master/acorn-walk/
+// https://github.com/estree/estree/blob/master/es5.md
+// https://hexdocs.pm/estree/api-reference.html
+/*
+ClassExpression
+YieldExpression
+*/
