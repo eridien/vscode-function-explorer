@@ -37,7 +37,7 @@ export class WsAndFolderItem extends Item {
       if(!sett.includeFile(fsPath, isDir)) continue;
       if (isDir) {
         const folderItem = 
-                  await sbar.getOrMakeItemById(fsPath, 'folder') as FolderItem;
+                  await sbar.getOrMakeItemByKey(fsPath, 'folder') as FolderItem;
         if(!folderItem) continue;
         folderItem.parentId = parentFsPath;
         folders.push(folderItem);
@@ -45,7 +45,7 @@ export class WsAndFolderItem extends Item {
       }
       if (entry.isFile()) {
         const fileItem = 
-                 await sbar.getOrMakeItemById(fsPath, 'file') as FileItem;
+                 await sbar.getOrMakeItemByKey(fsPath, 'file') as FileItem;
         if(!fileItem) continue;
         fileItem.parentId = parentFsPath;
         files.push(fileItem);
@@ -114,7 +114,7 @@ export class FileItem extends Item {
     const funcItems: FuncItem[] = [];
     for(const func of sortedFuncs) {
       if(func.marked || funcIsFunction(func)) {
-        const item = await sbar.getOrMakeItemById(func.key, func) as FuncItem;
+        const item = await sbar.getOrMakeItemByKey(func.key, func) as FuncItem;
         item.parentId = this.key;
         funcItems.push(item);
       }

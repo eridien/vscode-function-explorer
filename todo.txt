@@ -2,8 +2,8 @@ bugs ...
   adding/removing mark doesn't move pointer
   "class xxx" "const comm" are names
   changing tabs adds marks (updateGutter)
-  cannot use arrow key through name
   Element with id c:\...\src is already registered
+  cannot use arrow key or search through name
 
 todo ...
   don't scroll on set/unset mark

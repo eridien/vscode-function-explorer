@@ -34,7 +34,7 @@ export async function toggleCmd() {
 }
 
 export async function toggleItemMarkCmd(funcItem: FuncItem) {
-  const func = fnct.getFuncById(funcItem.key);
+  const func = fnct.getFuncBykey(funcItem.key);
   if(!func) return;
   await setMark(func, true);
 }

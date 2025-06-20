@@ -19,8 +19,8 @@ const {log, start, end} = utils.getLog('func');
 const LOAD_FUNCS_ON_START = true;
 // const LOAD_FUNCS_ON_START = false;
 
-let context:       vscode.ExtensionContext;
-let funcsById:     Map<string, Func> = new Map();
+let context:    vscode.ExtensionContext;
+let funcsByKey: Map<string, Func> = new Map();
 
 export async function activate(contextIn: vscode.ExtensionContext) {
   start('activate funcs');
@@ -130,8 +130,8 @@ export async function updateFuncsInFile(
       return;
     },
     MethodDefinition(node) {
-      const {start, end, key, kind} = node;
-      const endName = key.end;
+      const {start, end, id, kind} = node;
+      const endName = id.end;
       if(kind == 'constructor') {
         const name = 'constructor';
         const type = 'Constructor';
@@ -161,10 +161,10 @@ export async function updateFuncsInFile(
     key += newFunc.getFsPath();
     newFunc.key = key;
   }
-  const oldFuncs = getFuncs({fsPath: uri.fsPath, deleteFuncsById: true});
+  const oldFuncs = getFuncs({fsPath: uri.fsPath, deleteFuncsBykey: true});
   let matchCount = 0;
   for(const newFunc of newFuncs) {
-    funcsById.set(newFunc.key, newFunc);
+    funcsByKey.set(newFunc.key, newFunc);
     for(const oldFunc of oldFuncs) {
       if(newFunc.key === oldFunc.key) {
         newFunc.marked = oldFunc.marked;
@@ -181,20 +181,20 @@ export async function updateFuncsInFile(
 }
 
 export function getFuncs(p: any | {} = {}) : Func[] {
-  const {fsPath, filtered = false, deleteFuncsById = false} = p;
+  const {fsPath, filtered = false, deleteFuncsBykey = false} = p;
   let funcs;
-  if(fsPath) funcs = Array.from(funcsById.values())
+  if(fsPath) funcs = Array.from(funcsByKey.values())
                           .filter(func => func.getFsPath() === fsPath);
-  else funcs = [...funcsById.values()];
-  if(filtered && !deleteFuncsById) 
+  else funcs = [...funcsByKey.values()];
+  if(filtered && !deleteFuncsBykey) 
         funcs = funcs.filter(func => func.marked);
-  if(deleteFuncsById) 
-    for(const func of funcs) funcsById.delete(func.key); 
+  if(deleteFuncsBykey) 
+    for(const func of funcs) funcsByKey.delete(func.key); 
   return funcs;
 }
 
-export function getFuncById(key: string) : Func | undefined {
-  return funcsById.get(key);
+export function getFuncBykey(key: string) : Func | undefined {
+  return funcsByKey.get(key);
 }
 
 function sortFuncsByAlpha(funcs: Func[]) : Func[]{
@@ -344,7 +344,7 @@ async function loadFuncStorage() {
       try {
         func.document = await vscode.workspace.openTextDocument(
                               vscode.Uri.file(func.getFsPath()));
-        funcsById.set(func.key!, func);
+        funcsByKey.set(func.key!, func);
       } catch(err) {
         log('loadFuncStorage', func, err);
       }

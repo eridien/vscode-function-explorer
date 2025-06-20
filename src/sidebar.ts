@@ -17,8 +17,8 @@ const {log, start, end} = utils.getLog('side');
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
 
-let itemsById: Map<string, Item> = new Map();
-let marksOnlySet                 = new Set<string>();
+let itemsByKey: Map<string, Item> = new Map();
+let marksOnlySet = new Set<string>();
 
 export function activate(treeViewIn: vscode.TreeView<Item>, 
                          sidebarProviderIn: SidebarProvider) {
@@ -27,11 +27,11 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
 }
 
 export function setItemInMap(item: Item) {
-  itemsById.set(item.key!, item);
+  itemsByKey.set(item.key!, item);
 }
 
-export async function getOrMakeItemById(key: string, itemType: string | Func) {
-  let item = itemsById.get(key);
+export async function getOrMakeItemByKey(key: string, itemType: string | Func) {
+  let item = itemsByKey.get(key);
   if(item) return item;
   if(itemType instanceof Func) {
     item = new FuncItem(itemType);
@@ -43,24 +43,24 @@ export async function getOrMakeItemById(key: string, itemType: string | Func) {
       case 'file':   
             item = new FileItem(key); break;
       default:
-        throw new Error(`getOrMakeItemById, Unknown item type: ${itemType}`);
+        throw new Error(`getOrMakeItemByKey, Unknown item type: ${itemType}`);
     }
   }
-  if(item) itemsById.set(key, item);
+  if(item) itemsByKey.set(key, item);
   return item;
 }
 
 export async function revealItemByFunc(func: Func) {
   if(!treeView.visible) return;
-  const item = await getOrMakeItemById(func.key, func);
+  const item = await getOrMakeItemByKey(func.key, func);
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }
 
 function removeAllPointers() {
-  for(const item of itemsById.values()) {
+  for(const item of itemsByKey.values()) {
     if(item.contextValue == 'func') {
       const funcItem = item as FuncItem;
-      const func = fnct.getFuncById(funcItem.key);
+      const func = fnct.getFuncBykey(funcItem.key);
       if(!func) continue;
       funcItem.label = itms.getFuncItemLabel(func);
     }
@@ -68,7 +68,7 @@ function removeAllPointers() {
 }
 
 export async function setPointer(func: Func) {
-  const funcItem = itemsById.get(func.key);
+  const funcItem = itemsByKey.get(func.key);
   if(funcItem) {
     funcItem.label = `➤ ${itms.getFuncItemLabel(func)}`;
     await revealItemByFunc(func);
@@ -84,7 +84,7 @@ export async function updatePointers() : Promise<boolean>{
 }
 
 export function updateMarkIconByFunc(func: Func) {
-  const funcItem = itemsById.get(func.key);
+  const funcItem = itemsByKey.get(func.key);
   if(funcItem) 
     funcItem.iconPath = func.marked ? new vscode.ThemeIcon('bookmark') 
                                     : undefined;
@@ -119,8 +119,8 @@ export function fileClickCmd(fsPath: string) {
 }
 
 export async function funcClickCmd(key: string) { 
-  const item = itemsById.get(key) as FuncItem;
-  const func = item ? fnct.getFuncById(key) : null;
+  const item = itemsByKey.get(key) as FuncItem;
+  const func = item ? fnct.getFuncBykey(key) : null;
   if (item) await fnct.revealFunc(null, func!);
 }
 
@@ -155,12 +155,12 @@ export async function removeMarks(item: Item) {
   function hasParent(item: Item, parentId: string) {
     if(item.parentId === parentId) return true;
     if(!item.parentId) return false;
-    const parentItem = itemsById.get(item.parentId);
+    const parentItem = itemsByKey.get(item.parentId);
     if(!parentItem) return false;
     return hasParent(parentItem, parentId);
   }
   if(item.contextValue === 'func') {
-    const func = fnct.getFuncById((item as FuncItem).key!);
+    const func = fnct.getFuncBykey((item as FuncItem).key!);
     if(func) {
       func.marked = false;
       updateMarkIconByFunc(func);
@@ -169,7 +169,7 @@ export async function removeMarks(item: Item) {
   else {
     const funcs = fnct.getFuncs({});
     for(const func of funcs) {
-      const funcItem = await getOrMakeItemById(func.key, func);
+      const funcItem = await getOrMakeItemByKey(func.key, func);
       if(hasParent(funcItem, item.key!)) {
         func.marked = false;
         updateMarkIconByFunc(func);
@@ -198,7 +198,7 @@ export async function ensureFileItemsLoaded(fsPath: string) {
     await fnct.updateFuncsInFile(document);
     const funcs = fnct.getFuncs({fsPath});
     for(const func of funcs) {
-      const funcItem = await getOrMakeItemById(func.key, func);
+      const funcItem = await getOrMakeItemByKey(func.key, func);
       funcItem.parentId = fsPath;
       updateMarkIconByFunc(func);
     }
@@ -240,7 +240,7 @@ export class SidebarProvider {
   getParent(item: Item): Item | null {
     // log(++count, 'getParent', item?.label || 'undefined');
     if(item?.parentId) {
-      const parentItem = itemsById.get(item.parentId);
+      const parentItem = itemsByKey.get(item.parentId);
       if(parentItem) return parentItem;
     }
     return null;
