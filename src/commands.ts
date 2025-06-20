@@ -92,6 +92,7 @@ async function prevNext(next: boolean, markIt = false, setPointer = false) {
     if(markIt && func)          await setMark(func, true);
     else if(setPointer && func) await sbar.setPointer(func);
     else {
+      startselectionChgDelay();
       await fnct.revealFunc(null, func);
     }
   }
@@ -100,6 +101,11 @@ async function prevNext(next: boolean, markIt = false, setPointer = false) {
 export async function prev() { await prevNext(false); }
 
 export async function next() { await prevNext(true); }
+
+export async function funcClickCmd(id: string) { 
+  startselectionChgDelay();
+  await sbar.funcClickCmd(id);
+}
 
 export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;

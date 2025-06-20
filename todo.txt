@@ -1,10 +1,9 @@
 bugs ...
   class repeated many times with missing letters (start/end wrong)
-  prev/next broken
   click in constructor assignment content selects next method
-  deleting marked function leaves mark on next func
 
 todo ...
+  don't scroll on set/unset mark
   remove subfunction option
   add "Fit Function (with margin)" as scroll option
   handle fs changes
