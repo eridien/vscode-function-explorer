@@ -9,21 +9,18 @@ import * as sett   from './settings';
 import * as utils  from './utils';
 const {log, start, end} = utils.getLog('item');
 
-// const LOAD_FUNCS_ON_START = true;
-const LOAD_FUNCS_ON_START = false;
-
-
 let nextItemId = 0;
 function getItemId() { return '' + nextItemId++; }
 
-let context:          vscode.ExtensionContext;
-let funcItemsByFuncId: Map<string, Func> = new Map();
+let   context:           vscode.ExtensionContext;
+let   funcItemsByFuncId: Map<string, FuncItem> = new Map();
+const markIdSetByFspath: Map<string, Set<string>> = new Map<string, Set<string>>();
 
 export async function activate(contextIn: vscode.ExtensionContext) {
   start('activate items');
   context = contextIn;
-  await loadFuncStorage();
-  await updateFuncsInFile();
+  loadMarks();
+  await getFuncItemsFromFileAst();
   end('activate items', false);
 }
 
@@ -43,9 +40,10 @@ export class Item extends vscode.TreeItem {
   }
   getParents() {
     const parents: Item[] = [];
-    while(this.parent) {
-      parents.push(this.parent);
-      this.parent = this.parent.parent;
+    let parent = this.parent;
+    while(parent) {
+      parents.push(parent);
+      parent = parent.parent;
     }
     return parents;
   }
@@ -138,14 +136,31 @@ export class FileItem extends Item {
   }
   async getChildren(): Promise<FuncItem[]> {
     if(this.children) return this.children as FuncItem[];
-    else return await getFuncItemsFromFileAst(this, this.document);
+    else {
+      let funcItems = await getFuncItemsFromFileAst(this);
+      if(this.filtered) funcItems = funcItems.filter(func => func.marked);
+      if(this.alphaSorted) 
+        funcItems.sort((a, b) => a.name.localeCompare(b.name));
+      this.children = funcItems;
+      return funcItems;
+    }
   };
 }
+///////////////// getFuncItemsFromFileAst //////////////////////
 
-async function getFuncItemsFromFileAst(parent: FileItem | WsFolderItem, 
-                      document: vscode.TextDocument): Promise<FuncItem[]> {
+interface NodeData {
+  id?: string;
+  name: string;
+  type: string;
+  start: number;
+  endName: number;
+  end: number;
+}
+
+async function getFuncItemsFromFileAst(parent: FileItem): Promise<FuncItem[]> {
   start('getFuncItemsFromFileAst');
-  const uri = document.uri;
+  const document = parent.document;
+  const uri      = document.uri;
   if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return [];
   const docText = document.getText();
   if (!docText || docText.length === 0) return [];
@@ -156,18 +171,14 @@ async function getFuncItemsFromFileAst(parent: FileItem | WsFolderItem,
     log('err', 'parse error', (err as any).message);
     return[];
   }
-  let funcItems: FuncItem[] = [];
-  function addFunc(name: string, type: string, 
-                   start: number, endName: number, end: number) {
-    funcItems.push(new FuncItem({this, name, type, start, endName, end}));
-  }
+  let nodeData: NodeData[] = [];
   walk.ancestor(ast, {
     Property(node){
       const {start, end, key} = node;
       const endName = key.end;
       const name = docText.slice(start, endName);
       const type = 'Property';
-      addFunc(name, type, start, endName, end);
+      nodeData.push({name, type, start, endName, end});
     },
     VariableDeclarator(node) {
       const {id, start, end, init} = node;
@@ -175,7 +186,7 @@ async function getFuncItemsFromFileAst(parent: FileItem | WsFolderItem,
         const endName = id.end!;
         const name = docText.slice(start, endName);
         const type  = 'VariableDeclarator';
-        addFunc(name, type, start, endName, end);
+        nodeData.push({name, type, start, endName, end});
       }
       return;
     },
@@ -185,7 +196,7 @@ async function getFuncItemsFromFileAst(parent: FileItem | WsFolderItem,
       const end     = node.end;
       const name    = docText.slice(start, endName);
       const type    = 'FunctionDeclaration';
-      addFunc(name, type, start, endName, end);
+      nodeData.push({name, type, start, endName, end});
       return;
     },
     Class(node) {
@@ -193,7 +204,7 @@ async function getFuncItemsFromFileAst(parent: FileItem | WsFolderItem,
       const {id, start, end, type} = node;
       const endName = id.end;
       const name    = id.name;
-      addFunc(name, type, start, endName, end);
+      nodeData.push({name, type, start, endName, end});
       return;
     },
     MethodDefinition(node) {
@@ -202,80 +213,95 @@ async function getFuncItemsFromFileAst(parent: FileItem | WsFolderItem,
       if(kind      == 'constructor') {
         const name  = 'constructor';
         const type  = 'Constructor';
-        addFunc(name, type, start, endName, end);
+        nodeData.push({name, type, start, endName, end});
         return;
       }
       else {
         const name = docText.slice(start, endName);
         const type = 'Method';
-        addFunc(name, type, start, endName, end);
+        nodeData.push({name, type, start, endName, end});
         return;
       }
     }
   });
-  const newFuncs = funcs.sort((a, b) => a.start - b.start);
-  for(const newFunc of newFuncs) {
-    const parents: Func[] = [];
-    for(const innerFunc of newFuncs) {
-      if(innerFunc === newFunc) continue;
-      if(innerFunc.start > newFunc.start) break;
-      if(innerFunc.end  >= newFunc.end) parents.unshift(innerFunc);
+
+  nodeData.sort((a, b) => a.start - b.start);
+  for(const node of nodeData) {
+    const parents: NodeData[] = [];
+    for(const innerNode of nodeData) {
+      if(innerNode === node) continue;
+      if(innerNode.start > node.start) break;
+      if(innerNode.end  >= node.end) parents.unshift(innerNode);
     }
-    newFunc.parents = parents;
-    let key = newFunc.name  + "\x00" + newFunc.type   + "\x00";
+    let id = node.name  + "\x00" + node.type   + "\x00";
     for(let parent of parents) 
-      key += parent.name + "\x00" + parent.type + "\x00";
-    key += newFunc.getFsPath();
-    newFunc.key = key;
+      id += parent.name + "\x00" + parent.type + "\x00";
+    id += parent.document.uri.fsPath;
+    node.id = id;
   }
-  const oldFuncs = getFuncs({fsPath: uri.fsPath, deleteFuncsBykey: true});
   let matchCount = 0;
-  for(const newFunc of newFuncs) {
-    funcItemsByFuncId.set(newFunc.key, newFunc);
-    for(const oldFunc of oldFuncs) {
-      if(newFunc.key === oldFunc.key) {
-        newFunc.marked = oldFunc.marked;
-        matchCount++;
-        break;
-      }
+  const funcItems: FuncItem[] = [];
+  const oldFuncItemsByFuncId = new Map(funcItemsByFuncId);
+  funcItemsByFuncId.clear();
+  for(const node of nodeData) {
+    let funcItem = oldFuncItemsByFuncId.get(node.id!);
+    if(funcItem) {
+      funcItem.start    = node.start;
+      funcItem.endName  = node.endName;
+      funcItem.end      = node.end;
+      funcItem.parent   = parent;
+      matchCount++;
     }
+    else {
+      funcItem = new FuncItem({
+        parent, name: node.name, type: node.type,
+        start: node.start, endName: node.endName, end: node.end
+      });
+    }
+    funcItems.push(funcItem);
+    funcItemsByFuncId.set(funcItem.id, funcItem);
   }
-  await saveFuncStorage();
+  await saveMarks();
   console.log(`updated funcs in ${path.basename(uri.fsPath)}, `+
-                      `marks copied: ${matchCount} of ${funcs.length}`);
+                      `marks copied: ${matchCount} of ${nodeData.length}`);
   end('updateFuncsInFile');
-  return funcItems;;
+  // Return the correct FuncItem array (if you have a variable for it, use that)
+  // If not, return an empty array or the correct one as needed
+  return [];
   
 }
 
 ////////////////// FuncItem //////////////////////
 
+interface FuncData {
+  parent:    FileItem;
+  name:      string;
+  type:      string;
+  start:     number;
+  startName: number;
+  endName:   number;
+  end:       number;
+}
+
 export class FuncItem extends Item {
   declare parent: FileItem;
-  funcParents:    FuncItem[] = [];
-  name:           string = '';
-  type:           string = '';
-  start:          number = 0;
-  startName:      number = 0;
-  endName:        number = 0;
-  end:            number = 0;
-  marked:         boolean = false;
-  funcType:       string = '';
-  startLine?:     number;
-  endLine?:       number;
-  startKey?:      string;
-  endKey?:        string;
-  constructor({ parent, name, type, start, endName, end }: 
-              { parent: FileItem; name: string; type: string; 
-                start: number; endName: number; end: number; }) { 
+  name!:        string;
+  type!:        string;
+  start!:       number;
+  startName!:   number;
+  endName!:     number;
+  end!:         number;
+  funcId!:      string;
+  funcParents!: FuncItem[];
+  startLine!:   number;
+  endLine!:     number;
+  startKey!:    string;
+  endKey!:      string;
+  marked:       boolean = false;
+  constructor(params: FuncData) {
     super('', vscode.TreeItemCollapsibleState.None);
+    Object.assign(this, params);
     this.id           = getItemId();
-    this.parent       = parent;
-    this.name         = name;
-    this.type         = type;
-    this.start        = start;
-    this.endName      = endName;
-    this.end          = end;
     this.label        = this.getLabel();
     this.contextValue = 'func';
     this.marked       = false;
@@ -291,7 +317,7 @@ export class FuncItem extends Item {
   getStartKey()  {return this.startKey  ??= utils.createSortKey
                  (this.parent.document.uri.fsPath, this.getStartLine());};
   getEndKey()    {return this.endKey    ??= utils.createSortKey
-                        (this.parent.document.uri.fsPath, this.getEndLine())};
+                        (this.parent.document.uri.fsPath, this.getEndLine());};
   isFunction(funcItem: FuncItem = this) {
     return ['FunctionDeclaration', 'FunctionExpression',
             'ArrowFunctionExpression', 'MethodDefinition',
@@ -321,6 +347,31 @@ export class FuncItem extends Item {
     // label += ` (${this.type})`;
     return label.slice(this.isFunction() ? 5 : 3);
   }
+}
+
+function loadMarks() {
+  const fsPathMarkIdArr: Array<Array<string>> =  
+          context.workspaceState.get('markIds', []);
+  for(const fsPathMarkId of fsPathMarkIdArr) {
+    const [fsPath, markId] = fsPathMarkId;
+    let markIdsSet = markIdSetByFspath.get(fsPath);
+    if(!markIdsSet) {
+      markIdsSet = new Set<string>();
+      markIdSetByFspath.set(fsPath, markIdsSet);
+    }
+    markIdsSet.add(markId);
+  }
+}
+
+export async function saveMarks() {
+  const markedItems = [...funcItemsByFuncId.values()]
+                     .filter(funcItem => funcItem.marked);
+  const fsPathMarkIdArr: Array<Array<string>> = [];
+  for(const funcItem of markedItems) {
+    const fspath = funcItem.parent.document.uri.fsPath;
+    fsPathMarkIdArr.push([fspath, funcItem.funcId]);
+  }
+  await context.workspaceState.update('markIds', fsPathMarkIdArr);
 }
 
 // @@ts-nocheck
