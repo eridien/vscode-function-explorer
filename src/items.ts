@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import * as fs     from 'fs/promises';
+import * as acorn  from "acorn-loose";
+import * as walk   from 'acorn-walk';
 import * as path   from 'path';
 import * as sbar   from './sidebar';
 import * as fnct   from './funcs';
 import * as sett   from './settings';
 import * as utils  from './utils';
-const {log} = utils.getLog('item');
+const {log, start, end} = utils.getLog('item');
 
 // const LOAD_FUNCS_ON_START = true;
 const LOAD_FUNCS_ON_START = false;
@@ -26,8 +28,8 @@ export async function activate(contextIn: vscode.ExtensionContext) {
 }
 
 export class Item extends vscode.TreeItem {
-  parent:   Item | null = null;
-  children: Item[] = [];
+  parent:   Item   | null = null;
+  children: Item[] | null = null;
   static getTree() {
     const wsFolders = vscode.workspace.workspaceFolders;
     if (!wsFolders) {
@@ -121,43 +123,129 @@ export class FolderItem extends WsAndFolderItem {
 ////////////////////// FileItem //////////////////////
 
 export class FileItem extends Item {
-  expanded:    boolean;
-  filtered:    boolean = false;
-  alphaSorted: boolean = false;
-  document:    vscode.TextDocument;
-  constructor(fsPath: string) {
-    super(path.basename(fsPath), vscode.TreeItemCollapsibleState.Collapsed);
+  declare parent: FolderItem | WsFolderItem;
+  document:       vscode.TextDocument;
+  expanded:       boolean = false;;
+  filtered:       boolean = false;
+  alphaSorted:    boolean = false;
+  constructor(parent: vscode.TextDocument, document: vscode.TextDocument) {
+    const uri = document.uri;
+    super(uri, vscode.TreeItemCollapsibleState.Collapsed);
+    this.document     = document;
+    this.resourceUri  = uri;
     this.id           = getItemId();
-    this.expanded     = false;
-    this.iconPath     = new vscode.ThemeIcon('file');
     this.contextValue = 'file';
-    const document = vscode.workspace.textDocuments
-                           .find(doc => doc.uri.fsPath === fsPath);
-    if (!document) {
-      log('err', `FileItem: No document found for ${fsPath}`);
-      throw new Error(`FileItem: No document found for ${fsPath}`);
-    }
-    this.document = document;
   }
   async getChildren(): Promise<FuncItem[]> {
-    let sortedFuncs = fnct.getSortedFuncs(
-                     {fsPath: this.key!, 
-                      alpha: this.alphaSorted, filtered: this.filtered});
-    if(this.filtered && sortedFuncs.length == 0) {
-      this.filtered = false;
-      sortedFuncs = fnct.getSortedFuncs(
-           {fsPath: this.key!, alpha: this.alphaSorted, filtered: false});
-    }
-    const funcItems: FuncItem[] = [];
-    for(const func of sortedFuncs) {
-      if(func.marked || funcIsFunction(func)) {
-        const item = await sbar.getOrMakeItemByKey(func.key, func) as FuncItem;
-        item.parentId = this.key;
-        funcItems.push(item);
+    if(this.children) return this.children as FuncItem[];
+    else return await getFuncItemsFromFileAst(this, this.document);
+  };
+}
+
+async function getFuncItemsFromFileAst(parent: FileItem | WsFolderItem, 
+                      document: vscode.TextDocument): Promise<FuncItem[]> {
+  start('getFuncItemsFromFileAst');
+  const uri = document.uri;
+  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return [];
+  const docText = document.getText();
+  if (!docText || docText.length === 0) return [];
+  let ast: any;
+  try{
+      ast = acorn.parse(docText, { ecmaVersion: 'latest' });
+  } catch (err) {
+    log('err', 'parse error', (err as any).message);
+    return[];
+  }
+  let funcItems: FuncItem[] = [];
+  function addFunc(name: string, type: string, 
+                   start: number, endName: number, end: number) {
+    funcItems.push(new FuncItem({this, name, type, start, endName, end}));
+  }
+  walk.ancestor(ast, {
+    Property(node){
+      const {start, end, key} = node;
+      const endName = key.end;
+      const name = docText.slice(start, endName);
+      const type = 'Property';
+      addFunc(name, type, start, endName, end);
+    },
+    VariableDeclarator(node) {
+      const {id, start, end, init} = node;
+      if (init) {
+        const endName = id.end!;
+        const name = docText.slice(start, endName);
+        const type  = 'VariableDeclarator';
+        addFunc(name, type, start, endName, end);
+      }
+      return;
+    },
+    FunctionDeclaration(node) {
+      const start   = node.id!.start;
+      const endName = node.id!.end;
+      const end     = node.end;
+      const name    = docText.slice(start, endName);
+      const type    = 'FunctionDeclaration';
+      addFunc(name, type, start, endName, end);
+      return;
+    },
+    Class(node) {
+      if(!node.id) return;
+      const {id, start, end, type} = node;
+      const endName = id.end;
+      const name    = id.name;
+      addFunc(name, type, start, endName, end);
+      return;
+    },
+    MethodDefinition(node) {
+      const {start, end, key, kind} = node;
+      const endName = key.end;
+      if(kind      == 'constructor') {
+        const name  = 'constructor';
+        const type  = 'Constructor';
+        addFunc(name, type, start, endName, end);
+        return;
+      }
+      else {
+        const name = docText.slice(start, endName);
+        const type = 'Method';
+        addFunc(name, type, start, endName, end);
+        return;
       }
     }
-    return Promise.all(funcItems);
+  });
+  const newFuncs = funcs.sort((a, b) => a.start - b.start);
+  for(const newFunc of newFuncs) {
+    const parents: Func[] = [];
+    for(const innerFunc of newFuncs) {
+      if(innerFunc === newFunc) continue;
+      if(innerFunc.start > newFunc.start) break;
+      if(innerFunc.end  >= newFunc.end) parents.unshift(innerFunc);
+    }
+    newFunc.parents = parents;
+    let key = newFunc.name  + "\x00" + newFunc.type   + "\x00";
+    for(let parent of parents) 
+      key += parent.name + "\x00" + parent.type + "\x00";
+    key += newFunc.getFsPath();
+    newFunc.key = key;
   }
+  const oldFuncs = getFuncs({fsPath: uri.fsPath, deleteFuncsBykey: true});
+  let matchCount = 0;
+  for(const newFunc of newFuncs) {
+    funcItemsByFuncId.set(newFunc.key, newFunc);
+    for(const oldFunc of oldFuncs) {
+      if(newFunc.key === oldFunc.key) {
+        newFunc.marked = oldFunc.marked;
+        matchCount++;
+        break;
+      }
+    }
+  }
+  await saveFuncStorage();
+  console.log(`updated funcs in ${path.basename(uri.fsPath)}, `+
+                      `marks copied: ${matchCount} of ${funcs.length}`);
+  end('updateFuncsInFile');
+  return funcItems;;
+  
 }
 
 ////////////////// FuncItem //////////////////////
@@ -196,14 +284,14 @@ export class FuncItem extends Item {
       title:   'Item Clicked'
     };
   }
-  getStartLine() { return this.startLine ??= 
-                          this.parent.document.positionAt(this.start).line;}
-  getEndLine()   { return this.endLine   ??= 
-                          this.parent.document.positionAt(this.end).line;}
-  getStartKey()  { return this.startKey  ??= utils.createSortKey
-                         (this.parent.document.uri.fsPath, this.getStartLine());}
-  getEndKey()    { return this.endKey    ??= utils.createSortKey
-            (this.parent.document.uri.fsPath, this.getEndLine());}
+  getStartLine() {return this.startLine ??= 
+                         this.parent.document.positionAt(this.start).line;};
+  getEndLine()   {return this.endLine   ??= 
+                         this.parent.document.positionAt(this.end).line;};
+  getStartKey()  {return this.startKey  ??= utils.createSortKey
+                 (this.parent.document.uri.fsPath, this.getStartLine());};
+  getEndKey()    {return this.endKey    ??= utils.createSortKey
+                        (this.parent.document.uri.fsPath, this.getEndLine())};
   isFunction(funcItem: FuncItem = this) {
     return ['FunctionDeclaration', 'FunctionExpression',
             'ArrowFunctionExpression', 'MethodDefinition',
@@ -226,7 +314,7 @@ export class FuncItem extends Item {
         default:                    pfx = '='; break;
       }
       label += ` ${pfx} ${this.name}`;
-    }
+    };
     addParentToLabel();
     const parents = this.funcParents;
     for(const funcParent of parents) addParentToLabel(funcParent);

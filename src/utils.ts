@@ -1,4 +1,5 @@
-import vscode     from 'vscode';
+import vscode from 'vscode';
+import path   from 'path';
 const { log } = getLog('util');
 
 function timeInSecs(ms: number): string {
@@ -56,6 +57,17 @@ export async function revealEditorByFspath(fsPath: string) {
     const document = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(document);
   }
+}
+
+export function getPathsForUri(uri: vscode.Uri): string[] {
+  const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
+  if (!wsFolder) throw new Error('No workspace folder found for URI: ' + 
+                                  uri.toString());
+  const absPath  = uri.fsPath;
+  const wsPath   = wsFolder.uri.fsPath;
+  const relPath  = path.relative(wsPath, absPath);
+  const relParts = relPath.split(path.sep);
+  return [wsPath, ...relParts];
 }
 
 const outputChannel = vscode.window.createOutputChannel('function-explorer');
