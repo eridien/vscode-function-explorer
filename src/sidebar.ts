@@ -3,8 +3,6 @@
 import vscode     from 'vscode';
 import * as fs    from 'fs/promises';
 import * as path  from 'path';
-import * as fnct  from './funcs';
-import {Func}     from './funcs';
 import * as itms  from './items';
 import {Item, WsAndFolderItem, 
         FileItem, FuncItem, itemsById} from './items';

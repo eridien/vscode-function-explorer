@@ -12,19 +12,52 @@ const {log, start, end} = utils.getLog('item');
 let nextItemId = 0;
 function getItemId() { return '' + nextItemId++; }
 
-let   context:           vscode.ExtensionContext;
-export const itemsById:  Map<string, Item>        = new Map();
-let   funcItemsByFuncId: Map<string, FuncItem>    = new Map();
-const markIdSetByFspath: Map<string, Set<string>> = new Map();
+let context: vscode.ExtensionContext;
 
 export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
   loadMarks();
 }
 
+type AllButFuncItem = WsAndFolderItem | FileItem;
+
+////////////////////// Items //////////////////////
+
+class Items {
+  private static itemsById:         Map<string, Item>           = new Map();
+  private static fldrItemsByFspath: Map<string, AllButFuncItem> = new Map();
+  private static funcItemsByFuncId: Map<string, Set<FuncItem>>  = new Map();
+  private static markIdSetByFspath: Map<string, Set<string>>    = new Map();
+  setFolderFile(item: AllButFuncItem) {
+    if(!item.resourceUri) return;
+    const fsPath = item.resourceUri.fsPath;
+    Items.fldrItemsByFspath.set(fsPath, item);
+    Items.itemsById.set(item.id, item);
+  }
+  setFunc(item: FuncItem) {
+    if(!item.funcId) return;
+    let set = Items.funcItemsByFuncId.get(item.funcId);
+    if(!set) {
+      set = new Set<FuncItem>();
+      Items.funcItemsByFuncId.set(item.funcId, set);
+    }
+    set.add(item);
+    Items.itemsById.set(item.id, item);
+  }
+  getFolderFile(fsPath:string): AllButFuncItem | undefined {
+    return Items.fldrItemsByFspath.get(fsPath);
+  }
+  getFuncSet(funcId: string):   Set<FuncItem>  | undefined {
+    return Items.funcItemsByFuncId.get(funcId);
+  }
+  getById(id: string):                   Item  | undefined {
+    return Items.itemsById.get(id);
+  }
+}
+
 ////////////////////// Item //////////////////////
 
-export class Item extends vscode.TreeItem {
+class Item extends vscode.TreeItem {
   declare id: string;
   parent?:    Item   | null = null;
   children?:  Item[] | null = null;
