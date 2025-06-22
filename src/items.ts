@@ -13,7 +13,7 @@ let nextItemId = 0;
 function getItemId() { return '' + nextItemId++; }
 
 let   context:           vscode.ExtensionContext;
-let   itemsById:         Map<string, Item>        = new Map();
+export const itemsById:  Map<string, Item>        = new Map();
 let   funcItemsByFuncId: Map<string, FuncItem>    = new Map();
 const markIdSetByFspath: Map<string, Set<string>> = new Map();
 
@@ -22,21 +22,12 @@ export function activate(contextIn: vscode.ExtensionContext) {
   loadMarks();
 }
 
+////////////////////// Item //////////////////////
+
 export class Item extends vscode.TreeItem {
   declare id: string;
   parent?:    Item   | null = null;
   children?:  Item[] | null = null;
-  static getTree() {
-    const wsFolders = vscode.workspace.workspaceFolders;
-    if (!wsFolders) {
-      log('err', 'getTree, No folders in workspace');
-      return [];
-    }
-    const tree: Item[] = [];
-    for(const wsFolder of wsFolders) 
-      tree.push(new WsFolderItem(wsFolder));
-    return tree;
-  }
   getParents(): Item[] {
     const parents: Item[] = [];
     let parent = this.parent;
@@ -59,37 +50,11 @@ export class WsAndFolderItem extends Item {
     this.expanded    = true;
     itemsById.set(this.id, this);
   }
-  private async _getFolderFileChildren(
-       parentFsPath: string, folders: Item[], files: Item[]) {
-    const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
-    for (const entry of entries) {
-      const fsPath = path.join(parentFsPath, entry.name);
-      const uri    = vscode.Uri.file(fsPath);
-      if(uri.scheme !== 'file') continue;
-      const isDir = entry.isDirectory();
-      if(!sett.includeFile(fsPath, isDir)) continue;
-      if (isDir) {
-        const folderItem = 
-                  await sbar.getOrMakeItemByKey(fsPath, 'folder') as FolderItem;
-        if(!folderItem) continue;
-        folderItem.parentId = parentFsPath;
-        folders.push(folderItem);
-        continue;
-      }
-      if (entry.isFile()) {
-        const fileItem = 
-                 await sbar.getOrMakeItemByKey(fsPath, 'file') as FileItem;
-        if(!fileItem) continue;
-        fileItem.parentId = parentFsPath;
-        files.push(fileItem);
-        continue;
-      }
-    }
-  }
   async getChildren() {
+    if(this.children) return this.children;
     const folders: Item[] = [];
     const files:   Item[] = [];
-    await this._getFolderFileChildren(this.key!, folders, files);
+    await getFolderFileChildren(this, folders, files);
     return [...folders, ...files];
   }
 }
@@ -109,9 +74,9 @@ export class WsFolderItem extends WsAndFolderItem {
 
 export class FolderItem extends WsAndFolderItem {
   decoration?:    string;
-  constructor(uri: vscode.Uri, parent: WsAndFolderItem | null = null) {
+  constructor(uri: vscode.Uri, parent: WsAndFolderItem) {
     super(uri);
-    this.parent       = parent;
+    this.parent = parent;
     this.contextValue = 'folder';
     if(settings.flattenFolders) {
       let parents = this.getParents();
@@ -125,9 +90,10 @@ export class FolderItem extends WsAndFolderItem {
       }
     }
   }
-  static async create(uri: vscode.Uri): Promise<FolderItem | null> {
+  static async create(uri: vscode.Uri, parent: WsAndFolderItem): 
+                                               Promise<FolderItem | null> {
     if (!await sbar.hasChildFuncTest(uri.fsPath)) return null;
-    return new FolderItem(uri);
+    return new FolderItem(uri, parent);
   }
 }
 
@@ -168,6 +134,85 @@ export class FileItem extends Item {
       return funcItems;
     }
   };
+}
+
+////////////////// FuncItem //////////////////////
+
+interface FuncData {
+  parent:    FileItem;
+  name:      string;
+  type:      string;
+  start:     number;
+  startName: number;
+  endName:   number;
+  end:       number;
+}
+
+export class FuncItem extends Item {
+  declare parent: FileItem;
+  name!:        string;
+  decoration!:  string;
+  type!:        string;
+  start!:       number;
+  startName!:   number;
+  endName!:     number;
+  end!:         number;
+  funcId!:      string;
+  funcParents!: FuncItem[];
+  startLine!:   number;
+  endLine!:     number;
+  startKey!:    string;
+  endKey!:      string;
+  marked:       boolean = false;
+  constructor(params: FuncData) {
+    super('', vscode.TreeItemCollapsibleState.None);
+    Object.assign(this, params);
+    this.contextValue = 'func';
+    this.label        = this.getLabel();
+    this.decoration   = this.getDecoration();
+    this.marked       = false;
+    this.command = {
+      command: 'vscode-function-explorer.funcClickCmd',
+      title:   'Item Clicked'
+    };
+    itemsById.set(this.id, this);
+  }
+  getStartLine() {return this.startLine ??= 
+                         this.parent.document.positionAt(this.start).line;};
+  getEndLine()   {return this.endLine   ??= 
+                         this.parent.document.positionAt(this.end).line;};
+  getStartKey()  {return this.startKey  ??= utils.createSortKey
+                 (this.parent.document.uri.fsPath, this.getStartLine());};
+  getEndKey()    {return this.endKey    ??= utils.createSortKey
+                        (this.parent.document.uri.fsPath, this.getEndLine());};
+  isFunction(funcItem: FuncItem = this) {
+    return ['FunctionDeclaration', 'FunctionExpression',
+            'ArrowFunctionExpression', 'MethodDefinition',
+            'Constructor', 'Method']
+            .includes(funcItem.type);
+  }
+  getFuncItemStr(funcItem: FuncItem = this): string {
+    if(this.isFunction(funcItem)) return `ƒ ${funcItem.name}`;
+    let pfx: string;
+    switch (funcItem.type) {
+      case 'Property':            pfx = ':'; break;
+      case 'CallExpression':      pfx = '('; break;
+      case 'ClassDeclaration':
+      case 'ClassExpression':     pfx = '©'; break;
+      default:                    pfx = '='; break;
+    }
+    return ` ${pfx} ${funcItem.name}`;
+  }
+  getLabel() {
+    return this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
+  }
+  getDecoration() {
+    let decoration = '';
+    for(const funcParent of this.funcParents) 
+      decoration += this.getFuncItemStr(funcParent);
+    // decoration += ` (${this.type})`;
+    return decoration.slice(1);
+  }
 }
 
 ///////////////// getFuncItemsFromFileAst //////////////////////
@@ -310,83 +355,59 @@ function getFuncItemsFromFileAst(fileItem: FileItem):
   return {structChg, funcItems};
 }
 
-////////////////// FuncItem //////////////////////
+////////////////////// getFolderFileChildren //////////////////////
 
-interface FuncData {
-  parent:    FileItem;
-  name:      string;
-  type:      string;
-  start:     number;
-  startName: number;
-  endName:   number;
-  end:       number;
+async function getFolderFileChildren(parent: WsAndFolderItem,
+                                     folders: Item[], files: Item[]) {
+  const parentFsPath = parent.resourceUri!.fsPath;
+  const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
+  for (const entry of entries) {
+    const fsPath    = path.join(parentFsPath, entry.name);
+    const uri       = vscode.Uri.file(fsPath);
+    if(uri.scheme !== 'file') continue;
+    const isDir = entry.isDirectory();
+    if(!sett.includeFile(fsPath, isDir)) continue;
+    let folderFileItem = ([...itemsById.values()]
+        .find(item => (item as FolderItem)
+        .resourceUri?.fsPath === fsPath) as FolderItem | FileItem | null);
+    if (isDir) {
+      if(!folderFileItem) {
+        folderFileItem = await FolderItem.create(uri, parent);
+        if(!folderFileItem) continue;
+      }
+      folders.push(folderFileItem);
+      continue;
+    }
+    if (entry.isFile()) {
+      if(!folderFileItem) {
+        const document = await vscode.workspace.openTextDocument(uri);
+        folderFileItem = new FileItem(parent, document);
+      }
+      files.push(folderFileItem);
+      continue;
+    }
+  }
 }
 
-export class FuncItem extends Item {
-  declare parent: FileItem;
-  name!:        string;
-  decoration!:  string;
-  type!:        string;
-  start!:       number;
-  startName!:   number;
-  endName!:     number;
-  end!:         number;
-  funcId!:      string;
-  funcParents!: FuncItem[];
-  startLine!:   number;
-  endLine!:     number;
-  startKey!:    string;
-  endKey!:      string;
-  marked:       boolean = false;
-  constructor(params: FuncData) {
-    super('', vscode.TreeItemCollapsibleState.None);
-    Object.assign(this, params);
-    this.contextValue = 'func';
-    this.label        = this.getLabel();
-    this.decoration   = this.getDecoration();
-    this.marked       = false;
-    this.command = {
-      command: 'vscode-function-explorer.funcClickCmd',
-      title:   'Item Clicked'
-    };
-    itemsById.set(this.id, this);
+////////////////////// getTree //////////////////////
+
+export async function getTree() {
+  const wsFolders = vscode.workspace.workspaceFolders;
+  if (!wsFolders || wsFolders.length === 0) {
+    log('err', 'getTree, No folders in workspace');
+    return [];
   }
-  getStartLine() {return this.startLine ??= 
-                         this.parent.document.positionAt(this.start).line;};
-  getEndLine()   {return this.endLine   ??= 
-                         this.parent.document.positionAt(this.end).line;};
-  getStartKey()  {return this.startKey  ??= utils.createSortKey
-                 (this.parent.document.uri.fsPath, this.getStartLine());};
-  getEndKey()    {return this.endKey    ??= utils.createSortKey
-                        (this.parent.document.uri.fsPath, this.getEndLine());};
-  isFunction(funcItem: FuncItem = this) {
-    return ['FunctionDeclaration', 'FunctionExpression',
-            'ArrowFunctionExpression', 'MethodDefinition',
-            'Constructor', 'Method']
-            .includes(funcItem.type);
+  if (wsFolders.length > 1) {
+    const tree: Item[] = [];
+    for(const wsFolder of wsFolders) 
+      tree.push(new WsFolderItem(wsFolder));
+    return tree;
   }
-  getFuncItemStr(funcItem: FuncItem = this, str = ''): string {
-    if(funcItem.isFunction(funcItem)) return `ƒ ${funcItem.name}`;
-    let pfx: string;
-    switch (funcItem.type) {
-      case 'Property':            pfx = ':'; break;
-      case 'CallExpression':      pfx = '('; break;
-      case 'ClassDeclaration':
-      case 'ClassExpression':     pfx = '©'; break;
-      default:                    pfx = '='; break;
-    }
-    return ` ${pfx} ${funcItem.name}`;
-  }
-  getLabel() {
-    return this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
-  }
-  getDecoration() {
-    let decoration = '';
-    for(const funcParent of this.funcParents) 
-      decoration = this.getFuncItemStr(funcParent, decoration);
-    // decoration += ` (${this.type})`;
-    return decoration;
-  }
+  const wsFolderItem    = new WsFolderItem(wsFolders[0]);
+  const folders: Item[] = [];
+  const files:   Item[] = [];
+  await getFolderFileChildren(wsFolderItem, folders, files);
+  return [...folders, ...files];
 }
 
 function loadMarks() {
