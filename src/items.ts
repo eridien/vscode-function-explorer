@@ -28,7 +28,8 @@ class Items {
   private static fldrItemsByFspath: Map<string, AllButFuncItem> = new Map();
   private static funcItemsByFuncId: Map<string, Set<FuncItem>>  = new Map();
   private static markIdSetByFspath: Map<string, Set<string>>    = new Map();
-  setFolderFile(item: AllButFuncItem) {
+
+  setFldrFile(item: AllButFuncItem) {
     if(!item.resourceUri) return;
     const fsPath = item.resourceUri.fsPath;
     Items.fldrItemsByFspath.set(fsPath, item);
@@ -44,16 +45,33 @@ class Items {
     set.add(item);
     Items.itemsById.set(item.id, item);
   }
-  getFolderFile(fsPath:string): AllButFuncItem | undefined {
-    return Items.fldrItemsByFspath.get(fsPath);
+  setMark(fsPath: string, funcId: string) {
+    let funcIdSet = Items.markIdSetByFspath.get(fsPath);
+    if(!funcIdSet) {
+      funcIdSet = new Set<string>();
+      Items.markIdSetByFspath.set(fsPath, funcIdSet);
+    }
+    funcIdSet.add(funcId);
   }
-  getFuncSet(funcId: string):   Set<FuncItem>  | undefined {
-    return Items.funcItemsByFuncId.get(funcId);
-  }
-  getById(id: string):                   Item  | undefined {
+  get(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }
+  getFldrFile(fsPath:string): AllButFuncItem | undefined {
+    return Items.fldrItemsByFspath.get(fsPath);
+  }
+  getFuncSet(funcId: string): Set<FuncItem>  | undefined {
+    return Items.funcItemsByFuncId.get(funcId);
+  }
+  delFuncSet(funcId: string): Set<FuncItem> {
+    const funcSet = itms.getFuncSet(funcId) ?? new Set<FuncItem>();
+    Items.funcItemsByFuncId.delete(funcId);
+    return funcSet;
+  }
+  getMarkSet(fsPath:string): Set<string> | undefined {
+    return Items.markIdSetByFspath.get(fsPath);
+  } 
 }
+const itms = new Items();
 
 ////////////////////// Item //////////////////////
 
@@ -81,7 +99,7 @@ export class WsAndFolderItem extends Item {
     this.id          = getItemId();
     this.resourceUri = uri;
     this.expanded    = true;
-    itemsById.set(this.id, this);
+    itms.setFldrFile(this);
   }
   async getChildren() {
     if(this.children) return this.children;
@@ -147,7 +165,7 @@ export class FileItem extends Item {
     this.resourceUri  = uri;
     this.id           = getItemId();
     this.contextValue = 'file';
-    itemsById.set(this.id, this);
+    itms.setFldrFile(this);
   }
   getChildren(): FuncItem[] {
     if(this.children) return this.children;
@@ -157,9 +175,9 @@ export class FileItem extends Item {
       let {structChg, funcItems} = funcItemsFromFile;
       this.children = [...funcItems];
       if(this.filtered) {
-        const markIdSet = markIdSetByFspath.get(this.document.uri.fsPath);
+        const markSet = itms.getMarkSet(this.document.uri.fsPath);
         funcItems = funcItems.filter(
-                          func => markIdSet?.has((func as FuncItem).funcId));
+                    func => markSet?.has((func as FuncItem).funcId));
       }
       if(this.alphaSorted) 
         funcItems.sort((a, b) => a.name.localeCompare(b.name));
@@ -208,7 +226,6 @@ export class FuncItem extends Item {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked'
     };
-    itemsById.set(this.id, this);
   }
   getStartLine() {return this.startLine ??= 
                          this.parent.document.positionAt(this.start).line;};
@@ -352,36 +369,40 @@ function getFuncItemsFromFileAst(fileItem: FileItem):
     let funcId = node.name  + "\x00" + node.type   + "\x00";
     for(let parent of funcParents) 
       funcId += parent.name + "\x00" + parent.type + "\x00";
-    funcId += fileItem.document.uri.fsPath;
+    funcId += fsPath;
     node.funcId      = funcId;
     node.funcParents = funcParents;
   }
-  let matchCount     = 0;
-  let structChg      = false;
-  const oldFuncItems = fileItem.children as FuncItem[] | undefined;
-  let   oldFuncIdx   = 0;
+  let matchCount              = 0;
+  let structChg               = false;
+  const children              = fileItem.children as FuncItem[] | undefined;
+  let   childIdx              = 0;
+  const funcItemsInList       = new Set<FuncItem>();
   const funcItems: FuncItem[] = [];
   for(const node of nodeData) {
-    let oldFuncItem = oldFuncItems?.[oldFuncIdx++];
-    if(structChg || !oldFuncItem || oldFuncItem.funcId !== node.funcId) {
-      structChg   = true;
-      oldFuncItem = oldFuncItems?.find
-                   (oldFuncItem => oldFuncItem?.funcId === node.funcId);
-      if(oldFuncItem) {
-        Object.assign(oldFuncItem, node);
-        matchCount++;
+    let funcItem: FuncItem | undefined = undefined;
+    if(!structChg) funcItem = children?.[childIdx++];
+    if(funcItem?.funcId !== node.funcId) {
+      structChg = true;
+      const funcSet = itms.getFuncSet(node.funcId);
+      if(funcSet) {
+        for(const funcFromSet of funcSet.values()) {
+          if(!funcItemsInList.has(funcFromSet)) {
+            funcItem = funcFromSet;
+            funcSet.delete(funcItem);
+            break;
+          }
+        }
       }
+      funcItem ??= new FuncItem({...node, parent:fileItem});
     }
-    funcItems.push(oldFuncItem ?? new FuncItem({...node, parent: fileItem}));
+    else matchCount++;
+    Object.assign(funcItem, node);
+    funcItems.push(funcItem);
+    funcItemsInList.add(funcItem);
   }
-  for (const [funcId, funcItem] of funcItemsByFuncId) {
-    if (funcItem.parent.document.uri.fsPath === fsPath) {
-      funcItemsByFuncId.delete(funcId);
-    }
-  }  
-  for(const funcItem of funcItems)
-    funcItemsByFuncId.set(funcItem.id, funcItem);
-  console.log(`updated funcs in ${path.basename(fsPath)}, `+
+  for(const funcItem of funcItems) itms.setFunc(funcItem);
+  console.log(`updated ${path.basename(fsPath)} funcs, `+
                       `${structChg ? 'with structChg, ' : ''}`+
                       `marks copied: ${matchCount} of ${funcItems.length}`);
   end('updateFuncsInFile');
