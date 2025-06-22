@@ -169,6 +169,12 @@
     "configuration": {
       "title": "Function Explorer",
       "properties": {
+        "flattenFolders": {
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "description": "Flatten folders in the function explorer. If disabled, all folders will be shown with their children which will make the functions further to the right and less visible."
+        },
         "function-explorer.fileWrap": {
           "type": "boolean",
           "default": true,

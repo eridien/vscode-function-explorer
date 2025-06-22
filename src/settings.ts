@@ -4,17 +4,19 @@ import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 
 interface FunctionMarksSettings {
-  scrollPosition:      vscode.TextEditorRevealType;
-  fileWrap:            boolean;
-  alphaSortFuncs:      boolean;
-  topMargin:           number;
+  flattenFolders: boolean;
+  scrollPosition: vscode.TextEditorRevealType;
+  fileWrap:       boolean;
+  alphaSortFuncs: boolean;
+  topMargin:      number;
 }
 
 export let settings: FunctionMarksSettings = {
-  scrollPosition:      vscode.TextEditorRevealType.AtTop,
-  fileWrap:            true,
-  alphaSortFuncs:      false,
-  topMargin:           3,
+  flattenFolders: true,
+  scrollPosition: vscode.TextEditorRevealType.AtTop,
+  fileWrap:       true,
+  alphaSortFuncs: false,
+  topMargin:      3,
 };
 
 export let filesGlobPattern: string;
@@ -36,9 +38,10 @@ export function loadSettings() {
       scrollPos = vscode.TextEditorRevealType.AtTop;
   }
   settings = {
-    scrollPosition:      scrollPos,
-    fileWrap:            config.get('fileWrap',            true),
-    alphaSortFuncs:      config.get('alphaSortFuncs',      false),
+    scrollPosition: scrollPos,
+    flattenFolders: config.get('flattenFolders', true),
+    fileWrap:       config.get('fileWrap',       true),
+    alphaSortFuncs: config.get('alphaSortFuncs', false),
     topMargin: Math.max(0, Math.min(20, config.get('topMargin', 3))),
   };
   const incParts = config.get<string>("filesToInclude", "**/*.js, **/*.ts")
