@@ -3,32 +3,16 @@ import * as sbar        from './sidebar';
 import {FuncItem, itms} from './items';
 import * as sett        from './settings';
 import {settings}       from './settings';
-import * as gutt        from './gutter';
+import * as mrks        from './marks';
 import * as utils       from './utils';
 const {log} = utils.getLog('cmds');
 
 const NEXT_DEBUG = false;
 // const NEXT_DEBUG = true;
 
-async function setMark(funcItem: FuncItem, toggle = false, mark = false) {
-  const fsPath = funcItem?.parent?.document.uri.fsPath;
-  if(!fsPath) return;
-  const markSet = itms.getMarkSet(fsPath);
-  let marked  = markSet.has(funcItem.funcId);
-  if (toggle) marked = !marked;
-  else        marked = mark;
-  if(marked) itms.setMark(funcItem);
-  else       itms.delMark(funcItem);
-  const red = !marked;
-  startselectionChgDelay();
-  await sbar.saveFuncAndUpdate(func);
-  await sbar.revealItemByFunc(func);
-  await fnct.revealFunc(null, func, !marked);
-}
-
 export async function toggleCmd() {
   log('toggleCmd');
-  let func = fnct.getFuncInAroundSelection();
+  let func = itms.getFuncInAroundSelection();
   if(!func) {
     await prevNext(true, true);
     return;
@@ -37,7 +21,7 @@ export async function toggleCmd() {
 }
 
 export async function toggleItemMarkCmd(funcItem: FuncItem) {
-  const func = fnct.getFuncBykey(funcItem.key);
+  const func = itms.getFuncBykey(funcItem.key);
   if(!func) return;
   await setMark(func, true);
 }
@@ -59,7 +43,7 @@ async function prevNext(next: boolean, markIt = false, setPointer = false) {
     const fileWrap = settings.fileWrap && !markIt && !setPointer;
     const sortArgs = {filtered: !markIt && !setPointer && !NEXT_DEBUG};
     if(!fileWrap) (sortArgs as any).fsPath = fsPath;
-    const funcs = fnct.getSortedFuncs(sortArgs);
+    const funcs = itms.getSortedFuncs(sortArgs);
     if(funcs.length == 0) return;
     const selFsPath = (fileWrap ? fsPath : '');
     const selKey = utils.createSortKey(
@@ -95,8 +79,8 @@ async function prevNext(next: boolean, markIt = false, setPointer = false) {
     if(markIt && func)          await setMark(func, true);
     else if(setPointer && func) await sbar.setPointer(func);
     else {
-      startselectionChgDelay();
-      await fnct.revealFunc(null, func);
+      utils.startDelaying('selChg');
+      await itms.revealFunc(null, func);
     }
   }
 }
@@ -106,7 +90,7 @@ export async function prev() { await prevNext(false); }
 export async function next() { await prevNext(true); }
 
 export async function funcClickCmd(key: string) { 
-  startselectionChgDelay();
+  utils.startDelaying('selChg');
   await sbar.funcClickCmd(key);
 }
 
@@ -114,7 +98,7 @@ export async function editorChg(editor: vscode.TextEditor) {
   const document = editor.document;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
-  await fnct.updateFuncsInFile();
+  await itms.updateFuncsInFile();
   updateSide(document);
 }
 
@@ -123,36 +107,28 @@ export async function textChg(event :vscode.TextDocumentChangeEvent) {
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(document.uri.fsPath)) return;
   if (event.contentChanges.length == 0) return;
-  await fnct.updateFuncsInFile();
+  await itms.updateFuncsInFile();
   updateSide(document);
-}
-
-let clickselectionChgDelaying = false;
-
-function startselectionChgDelay() {
-  clickselectionChgDelaying = true;
-  setTimeout(() => { clickselectionChgDelaying = false; }, 500);
 }
 
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const {textEditor, selections} = p;
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
-  if(!clickselectionChgDelaying) {
-    const document = textEditor.document;
-    const fsPath   = document.uri.fsPath;
-    const selection = selections[0];
-    const selStart = document.offsetAt(selection.start);
-    const selEnd   = document.offsetAt(selection.end);
-    const func = fnct.getFuncAtLine(fsPath, selection.start.line);
-    if(func && selStart >= func.start && selEnd <= func.endName) {
-      await setMark(func, true);
-      return;
-    }
-    startselectionChgDelay();
-    if(!await sbar.updatePointers())
-      await prevNext(true, false, true);
+  if(utils.isDelaying('selChg')) return;
+  const document  = textEditor.document;
+  const fsPath    = document.uri.fsPath;
+  const selection = selections[0];
+  const selStart  = document.offsetAt(selection.start);
+  const selEnd    = document.offsetAt(selection.end);
+  const func      = itms.getFuncAtLine(fsPath, selection.start.line);
+  if(func && selStart >= func.start && selEnd <= func.endName) {
+    await setMark(func, true);
+    return;
   }
+  utils.startDelaying('selChg');
+  if(!await sbar.updatePointers())
+    await prevNext(true, false, true);  
 }
 
 export function updateSide(document?: vscode.TextDocument) {
@@ -162,5 +138,5 @@ export function updateSide(document?: vscode.TextDocument) {
   }
   if(!document) return;
   sbar.updateItem();
-  gutt.updateGutter();
+  mrks.updateGutter();
 };

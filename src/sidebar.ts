@@ -7,9 +7,10 @@ import * as itms  from './items';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
                   from './items';
 import * as sett  from './settings';
-import * as gutt  from './gutter';
+import * as gutt  from './marks';
 import * as utils from './utils.js';
 import { updateSide } from './commands';
+import { Func } from 'mocha';
 const {log, start, end} = utils.getLog('side');
 
 let treeView:        vscode.TreeView<Item>;
@@ -31,11 +32,46 @@ export async function revealItemByFunc(func: Func) {
   treeView.reveal(item, {expand: true, select: true, focus: false});
 }
 
+////////////////////// pointer data //////////////////////
+
+class Pointers {
+  private static pointerItems: FuncItem[] = [];
+
+  getAllMarks(): Array<[string, Set<string>]> {
+    return [...Marks.markIdSetByFspath.entries()];
+  }
+  getMarkSet(fsPath:string): Set<string> {
+    const markIdSet = Marks.markIdSetByFspath.get(fsPath);
+    if(!markIdSet)    Marks.markIdSetByFspath.set(fsPath, new Set<string>());
+    return            Marks.markIdSetByFspath.get(fsPath)!;
+  } 
+  addMark(fsPath: string, funcId: string) {
+    let funcIdSet = Marks.markIdSetByFspath.get(fsPath);
+    if(!funcIdSet) {
+      funcIdSet = new Set<string>();
+      Marks.markIdSetByFspath.set(fsPath, funcIdSet);
+    }
+    funcIdSet.add(funcId);
+    saveMarks();
+  }
+  delMark(funcItem: FuncItem) {
+    const fsPath    = funcItem.getFsPath();
+    const funcIdSet = Marks.markIdSetByFspath.get(fsPath);
+    if(!funcIdSet) return;
+    funcIdSet.delete(funcItem.funcId);
+    saveMarks();
+  }
+}
+export const ptrs = new Pointers();
+
+
+///////////////////////////  pointers  ///////////////////////////
+
 function removeAllPointers() {
   for(const item of itemsById.values()) {
     if(item.contextValue == 'func') {
       const funcItem = item as FuncItem;
-      const func = fnct.getFuncBykey(funcItem.id);
+      const func = itms.getFuncBykey(funcItem.id);
       if(!func) continue;
       funcItem.label = itms.getFuncItemLabel(func);
     }
@@ -52,7 +88,7 @@ export async function setPointer(func: Func) {
 
 export async function updatePointers() : Promise<boolean>{
   removeAllPointers();
-  const funcs = fnct.getFuncsOverlappingSelections();
+  const funcs = itms.getFuncsOverlappingSelections();
   for(const func of funcs) await setPointer(func);
   updateItem();
   return funcs.length > 0;
@@ -66,7 +102,7 @@ export function updateMarkIconByFunc(func: Func) {
 }
 
 export async function saveFuncAndUpdate(func: Func) {
-  await fnct.saveFuncStorage();
+  await itms.saveFuncStorage();
   updateMarkIconByFunc(func);
   updateSide();
 }
@@ -86,8 +122,8 @@ export function isMarksOnly(fsPath: string): boolean {
 
 export async function funcClickCmd(id: string) { 
   const item = itemsById.get(id) as FuncItem;
-  const func = item ? fnct.getFuncBykey(id) : null;
-  if (item) await fnct.revealFunc(null, func!);
+  const func = item ? itms.getFuncBykey(id) : null;
+  if (item) await itms.revealFunc(null, func!);
 }
 
 export function toggleMarkedFilter(fileItem: FileItem) {
@@ -126,14 +162,14 @@ export async function removeMarks(item: Item) {
     return hasParent(parentItem, parentId);
   }
   if(item.contextValue === 'func') {
-    const func = fnct.getFuncBykey((item as FuncItem).id!);
+    const func = itms.getFuncBykey((item as FuncItem).id!);
     if(func) {
       func.marked = false;
       updateMarkIconByFunc(func);
     }
   }
   else {
-    const funcs = fnct.getFuncs({});
+    const funcs = itms.getFuncs({});
     for(const func of funcs) {
       const funcItem = await getOrMakeItemById(func.id, func);
       if(hasParent(funcItem, item.id!)) {
@@ -142,7 +178,7 @@ export async function removeMarks(item: Item) {
       }
     }
   }
-  await fnct.saveFuncStorage();
+  await itms.saveFuncStorage();
   updateSide();
 }
 
@@ -161,8 +197,8 @@ export async function ensureFileItemsLoaded(fsPath: string) {
     fileItemsLoaded.add(fsPath);
     const uri      = vscode.Uri.file(fsPath);
     const document = await vscode.workspace.openTextDocument(uri);
-    await fnct.updateFuncsInFile(document);
-    const funcs = fnct.getFuncs({fsPath});
+    await itms.updateFuncsInFile(document);
+    const funcs = itms.getFuncs({fsPath});
     for(const func of funcs) {
       const funcItem = await getOrMakeItemById(func.id, func);
       funcItem.parentId = fsPath;

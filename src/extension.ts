@@ -5,7 +5,7 @@ import {SidebarProvider} from './sidebar';
 import * as itms         from './items';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
                          from './items';
-import * as gutt         from './gutter';
+import * as gutt         from './marks';
 import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');

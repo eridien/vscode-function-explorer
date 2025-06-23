@@ -16,7 +16,6 @@ let context: vscode.ExtensionContext;
 
 export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
-  loadMarks();
 }
 
 type AllButFuncItem = WsAndFolderItem | FileItem;
@@ -27,13 +26,18 @@ class Items {
   private static itemsById:         Map<string, Item>           = new Map();
   private static fldrItemsByFspath: Map<string, AllButFuncItem> = new Map();
   private static funcItemsByFuncId: Map<string, Set<FuncItem>>  = new Map();
-  private static markIdSetByFspath: Map<string, Set<string>>    = new Map();
 
+  get(id: string): Item  | undefined {
+    return Items.itemsById.get(id);
+  }
   setFldrFile(item: AllButFuncItem) {
     if(!item.resourceUri) return;
     const fsPath = item.resourceUri.fsPath;
     Items.fldrItemsByFspath.set(fsPath, item);
     Items.itemsById.set(item.id, item);
+  }
+  getFldrFile(fsPath:string): AllButFuncItem | null {
+    return Items.fldrItemsByFspath.get(fsPath) ?? null;
   }
   setFunc(item: FuncItem) {
     if(!item.funcId) return;
@@ -45,40 +49,13 @@ class Items {
     set.add(item);
     Items.itemsById.set(item.id, item);
   }
-  setMark(funcItem: FuncItem) {
-    const fsPath = funcItem.parent.document.uri.fsPath;
-    let funcIdSet = Items.markIdSetByFspath.get(fsPath);
-    if(!funcIdSet) {
-      funcIdSet = new Set<string>();
-      Items.markIdSetByFspath.set(fsPath, funcIdSet);
-    }
-    funcIdSet.add(funcItem.funcId);
-  }
-  get(id: string): Item  | undefined {
-    return Items.itemsById.get(id);
-  }
-  getFldrFile(fsPath:string): AllButFuncItem | null {
-    return Items.fldrItemsByFspath.get(fsPath) ?? null;
-  }
   getFuncSet(funcId: string): Set<FuncItem>  | undefined {
     return Items.funcItemsByFuncId.get(funcId);
-  }
-  getMarkSet(fsPath:string): Set<string> {
-    const markIdSet = Items.markIdSetByFspath.get(fsPath);
-    if(!markIdSet)    Items.markIdSetByFspath.set(fsPath, new Set<string>());
-    return            Items.markIdSetByFspath.get(fsPath)!;
-  } 
-  getAllMarks(): Array<[string, Set<string>]> {
-    return [...Items.markIdSetByFspath.entries()];
   }
   delFuncSet(funcId: string): Set<FuncItem> {
     const funcSet = itms.getFuncSet(funcId) ?? new Set<FuncItem>();
     Items.funcItemsByFuncId.delete(funcId);
     return funcSet;
-  }
-  delMark(funcItem: FuncItem) {
-    for(const markIdSet of Items.markIdSetByFspath.values())
-      markIdSet.delete(funcItem.funcId);
   }
 }
 export const itms = new Items();
@@ -220,31 +197,31 @@ export class FuncItem extends Item {
   end!:         number;
   funcId!:      string;
   funcParents!: FuncItem[];
-  startLine!:   number;
-  endLine!:     number;
-  startKey!:    string;
-  endKey!:      string;
-  marked:       boolean = false;
+  private startLine!: number;
+  private endLine!:   number;
+  private startKey!:  string;
+  private endKey!:    string;
+
   constructor(params: FuncData) {
     super('', vscode.TreeItemCollapsibleState.None);
     Object.assign(this, params);
     this.contextValue = 'func';
     this.label        = this.getLabel();
     this.decoration   = this.getDecoration();
-    this.marked       = false;
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked'
     };
   }
+  getFsPath()    {return this.parent.document.uri.fsPath;}
   getStartLine() {return this.startLine ??= 
                          this.parent.document.positionAt(this.start).line;};
   getEndLine()   {return this.endLine   ??= 
                          this.parent.document.positionAt(this.end).line;};
-  getStartKey()  {return this.startKey  ??= utils.createSortKey
-                 (this.parent.document.uri.fsPath, this.getStartLine());};
-  getEndKey()    {return this.endKey    ??= utils.createSortKey
-                        (this.parent.document.uri.fsPath, this.getEndLine());};
+  getStartKey()  {return this.startKey  ??= 
+     utils.createSortKey(this.getFsPath(), this.getStartLine());};
+  getEndKey()    {return this.endKey    ??= 
+     utils.createSortKey(this.getFsPath(), this.getEndLine());};
   isFunction(funcItem: FuncItem = this) {
     return ['FunctionDeclaration', 'FunctionExpression',
             'ArrowFunctionExpression', 'MethodDefinition',
@@ -468,18 +445,6 @@ export async function getTree() {
   const files:   Item[] = [];
   await getFolderFileChildren(wsFolderItem, folders, files);
   return [...folders, ...files];
-}
-
-function loadMarks() {
-  const fsPathMarkIdArr: Array<[string, string[]]> =  
-          context.workspaceState.get('markIds', []);
-  for(const [fsPath, markIds] of fsPathMarkIdArr) {
-    for(const markId of markIds) itms.setMark(fsPath, markId);
-  }
-}
-
-export async function saveMarks() {
-  await context.workspaceState.update('markIds', itms.getAllMarks());
 }
 
 // @@ts-nocheck
