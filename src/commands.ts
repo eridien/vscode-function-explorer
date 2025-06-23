@@ -1,9 +1,9 @@
 import * as vscode      from 'vscode';
-import * as sbar        from './sidebar';
-import {FuncItem, itms} from './items';
+import * as mrks        from './marks';
+import * as sbar        from './display';
+import {FuncItem, itms} from './display';
 import * as sett        from './settings';
 import {settings}       from './settings';
-import * as mrks        from './marks';
 import * as utils       from './utils';
 const {log} = utils.getLog('cmds');
 
@@ -91,7 +91,9 @@ export async function next() { await prevNext(true); }
 
 export async function funcClickCmd(key: string) { 
   utils.startDelaying('selChg');
-  await sbar.funcClickCmd(key);
+  const item = itemsById.get(id) as FuncItem;
+  const func = item ? itms.getFuncBykey(id) : null;
+  if (item) await itms.revealFunc(null, func!);
 }
 
 export async function editorChg(editor: vscode.TextEditor) {
@@ -131,12 +133,20 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
     await prevNext(true, false, true);  
 }
 
-export function updateSide(document?: vscode.TextDocument) {
-  if(!document) {
-    const activeEditor = vscode.window.activeTextEditor;
-    if(activeEditor) document = activeEditor.document;
-  }
-  if(!document) return;
-  sbar.updateItem();
-  mrks.updateGutter();
-};
+export function fileChanged(uri: vscode.Uri) {
+}
+export function fileCreated(uri: vscode.Uri) {
+}
+export function fileDeleted(uri: vscode.Uri) {
+}
+
+let watcher: vscode.FileSystemWatcher | undefined;
+
+export function setFileWatcher() {
+  if (watcher) watcher.dispose();
+  watcher = vscode.workspace.createFileSystemWatcher(sett.filesGlobPattern);
+  watcher.onDidChange(uri => { fileChanged(uri); });
+  watcher.onDidCreate(uri => { fileCreated(uri); });
+  watcher.onDidDelete(uri => { fileDeleted(uri); });
+}
+

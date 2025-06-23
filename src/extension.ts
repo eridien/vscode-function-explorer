@@ -1,10 +1,10 @@
 import * as vscode       from 'vscode';
 import * as cmds         from './commands';
-import * as sbar         from './sidebar';
-import {SidebarProvider} from './sidebar';
-import * as itms         from './items';
+import * as sbar         from './display';
+import {SidebarProvider} from './display';
+import * as itms         from './display';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
-                         from './items';
+                         from './display';
 import * as gutt         from './marks';
 import * as sett         from './settings';
 import * as utils        from './utils';
