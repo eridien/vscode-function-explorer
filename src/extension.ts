@@ -14,10 +14,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 ////////////  COMMANDS  ////////////
   
-	const toggleCmd = vscode.commands.registerCommand(
-           'vscode-function-explorer.toggle', async () => {
-		await cmds.toggleCmd();
-	});
+	// const toggleCmd = vscode.commands.registerCommand(
+  //          'vscode-function-explorer.toggle', async () => {
+	// 	await cmds.toggleCmd();
+	// });
 
 	const prev = vscode.commands.registerCommand(
                    'vscode-function-explorer.prev', async () => {
@@ -31,32 +31,32 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const toggleMarkedFilter = vscode.commands.registerCommand(
        'vscode-function-explorer.toggleMarkedFilter', (fileItem: FileItem) => {
-		sbar.toggleMarkedFilter(fileItem);
+		disp.toggleMarkedFilter(fileItem);
 	});
 
 	const toggleMarkedFilterMenu = vscode.commands.registerCommand(
    'vscode-function-explorer.toggleMarkedFilterMenu', (fileItem: FileItem) => {
-		sbar.toggleMarkedFilter(fileItem);
+		disp.toggleMarkedFilter(fileItem);
 	});
 
 	const toggleAlphaSort = vscode.commands.registerCommand(
           'vscode-function-explorer.toggleAlphaSort', (fileItem: FileItem) => {
-		sbar.toggleAlphaSort(fileItem);
+		disp.toggleAlphaSort(fileItem);
 	});
 
 	const toggleAlphaSortMenu = vscode.commands.registerCommand(
       'vscode-function-explorer.toggleAlphaSortMenu', (fileItem: FileItem) => {
-		sbar.toggleAlphaSort(fileItem);
+		disp.toggleAlphaSort(fileItem);
 	});
 
 	const removeMarks = vscode.commands.registerCommand(
                       'vscode-function-explorer.removeMarks', async (item: Item) => {
-		await sbar.removeMarks(item);
+		// await disp.removeMarks(item);
 	});
 
 	const removeMarksMenu = vscode.commands.registerCommand(
                   'vscode-function-explorer.removeMarksMenu', async (item: Item) => {
-		await sbar.removeMarks(item);
+		// await disp.removeMarks(item);
 	});
 
 	const toggleItemMark = vscode.commands.registerCommand(
@@ -75,8 +75,8 @@ export function activate(context: vscode.ExtensionContext) {
                              .onDidChangeConfiguration(event => {
     if (event.affectsConfiguration('function-explorer')) {
       sett.loadSettings();
-      side.setFileWatcher();
-      cmds.updateSide();
+      // disp.setFileWatcher();
+      // cmds.updateSide();
     }
   });
 
@@ -87,8 +87,8 @@ export function activate(context: vscode.ExtensionContext) {
     treeDataProvider: sidebarProvider,
   });
 
-  const sidebarVisChg = treeView.onDidChangeVisibility((visible) => {
-    if(visible) disp.updatePointers();
+  const sidebarVisChg = treeView.onDidChangeVisibility(async (visible) => {
+    if(visible) await disp.updatePointers();
   });
 
   const treeSelChg = treeView.onDidChangeSelection(() => {
@@ -96,12 +96,12 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const itemExpandChg = treeView.onDidExpandElement(async event => {
-    await sbar.itemExpandChg(
+    await disp.itemExpandChg(
                    event.element as WsAndFolderItem | FileItem, true);
   });
 
   const itemCollapseChg = treeView.onDidCollapseElement(async event => {
-    await sbar.itemExpandChg(
+    await disp.itemExpandChg(
                    event.element as WsAndFolderItem | FileItem, false);
   });
 
@@ -114,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
-    async editor => {if(editor) await cmds.editorOrTextChg(editor)});
+    async editor => {if(editor) await cmds.editorOrTextChg(editor);});
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
     const editor = vscode.window.activeTextEditor;
@@ -128,7 +128,8 @@ export function activate(context: vscode.ExtensionContext) {
   disp.activate(context, treeView, sidebarProvider);
 
 	context.subscriptions.push(
-    toggleCmd, prev, next, funcClickCmd, loadSettings,
+    // toggleCmd, 
+    prev, next, funcClickCmd, loadSettings,
     editorChg, selectionChg, textChg, toggleItemMark,
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
