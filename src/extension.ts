@@ -1,11 +1,10 @@
 import * as vscode       from 'vscode';
 import * as cmds         from './commands';
-import * as sbar         from './display';
+import * as disp         from './display';
 import {SidebarProvider} from './display';
 import * as itms         from './display';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
                          from './display';
-import * as gutt         from './marks';
 import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
@@ -88,8 +87,8 @@ export function activate(context: vscode.ExtensionContext) {
     treeDataProvider: sidebarProvider,
   });
 
-  const sidebarVisChg = treeView.onDidChangeVisibility(() => {
-     // boolean whether the sidebar is now visible
+  const sidebarVisChg = treeView.onDidChangeVisibility((visible) => {
+    if(visible) disp.updatePointers();
   });
 
   const treeSelChg = treeView.onDidChangeSelection(() => {
@@ -126,11 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
 ////////////  INIT  ////////////
 
   sett.loadSettings();
-  gutt.activate(context);
-  file.setFileWatcher();
-  sbar.activate(treeView, sidebarProvider);
-  itms.activate(context);
-  cmds.updateSide();
+  disp.activate(context, treeView, sidebarProvider);
 
 	context.subscriptions.push(
     toggleCmd, prev, next, funcClickCmd, loadSettings,

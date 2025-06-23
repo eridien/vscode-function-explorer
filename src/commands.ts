@@ -121,8 +121,8 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
     return;
   }
   utils.startDelaying('selChg');
-  if(!await sbar.updatePointers())
-    await prevNext(true, false, true);  
+  disp.updatePointers();
+    // await prevNext(true, false, true);  
 }
 
 export function fileChanged(uri: vscode.Uri) {

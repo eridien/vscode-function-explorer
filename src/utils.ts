@@ -28,18 +28,6 @@ export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
 }
 
-export function rangesOverlap(
-                      selStartLine: number, selEndLine: number, 
-                      funcStartLine: number, funcEndLine: number): boolean {
-  if (selStartLine >  selEndLine) 
-     [selStartLine, selEndLine]  = 
-     [selEndLine,   selStartLine]; 
-  if (funcStartLine > funcEndLine) 
-     [funcStartLine,  funcEndLine] = 
-     [funcEndLine, funcStartLine];
-  return selStartLine <= funcEndLine && funcStartLine <= selEndLine;
-}
-
 export function flashRange(editor: vscode.TextEditor, 
                            startPos: vscode.Position, 
                            endPos: vscode.Position, red = false) {

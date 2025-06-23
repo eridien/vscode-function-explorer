@@ -232,7 +232,7 @@ export async function getOrMakeFileItemByFsPath(
   if (!fileItem) {
     const uri      = vscode.Uri.file(fsPath);
     const document = await vscode.workspace.openTextDocument(uri);
-    fileItem       = new FileItem(null, document);
+    fileItem       = new FileItem(document);
   }
   return fileItem;
 }
@@ -261,16 +261,16 @@ interface FuncData {
 }
 
 export class FuncItem extends Item {
-  declare parent: FileItem;
-  name!:        string;
-  decoration!:  string;
-  type!:        string;
-  start!:       number;
-  startName!:   number;
-  endName!:     number;
-  end!:         number;
-  funcId!:      string;
-  funcParents!: FuncItem[];
+  declare parent:     FileItem;
+  name!:              string;
+  decoration!:        string;
+  type!:              string;
+  start!:             number;
+  startName!:         number;
+  endName!:           number;
+  end!:               number;
+  funcId!:            string;
+  funcParents!:       FuncItem[];
   private startLine!: number;
   private endLine!:   number;
   private startKey!:  string;
@@ -280,8 +280,8 @@ export class FuncItem extends Item {
     super('', vscode.TreeItemCollapsibleState.None);
     Object.assign(this, params);
     this.contextValue = 'func';
-    this.label        = this.getLabel();
     this.decoration   = this.getDecoration();
+    this.refresh();
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked'
@@ -315,7 +315,9 @@ export class FuncItem extends Item {
     return ` ${pfx} ${funcItem.name}`;
   }
   getLabel() {
-    return this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
+    let label = this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
+    if(pointerItems.has(this)) label = '→ ' + label;
+    return label;
   }
   getDecoration() {
     let decoration = '';
@@ -323,6 +325,14 @@ export class FuncItem extends Item {
       decoration += this.getFuncItemStr(funcParent);
     // decoration += ` (${this.type})`;
     return decoration.slice(1);
+  }
+  getIconPath() {
+     return mrks.hasMark(this) ? 
+            this.iconPath = new vscode.ThemeIcon('bookmark') : undefined;
+  }
+  refresh(){
+    this.label    = this.getLabel();
+    this.iconPath = this.getIconPath();
   }
 }
 
@@ -615,6 +625,13 @@ class Marks {
     if(!markIdSet)    Marks.markIdSetByFspath.set(fsPath, new Set<string>());
     return            Marks.markIdSetByFspath.get(fsPath)!;
   } 
+  hasMark(funcItem: FuncItem): boolean {
+    const fsPath    = funcItem.getFsPath();
+    const funcId    = funcItem.funcId;
+    const funcIdSet = Marks.markIdSetByFspath.get(fsPath);
+    if(!funcIdSet) return false;
+    return funcIdSet.has(funcId);
+  }
   addMark(fsPath: string, funcId: string) {
     let funcIdSet = Marks.markIdSetByFspath.get(fsPath);
     if(!funcIdSet) {
@@ -652,8 +669,6 @@ function saveMarks() {
   }, 1000);
 }
 
-////////////////////// setMark //////////////////////
-
 export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean) {
   const fsPath = funcItem.getFsPath();
   if(!fsPath) return;
@@ -671,6 +686,22 @@ export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean) 
   if(funcItemSet)
     for(const funcItem of funcItemSet.values()) sbar.updateItemInTree(funcItem);
   if(marked) await sbar.revealItemByFunc(funcItem);
+}
+
+let pointerItems = new Set<FuncItem>();
+
+export async function updatePointers() {
+  if(!treeView.visible) return;
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return;
+  const fsPath   = editor.document.uri.fsPath;
+  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+  const children = fileItem.getChildren() as FuncItem[] | undefined;
+  if (!children) return;
+  pointerItems.clear();
+  for (const funcItem of children) {
+    
+  }
 }
 
 // @@ts-nocheck
