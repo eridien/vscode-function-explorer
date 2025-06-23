@@ -110,19 +110,19 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
   if(utils.isDelaying('selChg')) return;
-  const document  = textEditor.document;
-  const fsPath    = document.uri.fsPath;
-  const selection = selections[0];
-  const selStart  = document.offsetAt(selection.start);
-  const selEnd    = document.offsetAt(selection.end);
-  const func      = itms.getFuncAtLine(fsPath, selection.start.line);
-  if(func && selStart >= func.start && selEnd <= func.endName) {
-    await setMark(func, true);
-    return;
-  }
+  // const document  = textEditor.document;
+  // const fsPath    = document.uri.fsPath;
+  // const selection = selections[0];
+  // const selStart  = document.offsetAt(selection.start);
+  // const selEnd    = document.offsetAt(selection.end);
+  // const func      = itms.getFuncAtLine(fsPath, selection.start.line);
+  // if(func && selStart >= func.start && selEnd <= func.endName) {
+  //   await setMark(func, true);
+  //   return;
+  // }
   utils.startDelaying('selChg');
-  disp.updatePointers();
-    // await prevNext(true, false, true);  
+  await disp.updatePointers();
+  // await prevNext(true, false, true);  
 }
 
 export function fileChanged(uri: vscode.Uri) {

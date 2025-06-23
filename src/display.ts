@@ -692,17 +692,113 @@ let pointerItems = new Set<FuncItem>();
 
 export async function updatePointers() {
   if(!treeView.visible) return;
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) return;
-  const fsPath   = editor.document.uri.fsPath;
-  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-  const children = fileItem.getChildren() as FuncItem[] | undefined;
-  if (!children) return;
   pointerItems.clear();
-  for (const funcItem of children) {
-    
+  const funcItems = getFuncsOverlappingSelections();
+  for(const funcItem of funcItems) {
+    pointerItems.add(funcItem);
+    updateItemInTree(funcItem);
   }
 }
+
+///////////////////// get functions by lines //////////////////////
+
+export async function getFuncAtLine(
+                fsPath: string, lineNumber: number) : FuncItem | null {
+  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+  const children = fileItem.getChildren() as FuncItem[] | undefined;
+  if (!children || children.length === 0) return null;
+  let minFunc: FuncItem | null = null;
+  let minFuncLen = 1e9;
+  for(const func of children) {
+    if(lineNumber >= func.getStartLine() && 
+       lineNumber < (func.getEndLine() + 1)) {
+      if((func.getEndLine() - func.getStartLine()) < minFuncLen) {
+        minFuncLen = func.getEndLine() - func.getStartLine();
+        minFunc = func;
+      }
+    }
+  }
+  return minFunc;
+}
+
+export function getFuncInAroundSelection() : FuncItem | null {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return null;
+  const document = editor.document;
+  const fsPath = document.uri.fsPath;
+  if (document.uri.scheme !== 'file' ||
+     !sett.includeFile(fsPath)) return null;
+  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+  const children = fileItem.getChildren() as FuncItem[] | undefined;
+  if (!children || children.length === 0) return null;
+  const funcsInSelection:     FuncItem[] = [];
+  const funcsAroundSelection: FuncItem[] = [];
+  for (const selection of editor.selections) {
+    const selStartLine = selection.start.line;
+    const selEndLine   = selection.end.line;
+    for(const func of children) {
+      const funcStartLine = func.getStartLine();
+      const funcEndLine   = func.getEndLine();
+      const selRange  = new vscode.Range(selStartLine,  0, selEndLine,  0);
+      const funcRange = new vscode.Range(funcStartLine, 0, funcEndLine, 0);
+      if (selRange.contains(funcRange)) funcsInSelection.push(func);
+      if (funcsInSelection.length == 0 && funcRange.contains(selRange))
+         funcsAroundSelection.push(func);
+    }
+  }
+  if(funcsInSelection.length > 0) {
+    let maxFuncLenIn = -1;
+    let biggestFuncInSelection = null;
+    for(const func of funcsInSelection) {
+      const funcLen = (func.getEndLine() - func.getStartLine());
+      if(funcLen > maxFuncLenIn) {
+        maxFuncLenIn = funcLen;
+        biggestFuncInSelection = func;
+      }
+    }
+    return biggestFuncInSelection;
+  }
+  if(funcsAroundSelection.length > 0) {
+    let minFuncLenAround = 1e9;
+    let smallestFuncAroundSelection = null;
+    for(const func of funcsAroundSelection) {
+      const funcLen = (func.getEndLine() - func.getStartLine());
+      if(funcLen < minFuncLenAround) {
+        minFuncLenAround = funcLen;
+        smallestFuncAroundSelection = func;
+      }
+    }
+    return smallestFuncAroundSelection;
+  }
+  return null;
+}
+
+export function getFuncsOverlappingSelections(): FuncItem[] {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return [];
+  const document = editor.document;
+  const fsPath   = document.uri.fsPath;
+  if (document.uri.scheme !== 'file' ||
+     !sett.includeFile(fsPath)) return [];
+  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+  const children = fileItem.getChildren() as FuncItem[] | undefined;
+  if (!children || children.length === 0) return [];
+  const overlapping: FuncItem[] = [];
+  for (const selection of editor.selections) {
+    const selStart = selection.start.line;
+    const selEnd   = selection.end.line;
+    for (const func of children) {
+      const funcStart = func.getStartLine();
+      if(funcStart > selEnd) break;
+      const funcEnd = func.getEndLine();
+      if (selStart <= funcEnd && funcStart <= selEnd) {
+        overlapping.push(func);
+      }
+    }
+  }
+  return overlapping;
+}
+
 
 // @@ts-nocheck
 // https://github.com/acornjs/acorn/tree/master/acorn-loose/
