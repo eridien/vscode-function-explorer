@@ -1,6 +1,5 @@
 import * as vscode      from 'vscode';
-import * as mrks        from './marks';
-import * as sbar        from './display';
+import * as disp        from './display';
 import {FuncItem, itms} from './display';
 import * as sett        from './settings';
 import {settings}       from './settings';
@@ -96,21 +95,14 @@ export async function funcClickCmd(key: string) {
   if (item) await itms.revealFunc(null, func!);
 }
 
-export async function editorChg(editor: vscode.TextEditor) {
-  const document = editor.document;
-  if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(document.uri.fsPath)) return;
-  await itms.updateFuncsInFile();
-  updateSide(document);
-}
-
-export async function textChg(event :vscode.TextDocumentChangeEvent) {
-  const document = event.document;
-  if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(document.uri.fsPath)) return;
-  if (event.contentChanges.length == 0) return;
-  await itms.updateFuncsInFile();
-  updateSide(document);
+export async function editorOrTextChg(editor: vscode.TextEditor) {
+  if(editor.document.uri.scheme !== 'file' ||
+     !sett.includeFile(editor.document.uri.fsPath)) return;
+  const fsPath      = editor.document.uri.fsPath;
+  const fileItem    = await disp.getOrMakeFileItemByFsPath(fsPath);
+  fileItem.children = null;
+  if(fileItem.parent) disp.updateItemInTree(fileItem);
+  await disp.updateGutter(editor, fileItem);
 }
 
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {

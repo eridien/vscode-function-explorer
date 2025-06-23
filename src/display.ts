@@ -11,19 +11,15 @@ const {log, start, end} = utils.getLog('disp');
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
-
+  
 export function activate(contextIn:         vscode.ExtensionContext,
                          treeViewIn:        vscode.TreeView<Item>, 
                          sidebarProviderIn: SidebarProvider) {
   context         = contextIn;
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
-  gutDecLgtUri = vscode.Uri.file(path.join( 
-                  context.extensionPath, 'images', 'gutter-icon-lgt.svg'));
-  gutDecDrkUri = vscode.Uri.file(path.join( 
-                  context.extensionPath, 'images', 'gutter-icon-drk.svg'));
-  gutterDec = getGutterDec();
   loadMarks();
+  initGutter();
 }
 
 type AllButFuncItem = WsAndFolderItem | FileItem;
@@ -138,16 +134,18 @@ async function getFolderChildren(parent: WsAndFolderItem,
     if(!sett.includeFile(fsPath, isDir)) continue;
     let folderFileItem = itms.getFldrFileByFsPath(fsPath);
     if (isDir) {
-      folderFileItem ??= await FolderItem.create(uri, parent);
+      folderFileItem ??= await FolderItem.create(uri);
       if(!folderFileItem) continue;
+      folderFileItem.parent = parent;
       folders.push(folderFileItem);
       continue;
     }
-    if (entry.isFile()) {
+    if(entry.isFile()) {
       if(!folderFileItem) {
         const document = await vscode.workspace.openTextDocument(uri);
-        folderFileItem = new FileItem(parent, document);
+        folderFileItem = new FileItem(document);
       }
+      folderFileItem.parent = parent;
       files.push(folderFileItem);
       continue;
     }
@@ -169,9 +167,8 @@ export class WsFolderItem extends WsAndFolderItem {
 
 export class FolderItem extends WsAndFolderItem {
   decoration?:    string;
-  constructor(uri: vscode.Uri, parent: WsAndFolderItem) {
+  constructor(uri: vscode.Uri) {
     super(uri);
-    this.parent = parent;
     this.contextValue = 'folder';
     if(settings.flattenFolders) {
       let parents = this.getParents();
@@ -185,10 +182,9 @@ export class FolderItem extends WsAndFolderItem {
       }
     }
   }
-  static async create(uri: vscode.Uri, parent: WsAndFolderItem): 
-                                               Promise<FolderItem | null> {
-    if (!await sbar.hasChildFuncTest(uri.fsPath)) return null;
-    return new FolderItem(uri, parent);
+  static async create(uri: vscode.Uri): Promise<FolderItem | null> {
+    if (!await hasChildFuncTest(uri.fsPath)) return null;
+    return new FolderItem(uri);
   }
 }
 
@@ -196,15 +192,14 @@ export class FolderItem extends WsAndFolderItem {
 
 export class FileItem extends Item {
   declare parent:   WsAndFolderItem |null;
-  declare children: FuncItem[];
+  declare children: FuncItem[]      | null;
   document:         vscode.TextDocument;
   expanded:         boolean = false;;
   filtered:         boolean = false;
   alphaSorted:      boolean = false;
-  constructor(parent: WsAndFolderItem|null, document: vscode.TextDocument) {
+  constructor(document: vscode.TextDocument) {
     const uri = document.uri;
     super(uri, vscode.TreeItemCollapsibleState.Collapsed);
-    this.parent       = parent;
     this.document     = document;
     this.resourceUri  = uri;
     this.id           = getItemId();
@@ -231,7 +226,8 @@ export class FileItem extends Item {
   };
 }
 
-async function getOrMakeFileItemByFsPath(fsPath: string): Promise<FileItem> {
+export async function getOrMakeFileItemByFsPath(
+                                         fsPath: string): Promise<FileItem> {
   let fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem | undefined;
   if (!fileItem) {
     const uri      = vscode.Uri.file(fsPath);
@@ -568,6 +564,15 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
 let gutDecLgtUri: vscode.Uri;
 let gutDecDrkUri: vscode.Uri;
 let gutterDec:    vscode.TextEditorDecorationType;
+let decRanges:    vscode.DecorationOptions[] = [];
+
+function initGutter() {
+  gutDecLgtUri = vscode.Uri.file(path.join( 
+                  context.extensionPath, 'images', 'gutter-icon-lgt.svg'));
+  gutDecDrkUri = vscode.Uri.file(path.join( 
+                  context.extensionPath, 'images', 'gutter-icon-drk.svg'));
+  gutterDec    = getGutterDec();
+}
 
 function getGutterDec() {
   return vscode.window.createTextEditorDecorationType({
@@ -580,23 +585,21 @@ function getGutterDec() {
 vscode.window.onDidChangeActiveColorTheme(() => {
   if(gutterDec) gutterDec.dispose();
   gutterDec = getGutterDec();
-  updateGutter();
+  const editor = vscode.window.activeTextEditor;
+  if(!decRanges || !editor) return;
+  editor.setDecorations(gutterDec, decRanges);
 });
 
-export async function updateGutter() {
-  const activeEditor = vscode.window.activeTextEditor;
-  if(!activeEditor) return;
-  const document  = activeEditor.document;
-  const fsPath    = document.uri.fsPath;
-  const fileItem  = await getOrMakeFileItemByFsPath(fsPath);
-  const children  = fileItem.getChildren();
-  const decRanges = [];
+export async function updateGutter(editor:   vscode.TextEditor, 
+                                   fileItem: FileItem) {
+  const children = fileItem.getChildren();
+  decRanges = [];
   for(const funcItem of children) {
     const lineNumber = funcItem.getStartLine();
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
     decRanges.push({range});
   }
-  activeEditor.setDecorations(gutterDec, decRanges);
+  editor.setDecorations(gutterDec, decRanges);
 }
 
 ////////////////////// mark data //////////////////////

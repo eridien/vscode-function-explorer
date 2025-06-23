@@ -108,20 +108,19 @@ export function activate(context: vscode.ExtensionContext) {
 
 ////////////  EDITOR  ////////////
 
-  const editorChg = vscode.window.onDidChangeActiveTextEditor(
-    async editor => { if(editor) await cmds.editorChg(editor); });
-
   const selectionChg = vscode.window.onDidChangeTextEditorSelection(
     async event => {
       if (event.textEditor?.document.uri.scheme !== 'file') return;
     await cmds.selectionChg(event);
   });
 
+  const editorChg = vscode.window.onDidChangeActiveTextEditor(
+    async editor => {if(editor) await cmds.editorOrTextChg(editor)});
+
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
-    if (vscode.window.activeTextEditor &&
-        event.document === vscode.window.activeTextEditor.document) {
-      await cmds.textChg(event);
-    }
+    const editor = vscode.window.activeTextEditor;
+    if (editor && event.document === editor.document) 
+      await cmds.editorOrTextChg(editor);
   });
 
 ////////////  INIT  ////////////
