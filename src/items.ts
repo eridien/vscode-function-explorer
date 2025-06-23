@@ -45,13 +45,14 @@ class Items {
     set.add(item);
     Items.itemsById.set(item.id, item);
   }
-  setMark(fsPath: string, funcId: string) {
+  setMark(funcItem: FuncItem) {
+    const fsPath = funcItem.parent.document.uri.fsPath;
     let funcIdSet = Items.markIdSetByFspath.get(fsPath);
     if(!funcIdSet) {
       funcIdSet = new Set<string>();
       Items.markIdSetByFspath.set(fsPath, funcIdSet);
     }
-    funcIdSet.add(funcId);
+    funcIdSet.add(funcItem.funcId);
   }
   get(id: string): Item  | undefined {
     return Items.itemsById.get(id);
@@ -62,23 +63,29 @@ class Items {
   getFuncSet(funcId: string): Set<FuncItem>  | undefined {
     return Items.funcItemsByFuncId.get(funcId);
   }
+  getMarkSet(fsPath:string): Set<string> {
+    const markIdSet = Items.markIdSetByFspath.get(fsPath);
+    if(!markIdSet)    Items.markIdSetByFspath.set(fsPath, new Set<string>());
+    return            Items.markIdSetByFspath.get(fsPath)!;
+  } 
+  getAllMarks(): Array<[string, Set<string>]> {
+    return [...Items.markIdSetByFspath.entries()];
+  }
   delFuncSet(funcId: string): Set<FuncItem> {
     const funcSet = itms.getFuncSet(funcId) ?? new Set<FuncItem>();
     Items.funcItemsByFuncId.delete(funcId);
     return funcSet;
   }
-  getMarkSet(fsPath:string): Set<string> | undefined {
-    return Items.markIdSetByFspath.get(fsPath);
-  } 
-  getAllMarks(): Array<[string, Set<string>]> {
-    return [...Items.markIdSetByFspath.entries()];
+  delMark(funcItem: FuncItem) {
+    for(const markIdSet of Items.markIdSetByFspath.values())
+      markIdSet.delete(funcItem.funcId);
   }
 }
-const itms = new Items();
+export const itms = new Items();
 
 ////////////////////// Item //////////////////////
 
-class Item extends vscode.TreeItem {
+export class Item extends vscode.TreeItem {
   declare id: string;
   parent?:    Item   | null = null;
   children?:  Item[] | null = null;

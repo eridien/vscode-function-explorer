@@ -1,26 +1,29 @@
-import * as vscode  from 'vscode';
-import * as sbar    from './sidebar';
-import * as fnct    from './funcs';
-import {Func}       from './funcs';
-import {FuncItem}   from './items';
-import * as sett    from './settings';
-import {settings}   from './settings';
-import * as gutt    from './gutter';
-import * as utils   from './utils';
+import * as vscode      from 'vscode';
+import * as sbar        from './sidebar';
+import {FuncItem, itms} from './items';
+import * as sett        from './settings';
+import {settings}       from './settings';
+import * as gutt        from './gutter';
+import * as utils       from './utils';
 const {log} = utils.getLog('cmds');
 
 const NEXT_DEBUG = false;
 // const NEXT_DEBUG = true;
 
-async function setMark(func: Func, toggle = false, mark = false) {
-  if(!func) return;
-  if (toggle) func.marked = !func.marked;
-  else        func.marked = mark;
-  const red = !func.marked;
+async function setMark(funcItem: FuncItem, toggle = false, mark = false) {
+  const fsPath = funcItem?.parent?.document.uri.fsPath;
+  if(!fsPath) return;
+  const markSet = itms.getMarkSet(fsPath);
+  let marked  = markSet.has(funcItem.funcId);
+  if (toggle) marked = !marked;
+  else        marked = mark;
+  if(marked) itms.setMark(funcItem);
+  else       itms.delMark(funcItem);
+  const red = !marked;
   startselectionChgDelay();
   await sbar.saveFuncAndUpdate(func);
   await sbar.revealItemByFunc(func);
-  await fnct.revealFunc(null, func, red);
+  await fnct.revealFunc(null, func, !marked);
 }
 
 export async function toggleCmd() {

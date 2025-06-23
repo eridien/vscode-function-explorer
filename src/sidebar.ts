@@ -4,8 +4,8 @@ import vscode     from 'vscode';
 import * as fs    from 'fs/promises';
 import * as path  from 'path';
 import * as itms  from './items';
-import {Item, WsAndFolderItem, 
-        FileItem, FuncItem, itemsById} from './items';
+import {Item, WsAndFolderItem, FileItem, FuncItem} 
+                  from './items';
 import * as sett  from './settings';
 import * as gutt  from './gutter';
 import * as utils from './utils.js';
@@ -182,7 +182,15 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
   item.expanded = expanded;
 }
 
-let count = 0;
+let watcher: vscode.FileSystemWatcher | undefined;
+
+export function setFileWatcher() {
+  if (watcher) watcher.dispose();
+  watcher = vscode.workspace.createFileSystemWatcher(sett.filesGlobPattern);
+  watcher.onDidChange(uri => { fileChanged(uri); });
+  watcher.onDidCreate(uri => { fileCreated(uri); });
+  watcher.onDidDelete(uri => { fileDeleted(uri); });
+}
 
 export class SidebarProvider {
   onDidChangeTreeData:               vscode.Event<Item        | undefined>;

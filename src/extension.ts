@@ -1,17 +1,16 @@
 import * as vscode       from 'vscode';
 import * as cmds         from './commands';
-import * as fnct         from './funcs';
-import * as file         from './files';
 import * as sbar         from './sidebar';
 import {SidebarProvider} from './sidebar';
-import {Item, FileItem, FuncItem, WsAndFolderItem}
+import * as itms         from './items';
+import {Item, WsAndFolderItem, FileItem, FuncItem} 
                          from './items';
 import * as gutt         from './gutter';
 import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
   start('extension');
 
 ////////////  COMMANDS  ////////////
@@ -77,7 +76,7 @@ export async function activate(context: vscode.ExtensionContext) {
                              .onDidChangeConfiguration(event => {
     if (event.affectsConfiguration('function-explorer')) {
       sett.loadSettings();
-      file.setFileWatcher();
+      side.setFileWatcher();
       cmds.updateSide();
     }
   });
@@ -131,7 +130,7 @@ export async function activate(context: vscode.ExtensionContext) {
   gutt.activate(context);
   file.setFileWatcher();
   sbar.activate(treeView, sidebarProvider);
-  await fnct.activate(context);
+  itms.activate(context);
   cmds.updateSide();
 
 	context.subscriptions.push(
