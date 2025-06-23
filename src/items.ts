@@ -56,8 +56,8 @@ class Items {
   get(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }
-  getFldrFile(fsPath:string): AllButFuncItem | undefined {
-    return Items.fldrItemsByFspath.get(fsPath);
+  getFldrFile(fsPath:string): AllButFuncItem | null {
+    return Items.fldrItemsByFspath.get(fsPath) ?? null;
   }
   getFuncSet(funcId: string): Set<FuncItem>  | undefined {
     return Items.funcItemsByFuncId.get(funcId);
@@ -70,6 +70,9 @@ class Items {
   getMarkSet(fsPath:string): Set<string> | undefined {
     return Items.markIdSetByFspath.get(fsPath);
   } 
+  getAllMarks(): Array<[string, Set<string>]> {
+    return [...Items.markIdSetByFspath.entries()];
+  }
 }
 const itms = new Items();
 
@@ -421,14 +424,10 @@ async function getFolderFileChildren(parent: WsAndFolderItem,
     if(uri.scheme !== 'file') continue;
     const isDir = entry.isDirectory();
     if(!sett.includeFile(fsPath, isDir)) continue;
-    let folderFileItem = ([...itemsById.values()]
-        .find(item => (item as FolderItem)
-        .resourceUri?.fsPath === fsPath) as FolderItem | FileItem | null);
+    let folderFileItem = itms.getFldrFile(fsPath);
     if (isDir) {
-      if(!folderFileItem) {
-        folderFileItem = await FolderItem.create(uri, parent);
-        if(!folderFileItem) continue;
-      }
+      folderFileItem ??= await FolderItem.create(uri, parent);
+      if(!folderFileItem) continue;
       folders.push(folderFileItem);
       continue;
     }
@@ -468,23 +467,12 @@ function loadMarks() {
   const fsPathMarkIdArr: Array<[string, string[]]> =  
           context.workspaceState.get('markIds', []);
   for(const [fsPath, markIds] of fsPathMarkIdArr) {
-    let markIdsSet = markIdSetByFspath.get(fsPath);
-    if(!markIdsSet) {
-      markIdsSet = new Set<string>();
-      markIdSetByFspath.set(fsPath, markIdsSet);
-    }
-    for(const markId of markIds) {
-      markIdsSet.add(markId);
-    }
+    for(const markId of markIds) itms.setMark(fsPath, markId);
   }
 }
 
 export async function saveMarks() {
-  const fsPathMarkIdArr: Array<[string, string[]]> = [];
-  for (const [fsPath, markIdSet] of markIdSetByFspath.entries()) {
-    fsPathMarkIdArr.push([fsPath, Array.from(markIdSet)]);
-  }
-  await context.workspaceState.update('markIds', fsPathMarkIdArr);
+  await context.workspaceState.update('markIds', itms.getAllMarks());
 }
 
 // @@ts-nocheck
