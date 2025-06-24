@@ -53,10 +53,9 @@ export function scrollToTopMarginAndFlash(editor: vscode.TextEditor,
 }
 
 export async function revealEditorByFspath(fsPath: string) {
-  const uri = vscode.Uri.file(fsPath);
+  const uri    = vscode.Uri.file(fsPath);
   const editor = vscode.window.visibleTextEditors.find(
-    ed => ed.document.uri.fsPath === fsPath
-  );
+                               ed => ed.document.uri.fsPath === fsPath);
   if (editor) {
     await vscode.window.showTextDocument(editor.document, editor.viewColumn);
   } else {

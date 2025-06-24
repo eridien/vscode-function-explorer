@@ -283,7 +283,8 @@ export class FuncItem extends Item {
     this.refresh();
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
-      title:   'Item Clicked'
+      title:   'Item Clicked',
+      arguments: [this]
     };
   }
   getFsPath()    {return this.parent.document.uri.fsPath;}
@@ -728,7 +729,7 @@ export async function updatePointers() {
   }
 }
 
-///////////////////// get functions by lines //////////////////////
+///////////////////// editor text //////////////////////
 
 // export async function getFuncAtLine(
 //                 fsPath: string, lineNumber: number) : FuncItem | null {
@@ -825,6 +826,22 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
     }
   }
   return overlapping;
+}
+
+export async function revealFuncInEditor(
+               itemDoc: vscode.TextDocument | FuncItem | null, red = false) {
+  if(itemDoc instanceof FuncItem) {
+    const document = itemDoc.parent.document;
+    const editor = await vscode.window.showTextDocument(
+                          document, { preview: true });
+    const startPos = document.positionAt(itemDoc.start);
+    const endPos   = document.positionAt(itemDoc.end);
+    utils.scrollToTopMarginAndFlash(editor, startPos, endPos, 
+                                     settings.topMargin, red);
+    editor.selection = new vscode.Selection(startPos, startPos);
+  }
+  else if(itemDoc) await vscode.window.showTextDocument(
+      itemDoc.uri, {preview: true, preserveFocus: true });
 }
 
 // @@ts-nocheck

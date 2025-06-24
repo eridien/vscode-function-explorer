@@ -92,11 +92,9 @@ export async function prev() { await prevNext(false); }
 
 export async function next() { await prevNext(true); }
 
-export async function funcClickCmd(id: string) { 
-  // utils.startDelaying('selChg');
-  // const item = itemsById.get(id) as FuncItem;
-  // const func = item ? disp.getFuncBykey(id) : null;
-  // if (item) await disp.revealFunc(null, func!);
+export async function funcClickCmd(funcItem: FuncItem) { 
+  utils.startDelaying('selChg');
+  if (funcItem) await disp.revealFuncInEditor(funcItem);
 }
 
 export async function editorOrTextChg(
