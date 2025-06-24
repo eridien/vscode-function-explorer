@@ -520,11 +520,13 @@ function printItemTree(rootItems: Item[] | Item, indent = '', first = true): voi
     const label = (item as any).label ?? item.contextValue ?? '';
     console.log(`${indent}${(item.id).toString().padStart(3) } ${label + '  ' + 
                     ((item.resourceUri?.path.split('/').pop()) ?? '..')}`);
-    if (item.children && item.children.length > 0) {
-      printItemTree(item.children, indent + '  ', false);
-    }
+    // if (item.children && item.children.length > 0) {
+    //   printItemTree(item.children, indent + '  ', false);
+    // }
   }
 }
+
+let inGetChildren = true;
 
 export class SidebarProvider {
   onDidChangeTreeData:               vscode.Event<Item        | undefined>;
@@ -536,10 +538,10 @@ export class SidebarProvider {
   }
   
   refresh(item:Item | undefined): void {
+    if(inGetChildren) return;
     // log(++count, 'refresh', item?.label || 'undefined');
     console.log('\nrefresh\n');
-
-    printItemTree(item as Item, '');
+    printItemTree(item!, `  S${item!.id} `);
     this._onDidChangeTreeData.fire(item);
   }
 
@@ -547,33 +549,55 @@ export class SidebarProvider {
     // log(++count, 'getTreeItem', itemin.label);
     console.log('\ngetTreeItem\n');
     printItemTree(itemIn, `  I${itemIn.id} `);
+
+    const itemInId    = itemIn.id;
+    const itemInLabel = itemIn.label;
     const item = itms.getById(itemIn.id);
+
     if(!item) {
       log('err', 'getTreeItem, item not found:', itemIn.label);
       return itemIn;
     }
     item.refresh();
     printItemTree(item, `  J${item.id} `);
+    if(item.label !== itemInLabel) {
+      log('getTreeItem, label changed:', 
+                  itemInId, itemInLabel, item.id, item.label);
+    }
+    if(item !== itemIn || item.id !== itemIn.id) {
+      log('err', 'getTreeItem, item returned mismatch:', 
+                  itemInId, itemInLabel, item.id, item.label);
+      return itemIn;
+    }
     return item;
   }
 
   getParent(item: Item): Item | null {
     // log(++count, 'getParent', item?.label || 'undefined');
+    console.log('\ngetParent\n');
+    printItemTree(item, `  P${item.id} `);
     if(item?.parent) return item.parent;
     return null;
   }
 
   async getChildren(item: Item): Promise<Item[]> {
+    inGetChildren = true;
+
     console.log('\ngetChildren\n');
     if(!item) {
       const tree = await getTree();
       printItemTree(tree, 'R  ');
+      inGetChildren = false;
       return tree;
     }
     printItemTree(item, ` G${item.id}  `);
-    if(item instanceof FuncItem) return [];
+    if(item instanceof FuncItem) {
+      inGetChildren = false;
+      return [];
+    }
     const getChildren = await (item as WsAndFolderItem | FileItem).getChildren();
     printItemTree(getChildren, ` D${item.id}  `);
+    inGetChildren = false;
     return getChildren;
   }
 }
