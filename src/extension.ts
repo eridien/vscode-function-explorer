@@ -65,8 +65,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(
-                       'vscode-function-explorer.funcClickCmd', async (key) => {
-		await cmds.funcClickCmd(key);
+                       'vscode-function-explorer.funcClickCmd', async (id) => {
+		await cmds.funcClickCmd(id);
 	});
 
 ////////////  SETTINGS  ////////////

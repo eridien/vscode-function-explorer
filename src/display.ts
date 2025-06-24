@@ -505,11 +505,22 @@ function updateFileChildrenFromAst(fileItem: FileItem):
   log(`updated ${path.basename(fsPath)} funcs, `+
               `${structChg ? 'with structChg, ' : ''}`+
               `marks copied: ${matchCount} of ${funcItems.length}`);
-  end('updateFileChildrenFromAst');
+  end('updateFileChildrenFromAst', false);
   return {structChg, funcItems};
 }
 
 ///////////////////////////// sidebarProvider /////////////////////////////
+
+function printItemTree(rootItems: Item[] | Item, indent = ''): void {
+  const items = Array.isArray(rootItems) ? rootItems : [rootItems];
+  for (const item of items) {
+    const label = (item as any).label ?? item.contextValue ?? '';
+    console.log(`${indent}${item.id}: ${label}`);
+    if (item.children && item.children.length > 0) {
+      printItemTree(item.children, indent + '  ');
+    }
+  }
+}
 
 export class SidebarProvider {
   onDidChangeTreeData:               vscode.Event<Item        | undefined>;
@@ -527,12 +538,14 @@ export class SidebarProvider {
 
   getTreeItem(itemIn: Item): Item {
     // log(++count, 'getTreeItem', itemin.label);
+    printItemTree(itemIn, '    I     ');
     const item = itms.getById(itemIn.id);
     if(!item) {
       log('err', 'getTreeItem, item not found:', itemIn.label);
       return itemIn;
     }
     item.refresh();
+    printItemTree(item, '      J     ');
     return item;
   }
 
@@ -543,8 +556,14 @@ export class SidebarProvider {
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    if(!item) return getTree();
+    if(!item) { 
+      const tree = await getTree();
+      printItemTree(tree, 'R     ');
+      return tree;
+    }
     if(item instanceof FuncItem) return [];
+    const children = itms.getById(item.id)?.children ?? [];
+    printItemTree(children, `  C     ${item.id}: `);
     return await (item as WsAndFolderItem | FileItem).getChildren();
   }
 }
@@ -797,19 +816,6 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
     }
   }
   return overlapping;
-}
-
-// Utility: Print a tree of Item objects to the console
-export function printItemTree(rootItems: Item[] | Item, indent = ''): void {
-  const items = Array.isArray(rootItems) ? rootItems : [rootItems];
-  for (const item of items) {
-    // Print id and label (or contextValue if label is missing)
-    const label = (item as any).label ?? item.contextValue ?? '';
-    console.log(`${indent}${item.id}: ${label}`);
-    if (item.children && item.children.length > 0) {
-      printItemTree(item.children, indent + '  ');
-    }
-  }
 }
 
 // @@ts-nocheck

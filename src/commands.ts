@@ -92,7 +92,7 @@ export async function prev() { await prevNext(false); }
 
 export async function next() { await prevNext(true); }
 
-export async function funcClickCmd(key: string) { 
+export async function funcClickCmd(id: string) { 
   // utils.startDelaying('selChg');
   // const item = itemsById.get(id) as FuncItem;
   // const func = item ? disp.getFuncBykey(id) : null;
