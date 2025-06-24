@@ -92,7 +92,7 @@ export class WsAndFolderItem extends Item {
   constructor(uri: vscode.Uri) {
     super(uri, vscode.TreeItemCollapsibleState.Expanded);
     this.id          = getItemId();
-    this.resourceUri = uri;
+    // this.resourceUri = uri;
     this.expanded    = true;
     itms.setFldrFile(this);
   }
@@ -511,13 +511,16 @@ function updateFileChildrenFromAst(fileItem: FileItem):
 
 ///////////////////////////// sidebarProvider /////////////////////////////
 
-function printItemTree(rootItems: Item[] | Item, indent = ''): void {
+function printItemTree(rootItems: Item[] | Item, indent = '', first = true): void {
   const items = Array.isArray(rootItems) ? rootItems : [rootItems];
+  if(items.length === 0) console.log('[]');
+  let i = 0;
   for (const item of items) {
     const label = (item as any).label ?? item.contextValue ?? '';
-    console.log(`${indent}${item.id}: ${label}`);
+    console.log(`${indent}${(item.id).toString().padStart(3) } ${label + '  ' + 
+                    ((item.resourceUri?.path.split('/').pop()) ?? '..')}`);
     if (item.children && item.children.length > 0) {
-      printItemTree(item.children, indent + '  ');
+      printItemTree(item.children, indent + '  ', false);
     }
   }
 }
@@ -533,19 +536,23 @@ export class SidebarProvider {
   
   refresh(item:Item | undefined): void {
     // log(++count, 'refresh', item?.label || 'undefined');
+    console.log('\nrefresh\n');
+
+    printItemTree(item as Item, '');
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(itemIn: Item): Item {
     // log(++count, 'getTreeItem', itemin.label);
-    printItemTree(itemIn, '    I     ');
+    console.log('\ngetTreeItem\n');
+    printItemTree(itemIn, `  I${itemIn.id} `);
     const item = itms.getById(itemIn.id);
     if(!item) {
       log('err', 'getTreeItem, item not found:', itemIn.label);
       return itemIn;
     }
     item.refresh();
-    printItemTree(item, '      J     ');
+    printItemTree(item, `  J${item.id} `);
     return item;
   }
 
@@ -556,15 +563,17 @@ export class SidebarProvider {
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    if(!item) { 
+    console.log('\ngetChildren\n');
+    if(!item) {
       const tree = await getTree();
-      printItemTree(tree, 'R     ');
+      printItemTree(tree, 'R  ');
       return tree;
     }
+    printItemTree(item, ` G${item.id}  `);
     if(item instanceof FuncItem) return [];
-    const children = itms.getById(item.id)?.children ?? [];
-    printItemTree(children, `  C     ${item.id}: `);
-    return await (item as WsAndFolderItem | FileItem).getChildren();
+    const getChildren = await (item as WsAndFolderItem | FileItem).getChildren();
+    printItemTree(getChildren, ` D${item.id}  `);
+    return getChildren;
   }
 }
 

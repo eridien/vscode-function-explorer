@@ -2,6 +2,7 @@ bugs ...
   adding/removing mark doesn't move pointer
   "class xxx" "const comm" are names
   multiple ws roots
+  name leading space
 
 todo ...
   handle sel overlapping name line only
