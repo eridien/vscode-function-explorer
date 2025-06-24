@@ -9,7 +9,7 @@ import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   start('extension');
 
 ////////////  COMMANDS  ////////////
@@ -126,6 +126,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   sett.loadSettings();
   disp.activate(context, treeView, sidebarProvider);
+  await cmds.activate();
 
 	context.subscriptions.push(
     // toggleCmd, 

@@ -1,8 +1,7 @@
 bugs ...
   adding/removing mark doesn't move pointer
   "class xxx" "const comm" are names
-  changing tabs adds marks (updateGutter)
-  Element with id c:\...\src is already registered
+  multiple ws roots
 
 todo ...
   handle sel overlapping name line only
@@ -23,6 +22,7 @@ testing ...
   error test files
   adding, deleting, moving, and copying funcs
   changing files in other editor
+  multiple ws roots
   multiple selections
   mark persistence
   dark theme

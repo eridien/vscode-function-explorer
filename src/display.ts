@@ -198,10 +198,8 @@ export class FileItem extends Item {
   filtered:         boolean = false;
   alphaSorted:      boolean = false;
   constructor(document: vscode.TextDocument) {
-    const uri = document.uri;
-    super(uri, vscode.TreeItemCollapsibleState.Collapsed);
+    super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
     this.document     = document;
-    this.resourceUri  = uri;
     this.id           = getItemId();
     this.contextValue = 'file';
     itms.setFldrFile(this);
@@ -279,6 +277,7 @@ export class FuncItem extends Item {
   constructor(params: FuncData) {
     super('', vscode.TreeItemCollapsibleState.None);
     Object.assign(this, params);
+    this.id           = getItemId();
     this.contextValue = 'func';
     this.decoration   = this.getDecoration();
     this.refresh();
@@ -360,7 +359,6 @@ export async function getTree() {
 ///////////////// updateFileChildrenFromAst //////////////////////
 
 interface NodeData {
-  id:           string;
   funcId:       string;
   funcParents : NodeData[];
   name:         string;
@@ -402,7 +400,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
       const endName           = key.end;
       const name = docText.slice(start, endName);
       const type = 'Property';
-      nodeData.push({ id: '', funcId: '', funcParents: [],
+      nodeData.push({funcId: '', funcParents: [],
                       name, type, start, startName, endName, end});
     },
     VariableDeclarator(node) {
@@ -412,7 +410,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
         const endName   = id.end!;
         const name      = docText.slice(start, endName);
         const type      = 'VariableDeclarator';
-      nodeData.push({ id: '', funcId: '', funcParents: [],
+      nodeData.push({funcId: '', funcParents: [],
                       name, type, start, startName, endName, end});
       }
       return;
@@ -424,7 +422,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
       const end     = node.end;
       const name    = docText.slice(start, endName);
       const type    = 'FunctionDeclaration';
-      nodeData.push({ id: '', funcId: '', funcParents: [],
+      nodeData.push({funcId: '', funcParents: [],
                       name, type, start, startName, endName, end});
       return;
     },
@@ -434,7 +432,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
       const startName = start;
       const endName   = id.end;
       const name      = id.name;
-      nodeData.push({ id: '', funcId: '', funcParents: [],
+      nodeData.push({funcId: '', funcParents: [],
                       name, type, start, startName, endName, end});
       return;
     },
@@ -445,14 +443,14 @@ function updateFileChildrenFromAst(fileItem: FileItem):
       if(kind      == 'constructor') {
         const name  = 'constructor';
         const type  = 'Constructor';
-      nodeData.push({ id: '', funcId: '', funcParents: [],
+      nodeData.push({funcId: '', funcParents: [],
                       name, type, start, startName, endName, end});
         return;
       }
       else {
         const name = docText.slice(start, endName);
         const type = 'Method';
-      nodeData.push({ id: '', funcId: '', funcParents: [],
+      nodeData.push({funcId: '', funcParents: [],
                       name, type, start, startName, endName, end});
         return;
       }
@@ -602,10 +600,11 @@ vscode.window.onDidChangeActiveColorTheme(() => {
 });
 
 export function updateGutter(editor:   vscode.TextEditor, 
-                                   fileItem: FileItem) {
+                             fileItem: FileItem) {
   const children = fileItem.getChildren();
   decRanges = [];
   for(const funcItem of children) {
+    if(!mrks.hasMark(funcItem)) continue;
     const lineNumber = funcItem.getStartLine();
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
     decRanges.push({range});
@@ -800,6 +799,18 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
   return overlapping;
 }
 
+// Utility: Print a tree of Item objects to the console
+export function printItemTree(rootItems: Item[] | Item, indent = ''): void {
+  const items = Array.isArray(rootItems) ? rootItems : [rootItems];
+  for (const item of items) {
+    // Print id and label (or contextValue if label is missing)
+    const label = (item as any).label ?? item.contextValue ?? '';
+    console.log(`${indent}${item.id}: ${label}`);
+    if (item.children && item.children.length > 0) {
+      printItemTree(item.children, indent + '  ');
+    }
+  }
+}
 
 // @@ts-nocheck
 // https://github.com/acornjs/acorn/tree/master/acorn-loose/

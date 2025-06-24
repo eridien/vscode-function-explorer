@@ -9,6 +9,10 @@ const {log} = utils.getLog('cmds');
 const NEXT_DEBUG = false;
 // const NEXT_DEBUG = true;
 
+export async function activate() {
+  await editorOrTextChg();
+}
+
 export function toggleCmd() {
   log('toggleCmd');
   // let func = disp.getFuncInAroundSelection();
@@ -95,7 +99,12 @@ export async function funcClickCmd(key: string) {
   // if (item) await disp.revealFunc(null, func!);
 }
 
-export async function editorOrTextChg(editor: vscode.TextEditor) {
+export async function editorOrTextChg(
+                      editor: vscode.TextEditor | undefined = undefined) {
+  if(!editor) {
+    editor = vscode.window.activeTextEditor;
+    if(!editor) return;
+  }
   if(editor.document.uri.scheme !== 'file' ||
      !sett.includeFile(editor.document.uri.fsPath)) return;
   const fsPath      = editor.document.uri.fsPath;
