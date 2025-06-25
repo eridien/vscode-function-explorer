@@ -50,12 +50,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const removeMarks = vscode.commands.registerCommand(
-                      'vscode-function-explorer.removeMarks', async (item: Item) => {
+                'vscode-function-explorer.removeMarks', async (item: Item) => {
 		// await disp.removeMarks(item);
 	});
 
 	const removeMarksMenu = vscode.commands.registerCommand(
-                  'vscode-function-explorer.removeMarksMenu', async (item: Item) => {
+            'vscode-function-explorer.removeMarksMenu', async (item: Item) => {
 		// await disp.removeMarks(item);
 	});
 
@@ -65,8 +65,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(
-            'vscode-function-explorer.funcClickCmd', (funcItem: FuncItem) => {
-		cmds.funcClickCmd(funcItem);
+       'vscode-function-explorer.funcClickCmd', async (funcItem: FuncItem) => {
+    await cmds.funcClickCmd(funcItem);
 	});
 
 ////////////  SETTINGS  ////////////

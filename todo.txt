@@ -1,5 +1,6 @@
 bugs ...
-  adding/removing mark doesn't move pointer
+  pointers don't turn off
+    adding/removing mark doesn't move pointer
   "class xxx" "const comm" are names
   multiple ws roots
   name leading space

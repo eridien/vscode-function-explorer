@@ -211,12 +211,13 @@ export class FileItem extends Item {
       if(!chgs) return [];
       structChg = chgs.structChg;
     }
-    let funcItems = [...this.children as FuncItem[]];
-    if(this.filtered) {
-      const markSet = mrks.getMarkSet(this.document.uri.fsPath);
-      funcItems = funcItems.filter(
-                  func => markSet?.has((func as FuncItem).funcId));
-    }
+    const funcItems = [...this.children as FuncItem[]].filter( func => {
+      const marked = mrks.hasMark(func);
+      func.stayVisible ||= marked;
+      func.stayVisible &&= !this.filtered;
+      return marked || func.stayVisible 
+                    || (func.isFunction() && !this.filtered);
+    });
     if(this.alphaSorted) 
       funcItems.sort((a, b) => a.name.localeCompare(b.name));
     if(structChg) updateItemInTree(this);
@@ -269,6 +270,7 @@ export class FuncItem extends Item {
   end!:               number;
   funcId!:            string;
   funcParents!:       FuncItem[];
+  stayVisible!:       boolean;
   private startLine!: number;
   private endLine!:   number;
   private startKey!:  string;
@@ -287,6 +289,7 @@ export class FuncItem extends Item {
       arguments: [this]
     };
   }
+  clrStayVisible() { this.stayVisible = false; }
   getFsPath()    {return this.parent.document.uri.fsPath;}
   getStartLine() {return this.startLine ??= 
                          this.parent.document.positionAt(this.start).line;};
@@ -512,21 +515,9 @@ function updateFileChildrenFromAst(fileItem: FileItem):
 
 ///////////////////////////// sidebarProvider /////////////////////////////
 
-function printItemTree(rootItems: Item[] | Item, indent = '', first = true): void {
-  const items = Array.isArray(rootItems) ? rootItems : [rootItems];
-  if(items.length === 0) console.log('[]');
-  let i = 0;
-  for (const item of items) {
-    const label = (item as any).label ?? item.contextValue ?? '';
-    console.log(`${indent}${(item.id).toString().padStart(3) } ${label + '  ' + 
-                    ((item.resourceUri?.path.split('/').pop()) ?? '..')}`);
-    // if (item.children && item.children.length > 0) {
-    //   printItemTree(item.children, indent + '  ', false);
-    // }
-  }
-}
-
-let inGetChildren = true;
+let blockItemRefreshCalls = true;
+const refreshQueue: Item[] = [];
+let refreshTimeout: NodeJS.Timeout | undefined;
 
 export class SidebarProvider {
   onDidChangeTreeData:               vscode.Event<Item        | undefined>;
@@ -536,36 +527,31 @@ export class SidebarProvider {
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
   }
-  
-  refresh(item:Item | undefined): void {
-    if(inGetChildren) return;
-    // log(++count, 'refresh', item?.label || 'undefined');
-    console.log('\nrefresh\n');
-    printItemTree(item!, `  S${item!.id} `);
+
+  refresh(item:Item | undefined, tryAgain = false): void {
+    if(blockItemRefreshCalls) {
+      if(!tryAgain) refreshQueue.push(item!);
+      clearTimeout(refreshTimeout);
+      refreshTimeout = setTimeout(() => {this.refresh(item, true);}, 10);
+      return;
+    }
+    for(const queueItem of refreshQueue) 
+      this._onDidChangeTreeData.fire(queueItem);
+    refreshQueue.length = 0;
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(itemIn: Item): Item {
-    // log(++count, 'getTreeItem', itemin.label);
-    console.log('\ngetTreeItem\n');
-    printItemTree(itemIn, `  I${itemIn.id} `);
-
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
-    const item = itms.getById(itemIn.id);
-
+    const item        = itms.getById(itemIn.id);
     if(!item) {
       log('err', 'getTreeItem, item not found:', itemIn.label);
       return itemIn;
     }
     item.refresh();
-    printItemTree(item, `  J${item.id} `);
-    if(item.label !== itemInLabel) {
-      log('getTreeItem, label changed:', 
-                  itemInId, itemInLabel, item.id, item.label);
-    }
     if(item !== itemIn || item.id !== itemIn.id) {
-      log('err', 'getTreeItem, item returned mismatch:', 
+      log('err', 'getTreeItem, item return mismatch:', 
                   itemInId, itemInLabel, item.id, item.label);
       return itemIn;
     }
@@ -574,30 +560,24 @@ export class SidebarProvider {
 
   getParent(item: Item): Item | null {
     // log(++count, 'getParent', item?.label || 'undefined');
-    console.log('\ngetParent\n');
-    printItemTree(item, `  P${item.id} `);
     if(item?.parent) return item.parent;
     return null;
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    inGetChildren = true;
-
-    console.log('\ngetChildren\n');
+    blockItemRefreshCalls = true;
     if(!item) {
       const tree = await getTree();
-      printItemTree(tree, 'R  ');
-      inGetChildren = false;
+      blockItemRefreshCalls = false;
       return tree;
     }
-    printItemTree(item, ` G${item.id}  `);
     if(item instanceof FuncItem) {
-      inGetChildren = false;
+      blockItemRefreshCalls = false;
       return [];
     }
-    const getChildren = await (item as WsAndFolderItem | FileItem).getChildren();
-    printItemTree(getChildren, ` D${item.id}  `);
-    inGetChildren = false;
+    const getChildren = 
+             await (item as WsAndFolderItem | FileItem).getChildren();
+    blockItemRefreshCalls = false;
     return getChildren;
   }
 }
@@ -615,8 +595,11 @@ export async function revealItemByFunc(func: FuncItem) {
 
 export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
                                     expanded: boolean) {
-  if(!item.expanded && expanded && item.contextValue === 'file') {
-    await utils.revealEditorByFspath(item.id!);
+  if(!expanded) for(const child of item.children ?? []) 
+                         (child as FuncItem).clrStayVisible();
+  if(!item.expanded && expanded && item.contextValue === 'file' &&
+                                   settings.showFileOnFileOpen) {
+    await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
   }
   item.expanded = expanded;
 }

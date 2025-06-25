@@ -4,19 +4,21 @@ import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 
 interface FunctionMarksSettings {
-  flattenFolders: boolean;
-  scrollPosition: vscode.TextEditorRevealType;
-  fileWrap:       boolean;
-  alphaSortFuncs: boolean;
-  topMargin:      number;
+  flattenFolders:     boolean;
+  scrollPosition:     vscode.TextEditorRevealType;
+  fileWrap:           boolean;
+  alphaSortFuncs:     boolean;
+  topMargin:          number;
+  showFileOnFileOpen: boolean;
 }
 
-export let settings: FunctionMarksSettings = {
-  flattenFolders: true,
-  scrollPosition: vscode.TextEditorRevealType.AtTop,
-  fileWrap:       true,
-  alphaSortFuncs: false,
-  topMargin:      3,
+export let settings:  FunctionMarksSettings = {
+  flattenFolders:     true,
+  scrollPosition:     vscode.TextEditorRevealType.AtTop,
+  fileWrap:           true,
+  alphaSortFuncs:     false,
+  topMargin:          3,
+  showFileOnFileOpen: true
 };
 
 export let filesGlobPattern: string;
@@ -38,10 +40,11 @@ export function loadSettings() {
       scrollPos = vscode.TextEditorRevealType.AtTop;
   }
   settings = {
-    scrollPosition: scrollPos,
-    flattenFolders: config.get('flattenFolders', true),
-    fileWrap:       config.get('fileWrap',       true),
-    alphaSortFuncs: config.get('alphaSortFuncs', false),
+    scrollPosition:     scrollPos,
+    flattenFolders:     config.get('flattenFolders',     true),
+    showFileOnFileOpen: config.get('showFileOnFileOpen', true),
+    fileWrap:           config.get('fileWrap',           true),
+    alphaSortFuncs:     config.get('alphaSortFuncs',     false),
     topMargin: Math.max(0, Math.min(20, config.get('topMargin', 3))),
   };
   const incParts = config.get<string>("filesToInclude", "**/*.js, **/*.ts")

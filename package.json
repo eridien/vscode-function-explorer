@@ -175,15 +175,21 @@
           "order": 0,
           "description": "Flatten folders in the function explorer. If disabled, all folders will be shown with their children which will make the functions further to the right and less visible."
         },
-        "function-explorer.fileWrap": {
+        "function-explorer.showFileOnFileOpen": {
           "type": "boolean",
           "default": true,
           "order": 1,
+          "description": "When expanding a file in the explorer, show the file in an editor."
+        },
+        "function-explorer.fileWrap": {
+          "type": "boolean",
+          "default": true,
+          "order": 2,
           "description": "Next and previous wrap around all files instead of just active file."
         },
         "function-explorer.scrollPosition": {
           "type": "string",
-          "order": 2,
+          "order": 3,
           "default": "At Top (with Margin)",
           "enum": [
             "Minimal Scrolling",
@@ -202,7 +208,7 @@
         "function-explorer.topMargin": {
           "type": "number",
           "default": 3,
-          "order": 3,
+          "order": 4,
           "description": "Number of margin lines above function when scrolling with \"At Top (with Margin)\"."
         },
         "function-explorer.alphaSortFuncs": {
