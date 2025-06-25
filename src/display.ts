@@ -318,6 +318,7 @@ export class FuncItem extends Item {
     return ` ${pfx} ${funcItem.name}`;
   }
   getLabel() {
+    log('getLabel', this.name, this.type, pointerItems.has(this));
     let label = this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
     if(pointerItems.has(this)) label = '→ ' + label;
     return label;
@@ -333,9 +334,9 @@ export class FuncItem extends Item {
      return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;
   }
   refresh(){
-    this.label      = this.getLabel();
+    this.label       = this.getLabel();
     this.description = this.getDescription();
-    this.iconPath   = this.getIconPath();
+    this.iconPath    = this.getIconPath();
   }
 }
 
@@ -728,12 +729,12 @@ let pointerItems = new Set<FuncItem>();
 
 export async function updatePointers() {
   if(!treeView.visible) return;
+  const oldPointerItems = new Set(pointerItems);
   pointerItems.clear();
-  const funcItems = await getFuncsOverlappingSelections();
-  for(const funcItem of funcItems) {
-    pointerItems.add(funcItem);
-    updateItemInTree(funcItem);
-  }
+  const newPointerItems = await getFuncsOverlappingSelections();
+  for(const funcItem of newPointerItems) pointerItems.add(funcItem);
+  for(const funcItem of oldPointerItems) updateItemInTree(funcItem);
+  for(const funcItem of newPointerItems) updateItemInTree(funcItem);
 }
 
 ///////////////////// editor text //////////////////////
