@@ -306,7 +306,7 @@ export class FuncItem extends Item {
             .includes(funcItem.type);
   }
   getFuncItemStr(funcItem: FuncItem = this): string {
-    if(this.isFunction(funcItem)) return `ƒ ${funcItem.name}`;
+    if(this.isFunction(funcItem)) return ` ƒ ${funcItem.name}`;
     let pfx: string;
     switch (funcItem.type) {
       case 'Property':            pfx = ':'; break;
