@@ -730,6 +730,9 @@ export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean =
   if(funcItemSet)
     for(const funcItem of funcItemSet.values()) updateItemInTree(funcItem);
   if(marked) await revealItemByFunc(funcItem);
+  const activeEditor = vscode.window.activeTextEditor;
+  if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
+  updateGutter(activeEditor, funcItem.parent);
 }
 
 let pointerItems = new Set<FuncItem>();
