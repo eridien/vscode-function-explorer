@@ -703,12 +703,17 @@ let saveMarksTimer: NodeJS.Timeout | undefined;
 function saveMarks() {
   if (saveMarksTimer) clearTimeout(saveMarksTimer);
   saveMarksTimer = setTimeout(() => {
-    context.workspaceState.update('markIds', mrks.getAllMarks());
+    const markIdSetArr = mrks.getAllMarks();
+    const markIdArrArr = [];
+    for(const [fsPath, markIdSet] of markIdSetArr) {
+      markIdArrArr.push([fsPath, [...markIdSet]]);
+    }
+    context.workspaceState.update('markIds', markIdArrArr);
     saveMarksTimer = undefined;
   }, 1000);
 }
 
-export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean) {
+export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean = false) {
   const fsPath = funcItem.getFsPath();
   if(!fsPath) return;
   const funcId  = funcItem.funcId;

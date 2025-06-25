@@ -58,7 +58,7 @@
         "category": "Function Explorer: Toggle Function Mark"
       },
       {
-        "command": "vscode-function-explorer.toggleFuncMarkMenu",
+        "command": "vscode-function-explorer.toggleItemMarkMenu",
         "title": "Toggle Function Mark"
       },
       {
@@ -140,7 +140,7 @@
           "when": "view == sidebarView && viewItem == func",
           "group": "inline@2"
         },{
-          "command": "vscode-function-explorer.toggleFuncMarkMenu",
+          "command": "vscode-function-explorer.toggleItemMarkMenu",
           "when": "view == sidebarView && viewItem == func"
         },{
           "command": "vscode-function-explorer.removeMarks",

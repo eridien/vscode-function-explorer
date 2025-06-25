@@ -24,9 +24,7 @@ export function toggleCmd() {
 }
 
 export async function toggleItemMarkCmd(funcItem: FuncItem) {
-  // const func = disp.getFuncBykey(funcItem.key);
-  // if(!func) return;
-  // await setMark(func, true);
+  await disp.setMark(funcItem, true);
 }
 
 async function prevNext(next: boolean, markIt = false, setPointer = false) {
