@@ -16,7 +16,11 @@ export async function toggleCmd() {
   log('toggleCmd');
   let funcItem = await disp.getFuncInAroundSelection();
   if(!funcItem) {
-    await prevNext(true, true);
+    // const editor = vscode.window.activeTextEditor;
+    // if (!editor) return null;
+    // const fileItem = 
+    //         await disp.getOrMakeFileItemByFsPath(editor.document.uri.fsPath);
+    await prevNext(true, true, false);
     return;
   }
   await disp.setMark(funcItem, true);
@@ -26,7 +30,8 @@ export async function toggleItemMarkCmd(funcItem: FuncItem) {
   await disp.setMark(funcItem, true);
 }
 
-async function prevNext(next: boolean, setMark = false, setPointer = false) {
+async function prevNext(next: boolean, setMark = false, 
+                        setPointer = false) {
   let activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
                      !sett.includeFile(activeEditor.document.uri.fsPath)) {

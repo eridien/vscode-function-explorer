@@ -216,7 +216,7 @@ export class FileItem extends Item {
     this.iconPath     = new vscode.ThemeIcon('file');
     itms.setFldrFile(this);
   }
-  getChildren(): FuncItem[] {
+  getChildren(noFilter = false): FuncItem[] {
     let structChg: boolean = false;
     if(!this.children) {
       const chgs = updateFileChildrenFromAst(this);
@@ -224,6 +224,7 @@ export class FileItem extends Item {
       structChg = chgs.structChg;
     }
     const funcItems = [...this.children as FuncItem[]].filter( func => {
+      if(noFilter) return true;
       const marked = mrks.hasMark(func);
       func.stayVisible ||= marked;
       func.stayVisible &&= !this.filtered;
@@ -353,11 +354,11 @@ export class FuncItem extends Item {
 }
 
 export async function getSortedFuncs(fsPath: string, fileWrap = true, 
-                                     filtered = true) : Promise<FuncItem[]> {
+         filtered = true) : Promise<FuncItem[]> {
   let funcs: FuncItem[] = [];
   if(!fileWrap) {
     const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-    funcs          = fileItem.getChildren();
+    funcs          = fileItem.getChildren(!filtered);
   }
   else funcs = itms.getAllFuncItems();
   if(funcs.length === 0) return [];

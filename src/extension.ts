@@ -15,7 +15,8 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  COMMANDS  ////////////
   
 	const toggleCmd = vscode.commands.registerCommand(
-           'vscode-function-explorer.toggle', async () => {
+           'vscode-function-explorer.toggle', async (x:any) => {
+           log('toggleCmd', x);
 		await cmds.toggleCmd();
 	});
 
