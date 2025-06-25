@@ -31,6 +31,16 @@ class Items {
   private static fldrItemsByFspath: Map<string, AllButFuncItem> = new Map();
   private static funcItemsByFuncId: Map<string, Set<FuncItem>>  = new Map();
 
+  getAllFuncItems(): FuncItem[] {
+    const allFuncSets = Items.funcItemsByFuncId.values();
+    const result: FuncItem[] = [];
+    for(const funcSet of allFuncSets) {
+      for(const funcItem of funcSet) {
+        result.push(funcItem);
+      }
+    }
+    return result;
+  }
   getById(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }
@@ -340,6 +350,26 @@ export class FuncItem extends Item {
     this.description = this.getDescription();
     this.iconPath    = this.getIconPath();
   }
+}
+
+export async function getSortedFuncs(fsPath: string, fileWrap = true, 
+                                     filtered = true) : Promise<FuncItem[]> {
+  let funcs: FuncItem[] = [];
+  if(!fileWrap) {
+    const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+    funcs          = fileItem.getChildren();
+  }
+  else funcs = itms.getAllFuncItems();
+  if(funcs.length === 0) return [];
+  if(filtered) funcs = funcs.filter(func => mrks.hasMark(func));
+  if (fileWrap) {
+    return funcs.sort((a, b) => {
+      if (a.getStartKey() > b.getStartKey()) return +1;
+      if (a.getStartKey() < b.getStartKey()) return -1;
+      return 0;
+    });
+  } 
+  return funcs.sort((a, b) => a.start - b.start);
 }
 
 ////////////////////// getTree //////////////////////
@@ -856,6 +886,7 @@ export async function revealFuncInEditor(
     const endPos   = document.positionAt(itemDoc.end);
     utils.scrollToTopMarginAndFlash(editor, startPos, endPos, 
                                      settings.topMargin, red);
+    utils.startDelaying('selChg');
     editor.selection = new vscode.Selection(startPos, startPos);
   }
   else if(itemDoc) await vscode.window.showTextDocument(

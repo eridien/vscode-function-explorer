@@ -3,9 +3,9 @@ bugs ...
   "class xxx" "const comm" are names
   multiple ws roots
   name leading space
+  scroll position
 
 todo ...
-  prev/next cmds
   revealItemByFunc
   sidbar refresh command/menu
   handle sel overlapping name line only

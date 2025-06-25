@@ -16,7 +16,7 @@ export async function toggleCmd() {
   log('toggleCmd');
   let funcItem = await disp.getFuncInAroundSelection();
   if(!funcItem) {
-    // await prevNext(true, true);
+    await prevNext(true, true);
     return;
   }
   await disp.setMark(funcItem, true);
@@ -26,63 +26,59 @@ export async function toggleItemMarkCmd(funcItem: FuncItem) {
   await disp.setMark(funcItem, true);
 }
 
-async function prevNext(next: boolean, markIt = false, setPointer = false) {
-  // let activeEditor = vscode.window.activeTextEditor;
-  // if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
-  //                    !sett.includeFile(activeEditor.document.uri.fsPath)) {
-  //   for(activeEditor of vscode.window.visibleTextEditors) {
-  //     if(activeEditor.document.uri.scheme === 'file' &&
-  //        sett.includeFile(activeEditor.document.uri.fsPath))
-  //     break;
-  //   }
-  // }
-  // if (activeEditor && 
-  //     activeEditor.document.uri.scheme === 'file' &&
-  //     sett.includeFile(activeEditor.document.uri.fsPath)) {
-  //   const fsPath   = activeEditor.document.uri.fsPath;
-  //   const fileWrap = settings.fileWrap && !markIt && !setPointer;
-  //   const sortArgs = {filtered: !markIt && !setPointer && !NEXT_DEBUG};
-  //   if(!fileWrap) (sortArgs as any).fsPath = fsPath;
-  //   const funcs = disp.getSortedFuncs(sortArgs);
-  //   if(funcs.length == 0) return;
-  //   const selFsPath = (fileWrap ? fsPath : '');
-  //   const selKey = utils.createSortKey(
-  //         selFsPath, activeEditor.selection.active.line);
-  //   let func: Func | null = null;
-  //   for(let i = (next? 0 : funcs.length-1); 
-  //               (next? (i < funcs.length) : (i >= 0)); 
-  //          i += (next? 1 : -1)) {
-  //     func = funcs[i];
-  //     const funcFsPath = (fileWrap ? func.getFsPath() : '');
-  //     if(next ? (funcFsPath < selFsPath) 
-  //             : (funcFsPath > selFsPath)) continue;
-  //     if(funcFsPath !== selFsPath) break;
-  //     const funcKey = utils.createSortKey(
-  //                              funcFsPath, func.getStartLine());
-  //     if(next) {
-  //       if(selKey < funcKey) break;
-  //       else if(i == funcs.length-1) {
-  //         if(markIt || setPointer) return;
-  //         func = funcs[0];
-  //         break;
-  //       }
-  //     }
-  //     else {
-  //       if(selKey > funcKey) break;
-  //       else if(i == 0) {
-  //         if(markIt || setPointer) return;
-  //         func = funcs[funcs.length-1];
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   if(markIt && func)          await setMark(func, true);
-  //   else if(setPointer && func) await disp.setPointer(func);
-  //   else {
-  //     utils.startDelaying('selChg');
-  //     await disp.revealFunc(null, func);
-  //   }
-  // }
+async function prevNext(next: boolean, setMark = false, setPointer = false) {
+  let activeEditor = vscode.window.activeTextEditor;
+  if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
+                     !sett.includeFile(activeEditor.document.uri.fsPath)) {
+    for(activeEditor of vscode.window.visibleTextEditors) {
+      if(activeEditor.document.uri.scheme === 'file' &&
+         sett.includeFile(activeEditor.document.uri.fsPath))
+      break;
+    }
+  }
+  if (activeEditor && 
+      activeEditor.document.uri.scheme === 'file' &&
+      sett.includeFile(activeEditor.document.uri.fsPath)) {
+    const fsPath   = activeEditor.document.uri.fsPath;
+    const fileWrap = settings.fileWrap && !setMark && !setPointer;
+    const filtered = !setMark && !setPointer && !NEXT_DEBUG;
+    const funcs = await disp.getSortedFuncs(fsPath, fileWrap, filtered);
+    if(funcs.length == 0) return;
+    const selFsPath = (fileWrap ? fsPath : '');
+    const selKey = utils.createSortKey(
+          selFsPath, activeEditor.selection.active.line);
+    let func: FuncItem | null = null;
+    for(let i = (next? 0 : funcs.length-1); 
+                (next? (i < funcs.length) : (i >= 0)); 
+           i += (next? 1 : -1)) {
+      func = funcs[i];
+      const funcFsPath = (fileWrap ? func.getFsPath() : '');
+      if(next ? (funcFsPath < selFsPath) 
+              : (funcFsPath > selFsPath)) continue;
+      if(funcFsPath !== selFsPath) break;
+      const funcKey = utils.createSortKey(
+                               funcFsPath, func.getStartLine());
+      if(next) {
+        if(selKey < funcKey) break;
+        else if(i == funcs.length-1) {
+          if(setMark || setPointer) return;
+          func = funcs[0];
+          break;
+        }
+      }
+      else {
+        if(selKey > funcKey) break;
+        else if(i == 0) {
+          if(setMark || setPointer) return;
+          func = funcs[funcs.length-1];
+          break;
+        }
+      }
+    }
+    if(!func) return;
+    await disp.revealFuncInEditor(func);
+    if(setMark) await disp.setMark(func, true);
+  }
 }
 
 export async function prev() { await prevNext(false); }
