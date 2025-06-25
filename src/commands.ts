@@ -12,15 +12,14 @@ const NEXT_DEBUG = false;
 export async function activate() {
   await editorOrTextChg();
 }
-
-export function toggleCmd() {
+export async function toggleCmd() {
   log('toggleCmd');
-  // let func = disp.getFuncInAroundSelection();
-  // if(!func) {
-  //   await prevNext(true, true);
-  //   return;
-  // }
-  // await setMark(func, true);
+  let funcItem = await disp.getFuncInAroundSelection();
+  if(!funcItem) {
+    // await prevNext(true, true);
+    return;
+  }
+  await disp.setMark(funcItem, true);
 }
 
 export async function toggleItemMarkCmd(funcItem: FuncItem) {

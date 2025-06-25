@@ -768,57 +768,57 @@ export async function updatePointers() {
 //   return minFunc;
 // }
 
-// export async function getFuncInAroundSelection() : FuncItem | null {
-//   const editor = vscode.window.activeTextEditor;
-//   if (!editor) return null;
-//   const document = editor.document;
-//   const fsPath = document.uri.fsPath;
-//   if (document.uri.scheme !== 'file' ||
-//      !sett.includeFile(fsPath)) return null;
-//   const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-//   const children = fileItem.getChildren() as FuncItem[] | undefined;
-//   if (!children || children.length === 0) return null;
-//   const funcsInSelection:     FuncItem[] = [];
-//   const funcsAroundSelection: FuncItem[] = [];
-//   for (const selection of editor.selections) {
-//     const selStartLine = selection.start.line;
-//     const selEndLine   = selection.end.line;
-//     for(const func of children) {
-//       const funcStartLine = func.getStartLine();
-//       const funcEndLine   = func.getEndLine();
-//       const selRange  = new vscode.Range(selStartLine,  0, selEndLine,  0);
-//       const funcRange = new vscode.Range(funcStartLine, 0, funcEndLine, 0);
-//       if (selRange.contains(funcRange)) funcsInSelection.push(func);
-//       if (funcsInSelection.length == 0 && funcRange.contains(selRange))
-//          funcsAroundSelection.push(func);
-//     }
-//   }
-//   if(funcsInSelection.length > 0) {
-//     let maxFuncLenIn = -1;
-//     let biggestFuncInSelection = null;
-//     for(const func of funcsInSelection) {
-//       const funcLen = (func.getEndLine() - func.getStartLine());
-//       if(funcLen > maxFuncLenIn) {
-//         maxFuncLenIn = funcLen;
-//         biggestFuncInSelection = func;
-//       }
-//     }
-//     return biggestFuncInSelection;
-//   }
-//   if(funcsAroundSelection.length > 0) {
-//     let minFuncLenAround = 1e9;
-//     let smallestFuncAroundSelection = null;
-//     for(const func of funcsAroundSelection) {
-//       const funcLen = (func.getEndLine() - func.getStartLine());
-//       if(funcLen < minFuncLenAround) {
-//         minFuncLenAround = funcLen;
-//         smallestFuncAroundSelection = func;
-//       }
-//     }
-//     return smallestFuncAroundSelection;
-//   }
-//   return null;
-// }
+export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return null;
+  const document = editor.document;
+  const fsPath = document.uri.fsPath;
+  if (document.uri.scheme !== 'file' ||
+     !sett.includeFile(fsPath)) return null;
+  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+  const children = fileItem.getChildren() as FuncItem[] | undefined;
+  if (!children || children.length === 0) return null;
+  const funcsInSelection:     FuncItem[] = [];
+  const funcsAroundSelection: FuncItem[] = [];
+  for (const selection of editor.selections) {
+    const selStartLine = selection.start.line;
+    const selEndLine   = selection.end.line;
+    for(const func of children) {
+      const funcStartLine = func.getStartLine();
+      const funcEndLine   = func.getEndLine();
+      const selRange  = new vscode.Range(selStartLine,  0, selEndLine,  0);
+      const funcRange = new vscode.Range(funcStartLine, 0, funcEndLine, 0);
+      if (selRange.contains(funcRange)) funcsInSelection.push(func);
+      if (funcsInSelection.length == 0 && funcRange.contains(selRange))
+         funcsAroundSelection.push(func);
+    }
+  }
+  if(funcsInSelection.length > 0) {
+    let maxFuncLenIn = -1;
+    let biggestFuncInSelection = null;
+    for(const func of funcsInSelection) {
+      const funcLen = (func.getEndLine() - func.getStartLine());
+      if(funcLen > maxFuncLenIn) {
+        maxFuncLenIn = funcLen;
+        biggestFuncInSelection = func;
+      }
+    }
+    return biggestFuncInSelection;
+  }
+  if(funcsAroundSelection.length > 0) {
+    let minFuncLenAround = 1e9;
+    let smallestFuncAroundSelection = null;
+    for(const func of funcsAroundSelection) {
+      const funcLen = (func.getEndLine() - func.getStartLine());
+      if(funcLen < minFuncLenAround) {
+        minFuncLenAround = funcLen;
+        smallestFuncAroundSelection = func;
+      }
+    }
+    return smallestFuncAroundSelection;
+  }
+  return null;
+}
 
 export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
   const editor = vscode.window.activeTextEditor;

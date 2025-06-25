@@ -1,24 +1,23 @@
 bugs ...
   folder icons missing using resourceuri
-  adding/removing mark doesn't move pointer
   "class xxx" "const comm" are names
   multiple ws roots
   name leading space
 
 todo ...
+  prev/next cmds
+  revealItemByFunc
   sidbar refresh command/menu
   handle sel overlapping name line only
   chg name click to gesture
-  don't scroll on set/unset mark
   add "Fit Function (with margin)" as scroll option
   handle fs changes
-  support multiple funcs with same id
   collapse empty folders into one
   many settings don't immediately change sidebar
   rearrange files
 
 options ...
-  revealItemByFunc when marked
+  revealItemByFunc   when marked from editor
 
 testing ...
   settings changes

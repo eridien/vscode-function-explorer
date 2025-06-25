@@ -14,10 +14,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
 ////////////  COMMANDS  ////////////
   
-	// const toggleCmd = vscode.commands.registerCommand(
-  //          'vscode-function-explorer.toggle', async () => {
-	// 	await cmds.toggleCmd();
-	// });
+	const toggleCmd = vscode.commands.registerCommand(
+           'vscode-function-explorer.toggle', async () => {
+		await cmds.toggleCmd();
+	});
 
 	const prev = vscode.commands.registerCommand(
                    'vscode-function-explorer.prev', async () => {
