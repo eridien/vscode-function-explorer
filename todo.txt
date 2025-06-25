@@ -6,6 +6,7 @@ bugs ...
   name leading space
 
 todo ...
+  sidbar refresh command/menu
   handle sel overlapping name line only
   chg name click to gesture
   don't scroll on set/unset mark

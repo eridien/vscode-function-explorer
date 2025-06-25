@@ -91,9 +91,8 @@ export class WsAndFolderItem extends Item {
   expanded:  boolean = false;
   constructor(uri: vscode.Uri) {
     super(uri, vscode.TreeItemCollapsibleState.Expanded);
-    this.id          = getItemId();
-    // this.resourceUri = uri;
-    this.expanded    = true;
+    this.id           = getItemId();
+    this.expanded     = true;
     itms.setFldrFile(this);
   }
   async getChildren() {
@@ -160,6 +159,7 @@ export class WsFolderItem extends WsAndFolderItem {
     super(wsFolder.uri);
     this.wsFolder     = wsFolder;
     this.contextValue = 'wsFolder';
+    this.iconPath     = new vscode.ThemeIcon('root-folder');
   }
 }
 
@@ -170,6 +170,7 @@ export class FolderItem extends WsAndFolderItem {
   constructor(uri: vscode.Uri) {
     super(uri);
     this.contextValue = 'folder';
+    this.iconPath     = new vscode.ThemeIcon('folder');
     if(settings.flattenFolders) {
       let parents = this.getParents();
       if(parents.length > 1) {
@@ -202,6 +203,7 @@ export class FileItem extends Item {
     this.document     = document;
     this.id           = getItemId();
     this.contextValue = 'file';
+    this.iconPath     = new vscode.ThemeIcon('file');
     itms.setFldrFile(this);
   }
   getChildren(): FuncItem[] {
@@ -318,7 +320,7 @@ export class FuncItem extends Item {
     return ` ${pfx} ${funcItem.name}`;
   }
   getLabel() {
-    log('getLabel', this.name, this.type, pointerItems.has(this));
+    // log('getLabel', this.name, this.type, pointerItems.has(this));
     let label = this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
     if(pointerItems.has(this)) label = '→ ' + label;
     return label;
