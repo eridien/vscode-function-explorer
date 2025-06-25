@@ -6,8 +6,6 @@ function timeInSecs(ms: number): string {
   return (ms / 1000).toFixed(2);
 }
 
-
-
 const delaying: Map<string, NodeJS.Timeout> = new Map();
 export function startDelaying(tag: string, delay = 300) {
   start(tag);
@@ -42,20 +40,10 @@ export function flashRange(editor: vscode.TextEditor,
   }, 750);
 }
 
-export function scrollToTopMarginAndFlash(editor: vscode.TextEditor, 
-          startPos: vscode.Position, endPos: vscode.Position, 
-          margin: number, red = false) {
-  let topLine = startPos.line - margin;
-  if(topLine < 0) topLine = 0;
-  const selRange = new vscode.Range(topLine, 0, topLine, 0);
-  editor.revealRange(selRange, vscode.TextEditorRevealType.AtTop);
-  flashRange(editor, startPos, endPos, red);
-}
-
 export async function revealEditorByFspath(fsPath: string) {
   const uri    = vscode.Uri.file(fsPath);
   const editor = vscode.window.visibleTextEditors.find(
-                               ed => ed.document.uri.fsPath === fsPath);
+                        editor => editor.document.uri.fsPath === fsPath);
   if (editor) {
     await vscode.window.showTextDocument(editor.document, editor.viewColumn);
   } else {

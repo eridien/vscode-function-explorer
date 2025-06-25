@@ -877,6 +877,16 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
   return overlapping;
 }
 
+export function scrollEditorAndFlash(editor: vscode.TextEditor, 
+          startPos: vscode.Position, endPos: vscode.Position, 
+          margin: number, red = false) {
+  let topLine = startPos.line - margin;
+  if(topLine < 0) topLine = 0;
+  const selRange = new vscode.Range(topLine, 0, topLine, 0);
+  editor.revealRange(selRange, settings.scrollPosition);
+  utils.flashRange(editor, startPos, endPos, red);
+}
+
 export async function revealFuncInEditor(
                itemDoc: vscode.TextDocument | FuncItem | null, red = false) {
   if(itemDoc instanceof FuncItem) {
@@ -885,7 +895,7 @@ export async function revealFuncInEditor(
                           document, { preview: true });
     const startPos = document.positionAt(itemDoc.start);
     const endPos   = document.positionAt(itemDoc.end);
-    utils.scrollToTopMarginAndFlash(editor, startPos, endPos, 
+    scrollEditorAndFlash(editor, startPos, endPos, 
                                      settings.topMargin, red);
     utils.startDelaying('selChg');
     editor.selection = new vscode.Selection(startPos, startPos);
