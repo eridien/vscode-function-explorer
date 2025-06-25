@@ -334,14 +334,14 @@ export class FuncItem extends Item {
     // log('getLabel', this.name, this.type, pointerItems.has(this));
     let label = this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
     if(pointerItems.has(this)) label = '→ ' + label;
-    return label;
+    return label.trim();
   }
   getDescription() {
     let description = '';
     for(const funcParent of this.funcParents) 
       description += this.getFuncItemStr(funcParent);
     // description += ` (${this.type})`;
-    return description.slice(1);
+    return description.slice(1).trim();
   }
   getIconPath() {
      return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;

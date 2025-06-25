@@ -1,10 +1,7 @@
 bugs ...
   folder icons missing using resourceuri
-  "class xxx" "const comm" are names
   multiple ws roots
-  name leading space
-  scroll position
-  toggle while file filtered
+  getlabel not in alpha sort
 
 todo ...
   revealItemByFunc
