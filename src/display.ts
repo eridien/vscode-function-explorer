@@ -281,7 +281,7 @@ export class FuncItem extends Item {
     Object.assign(this, params);
     this.id           = getItemId();
     this.contextValue = 'func';
-    this.decoration   = this.getDecoration();
+    this.description  = this.getDescription();
     this.refresh();
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
@@ -322,20 +322,20 @@ export class FuncItem extends Item {
     if(pointerItems.has(this)) label = '→ ' + label;
     return label;
   }
-  getDecoration() {
-    let decoration = '';
+  getDescription() {
+    let description = '';
     for(const funcParent of this.funcParents) 
-      decoration += this.getFuncItemStr(funcParent);
-    // decoration += ` (${this.type})`;
-    return decoration.slice(1);
+      description += this.getFuncItemStr(funcParent);
+    // description += ` (${this.type})`;
+    return description.slice(1);
   }
   getIconPath() {
-     return mrks.hasMark(this) ? 
-            this.iconPath = new vscode.ThemeIcon('bookmark') : undefined;
+     return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;
   }
   refresh(){
-    this.label    = this.getLabel();
-    this.iconPath = this.getIconPath();
+    this.label      = this.getLabel();
+    this.description = this.getDescription();
+    this.iconPath   = this.getIconPath();
   }
 }
 
