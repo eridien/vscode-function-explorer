@@ -238,12 +238,11 @@ export class FileItem extends Item {
       structChg = chgs.structChg;
     }
     const funcItems = [...this.children as FuncItem[]].filter( func => {
-      if(noFilter) return true;
       const marked = mrks.hasMark(func);
       func.stayVisible ||= marked;
       func.stayVisible &&= !this.filtered;
-      return marked || func.stayVisible 
-                    || (func.isFunction() && !this.filtered);
+      return noFilter || marked || func.stayVisible ||
+            (func.isFunction() && !this.filtered);
     });
     if(this.alphaSorted) 
       funcItems.sort((a, b) => a.name.localeCompare(b.name));
@@ -827,7 +826,7 @@ export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return null;
   const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-  const children = fileItem.getChildren() as FuncItem[] | undefined;
+  const children = fileItem.getChildren(true) as FuncItem[] | undefined;
   if (!children || children.length === 0) return null;
   const funcsInSelection:     FuncItem[] = [];
   const funcsAroundSelection: FuncItem[] = [];

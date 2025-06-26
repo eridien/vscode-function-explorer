@@ -1,7 +1,9 @@
 bugs ...
   folder icons missing using resourceuri
-  multiple ws roots
   getlabel not in alpha sort (in f-xplorer workspace)
+  multiple ws roots
+  open/clode file does not clear stayVisible, but filter on/off does
+  adding assignment mark doesn't appear is sidebar
 
 todo ...
   handle sel overlapping name line only
