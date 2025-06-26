@@ -642,8 +642,17 @@ export async function revealItemByFunc(func: FuncItem) {
 
 export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
                                     expanded: boolean) {
-  if(!expanded) for(const child of item.children ?? []) 
-                         (child as FuncItem).clrStayVisible();
+  if(!expanded) {
+    const funcItems = await getFuncItemsUnderNode(item);
+    let filesChanged = new Set<FileItem>();
+    for(const funcItem of funcItems) {
+      if(funcItem.stayVisible) {
+        filesChanged.add(funcItem.parent);
+        funcItem.clrStayVisible();
+      }
+    }
+    for(const fileItem of filesChanged) updateItemInTree(fileItem);
+  }
   if(!item.expanded && expanded && item.contextValue === 'file' &&
                                    settings.showFileOnFileOpen) {
     await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
