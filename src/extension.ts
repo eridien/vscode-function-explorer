@@ -52,12 +52,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const removeMarks = vscode.commands.registerCommand(
                 'vscode-function-explorer.removeMarks', async (item: Item) => {
-		// await disp.removeMarks(item);
+		await cmds.removeMarks(item);
 	});
 
 	const removeMarksMenu = vscode.commands.registerCommand(
             'vscode-function-explorer.removeMarksMenu', async (item: Item) => {
-		// await disp.removeMarks(item);
+		await cmds.removeMarks(item);
 	});
 
 	const toggleItemMark = vscode.commands.registerCommand(

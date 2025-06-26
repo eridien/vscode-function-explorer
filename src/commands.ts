@@ -1,6 +1,6 @@
 import * as vscode      from 'vscode';
 import * as disp        from './display';
-import {FuncItem, itms} from './display';
+import {FuncItem, Item, itms} from './display';
 import * as sett        from './settings';
 import {settings}       from './settings';
 import * as utils       from './utils';
@@ -90,6 +90,11 @@ export async function funcClickCmd(funcItem: FuncItem) {
     // utils.startDelaying('selChg');
     await disp.revealFuncInEditor(funcItem);
   }
+}
+
+export async function removeMarks(item: Item) {
+  const funcs = await disp.getFuncItemsUnderNode(item);
+  for (const func of funcs) await disp.setMark(func);
 }
 
 export async function editorOrTextChg(

@@ -96,6 +96,19 @@ export class Item extends vscode.TreeItem {
   refresh(){}
 }
 
+export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
+  if (item instanceof FuncItem) return [item];
+  let children: Item[] | undefined | null;
+  if ('getChildren' in item && typeof (item as any).getChildren === 'function')
+    children = await (item as any).getChildren(true);
+  else return [];
+  if (!children || children.length === 0) return [];
+  let funcItem: FuncItem[] = [];
+  for (const child of children)
+    funcItem = funcItem.concat(await getFuncItemsUnderNode(child));
+  return funcItem;
+}
+
 ////////////////////// WsAndFolderItem //////////////////////
 
 export class WsAndFolderItem extends Item {

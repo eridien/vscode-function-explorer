@@ -52,17 +52,6 @@ export async function revealEditorByFspath(fsPath: string) {
   }
 }
 
-export function getPathsForUri(uri: vscode.Uri): string[] {
-  const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
-  if (!wsFolder) throw new Error('No workspace folder found for URI: ' + 
-                                  uri.toString());
-  const absPath  = uri.fsPath;
-  const wsPath   = wsFolder.uri.fsPath;
-  const relPath  = path.relative(wsPath, absPath);
-  const relParts = relPath.split(path.sep);
-  return [wsPath, ...relParts];
-}
-
 const outputChannel = vscode.window.createOutputChannel('function-explorer');
 
 export function getLog(module: string) : {
