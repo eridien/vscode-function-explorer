@@ -775,10 +775,7 @@ export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean =
   if(marked === wasMarked)  return;
   if(marked) mrks.addMark(fsPath, funcId);
   else       mrks.delMark(funcItem);
-  updateItemInTree(funcItem);
-  const funcItemSet = itms.getFuncSetByFuncId(funcId);
-  if(funcItemSet)
-    for(const funcItem of funcItemSet.values()) updateItemInTree(funcItem);
+  updateItemInTree(funcItem.parent);
   if(marked) await revealItemByFunc(funcItem);
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
