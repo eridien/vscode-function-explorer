@@ -133,6 +133,7 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   // }
   utils.startDelaying('selChg');
   await disp.updatePointers();
+  sett.enableDidChangeVisible();
   // await prevNext(true, false, true);  
 }
 

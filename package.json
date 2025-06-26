@@ -35,6 +35,16 @@
         "title": "Jump to next Function Mark"
       },
       {
+        "command": "vscode-function-explorer.refreshAll",
+        "title": "   ↻ Refresh",
+        "category": "Function Explorer: Refresh All"
+      },
+      {
+        "command": "vscode-function-explorer.collapseAll",
+        "title": "   ↑ Close All",
+        "category": "Function Explorer: Toggle Mark Filter"
+      },
+      {
         "command": "vscode-function-explorer.toggleMarkedFilter",
         "title": " ✔ ",
         "category": "Function Explorer: Toggle Mark Filter"
@@ -123,10 +133,19 @@
       ],
       "view/title": [
         {
+          "command": "vscode-function-explorer.refreshAll",
+          "when": "view == sidebarView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "vscode-function-explorer.collapseAll",
+          "when": "view == sidebarView",
+          "group": "navigation@2"
+        },
+        {
           "command": "vscode-function-explorer.removeMarks",
           "when": "view == sidebarView",
-          "group": "navigation@3",
-          "args": { "scope": "all" }
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -199,18 +218,20 @@
         "function-explorer.scrollPosition": {
           "type": "string",
           "order": 3,
-          "default": "At Top (with Margin)",
+          "default": "Function Center At Center",
           "enum": [
-            "Minimal Scrolling",
-            "In Center",
-            "In Center If Needed",
-            "At Top (with Margin)"
+            "Function Top At Top",
+            "Function Center At Center",
+            "Function Bottom At Bottom",
+            "Function Top At Top If Needed",
+            "Function Center At Center If Needed"
           ],
           "enumDescriptions": [
-            "Reveal with minimal scrolling",
-            "Reveal in the center of the viewport",
-            "Center only if not visible",
-            "Reveal at the top of the viewport (with margin above function)"
+            "Align the top of the function (with margin) to the top of the viewport.",
+            "Align the center of the function to the center of the viewport.",
+            "Align the bottom of the function to the bottom of the viewport.",
+            "Align the top of the function (with margin) to the top of the viewport, if needed.",
+            "Align the center of the function to the center of the viewport, if needed."
           ],
           "description": "Controls the scroll position when revealing a function."
         },

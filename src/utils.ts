@@ -8,14 +8,14 @@ function timeInSecs(ms: number): string {
 
 const delaying: Map<string, NodeJS.Timeout> = new Map();
 export function startDelaying(tag: string, delay = 300) {
-  start(tag);
+  // start(tag);
   if(delaying.has(tag)) {
     clearTimeout(delaying.get(tag));
     delaying.delete(tag);
   }
   delaying.set(tag, setTimeout(() => {
     delaying.delete(tag);
-    end(tag);
+    // end(tag);
   }, delay));
 }
 export function isDelaying(tag: string): boolean {
