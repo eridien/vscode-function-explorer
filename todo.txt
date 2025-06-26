@@ -2,8 +2,10 @@ bugs ...
   folder icons missing using resourceuri
   multiple ws roots
   getlabel not in alpha sort
+  next doesn't work from fresh empty file
 
 todo ...
+  remove marks (X)
   revealItemByFunc
   sidebar refresh command/menu
   handle sel overlapping name line only

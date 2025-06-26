@@ -126,7 +126,7 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  INIT  ////////////
 
   sett.loadSettings();
-  disp.activate(context, treeView, sidebarProvider);
+  await disp.activate(context, treeView, sidebarProvider);
   await cmds.activate();
 
 	context.subscriptions.push(

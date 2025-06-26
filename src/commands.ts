@@ -16,11 +16,7 @@ export async function toggleCmd() {
   log('toggleCmd');
   let funcItem = await disp.getFuncInAroundSelection();
   if(!funcItem) {
-    // const editor = vscode.window.activeTextEditor;
-    // if (!editor) return null;
-    // const fileItem = 
-    //         await disp.getOrMakeFileItemByFsPath(editor.document.uri.fsPath);
-    await prevNext(true, true, false);
+    await prevNext(true, true);
     return;
   }
   await disp.setMark(funcItem, true);
@@ -30,8 +26,7 @@ export async function toggleItemMarkCmd(funcItem: FuncItem) {
   await disp.setMark(funcItem, true);
 }
 
-async function prevNext(next: boolean, setMark = false, 
-                        setPointer = false) {
+async function prevNext(next: boolean, setMark = false) {
   let activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
                      !sett.includeFile(activeEditor.document.uri.fsPath)) {
@@ -45,8 +40,8 @@ async function prevNext(next: boolean, setMark = false,
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath)) {
     const fsPath   = activeEditor.document.uri.fsPath;
-    const fileWrap = settings.fileWrap && !setMark && !setPointer;
-    const filtered = !setMark && !setPointer && !NEXT_DEBUG;
+    const fileWrap = settings.fileWrap && !setMark;
+    const filtered = !setMark && !NEXT_DEBUG;
     const funcs = await disp.getSortedFuncs(fsPath, fileWrap, filtered);
     if(funcs.length == 0) return;
     const selFsPath = (fileWrap ? fsPath : '');
@@ -66,7 +61,7 @@ async function prevNext(next: boolean, setMark = false,
       if(next) {
         if(selKey < funcKey) break;
         else if(i == funcs.length-1) {
-          if(setMark || setPointer) return;
+          if(setMark) return;
           func = funcs[0];
           break;
         }
@@ -74,7 +69,7 @@ async function prevNext(next: boolean, setMark = false,
       else {
         if(selKey > funcKey) break;
         else if(i == 0) {
-          if(setMark || setPointer) return;
+          if(setMark) return;
           func = funcs[funcs.length-1];
           break;
         }

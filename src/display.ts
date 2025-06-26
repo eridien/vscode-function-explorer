@@ -11,15 +11,16 @@ const {log, start, end} = utils.getLog('disp');
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
-  
-export function activate(contextIn:         vscode.ExtensionContext,
-                         treeViewIn:        vscode.TreeView<Item>, 
+
+export async function activate(contextIn:         vscode.ExtensionContext,
+                         treeViewIn:        vscode.TreeView<Item>,
                          sidebarProviderIn: SidebarProvider) {
   context         = contextIn;
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
   loadMarks();
   initGutter();
+  await mrks.loadAllFilesWithFuncIds();
 }
 
 type AllButFuncItem = WsAndFolderItem | FileItem;
@@ -717,6 +718,12 @@ class Marks {
     if(!funcIdSet) return;
     funcIdSet.delete(funcItem.funcId);
     saveMarks();
+  }
+  async loadAllFilesWithFuncIds() {
+    const fsPaths = Marks.markIdSetByFspath.keys();
+    for (const fsPath of fsPaths) {
+      (await getOrMakeFileItemByFsPath(fsPath)).getChildren();
+    }
   }
 }
 export const mrks = new Marks();
