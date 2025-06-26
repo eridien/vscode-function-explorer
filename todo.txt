@@ -2,20 +2,17 @@ bugs ...
   folder icons missing using resourceuri
   getlabel not in alpha sort (in f-xplorer workspace)
   multiple ws roots
-  open/clode file does not clear stayVisible, but filter on/off does
 
 todo ...
   handle sel overlapping name line only
   add "Fit Function (with margin)" as scroll option
   chg name click to gesture
-  revealItemByFunc
   sidebar refresh command/menu
   handle fs changes
   finish flatten
   many settings don't immediately change sidebar
 
 options ...
-  revealItemByFunc   when marked from editor
 
 testing ...
   settings changes

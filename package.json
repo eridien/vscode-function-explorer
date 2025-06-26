@@ -112,12 +112,21 @@
         }
       ]
     },
+
     "menus": {
       "editor/context": [
         {
           "command": "vscode-function-explorer.toggle",
           "when": "editorTextFocus",
           "group": "1_modification"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView",
+          "group": "navigation@3",
+          "args": { "scope": "all" }
         }
       ],
       "view/item/context": [

@@ -93,6 +93,10 @@ export async function funcClickCmd(funcItem: FuncItem) {
 }
 
 export async function removeMarks(item: Item) {
+  if(item === undefined) {
+    vscode.window.showInformationMessage('No item was selected. No function marks were removed.');
+    return;
+  }
   const funcs = await disp.getFuncItemsUnderNode(item);
   for (const func of funcs) await disp.setMark(func);
 }
