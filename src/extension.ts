@@ -125,7 +125,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const selectionChg = vscode.window.onDidChangeTextEditorSelection(
     async event => {
       if (event.textEditor?.document.uri.scheme !== 'file') return;
-      sett.enableDidChangeVisible();
       log('selectionChg');
       await cmds.selectionChg(event);
   });
