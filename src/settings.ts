@@ -1,44 +1,31 @@
 let screenHeight = -1;
 let ignoreDidChangeVisible = false;
 
+const visibleRanges = editor.visibleRanges;
+let linebottom = visibleRanges[0].end.line;
+let total = 0;
+let current = visibleRanges[0].start.line;
+
+for (const range of visibleRanges) {
+  if (current < range.start.line) {
+    total += range.start.line - current; // folded gap
+  }
+  total += range.end.line - range.start.line; // visible lines
+  current = range.end.line;
+  if (total >= linebottom) break;
+}
+
+const viewportCapacity = totalVisible + totalFolded;
+
 export async function measureViewportCapacity(editor: vscode.TextEditor): Promise<number> {
-  if (ignoreDidChangeVisible) return screenHeight;
-  ignoreDidChangeVisible = true;
-  const document = editor.document;
-  const originalText = document.getText();
-  const testLineCount = 300;
-  const testText = Array(testLineCount).fill(' ').join('\n');
-  // Replace document with test text
-  await editor.edit(editBuilder => {
-    const fullRange = new vscode.Range(
-      document.positionAt(0),
-      document.positionAt(originalText.length)
-    );
-    editBuilder.replace(fullRange, testText);
-  });
-  // Focus the editor to ensure visibleRanges updates
-  await vscode.window.showTextDocument(editor.document, editor.viewColumn);
-  // Scroll to top
+  log('measureViewportCapacity', ignoreDidChangeVisible);
+  // await vscode.window.showTextDocument(editor.document, editor.viewColumn);
   await vscode.commands.executeCommand('cursorTop');
-  // Wait for VS Code to update the visible range
   await new Promise(res => setTimeout(res, 300));
   const visibleRange = editor.visibleRanges[0];
   const capacity = visibleRange.end.line - visibleRange.start.line;
-  log(`Viewport visibleRange: start=${visibleRange.start.line}, end=${visibleRange.end.line}`);
-  // Restore original text
-  await editor.edit(editBuilder => {
-    const fullRange = new vscode.Range(
-      editor.document.positionAt(0),
-      editor.document.positionAt(editor.document.getText().length)
-    );
-    editBuilder.replace(fullRange, originalText);
-  });
-  // Optionally, scroll back to top of original
   await vscode.commands.executeCommand('cursorTop');
-  log(`Viewport capacity is ${capacity} lines`);
-  // setTimeout(() => {
-  //   ignoreDidChangeVisible = false;
-  // }, 2000);
+  log(`>>> capacity ${capacity}`, ignoreDidChangeVisible);
   return capacity;
 }
 
@@ -105,17 +92,24 @@ export function includeFile(fsPath: string, folder?:boolean): boolean {
 export async function setScroll(editor: vscode.TextEditor, 
                           funcTop: number, funcBottom: number) {
   ignoreDidChangeVisible = true;
+  log('setScroll', ignoreDidChangeVisible);
   const functionTopMargin   = funcTop - settings.topMargin;
   const funcHeight          = funcBottom - funcTop;
   const visibleRange        = editor.visibleRanges[0];
   const screenTop           = visibleRange.start.line;
   const screenBottom        = visibleRange.end.line;
-  if(screenHeight < 0) 
+  if(screenHeight < 0) {
         screenHeight        = await measureViewportCapacity(editor);
-  else  screenHeight        = screenBottom - screenTop;
-  // log('se1', settings.scrollPosition, {
-  //                   funcTop, funcBottom, functionTopMargin, funcHeight, 
-  //                   screenTop, screenBottom, screenHeight});
+    const visibleRange        = editor.visibleRanges[0];
+    const screenTop           = visibleRange.start.line;
+    const screenBottom        = visibleRange.end.line;
+    screenHeight        = screenBottom - screenTop;
+  } else  {
+    const visibleRange        = editor.visibleRanges[0];
+    const screenTop           = visibleRange.start.line;
+    const screenBottom        = visibleRange.end.line;
+    screenHeight        = screenBottom - screenTop;
+  }
   let top = 0;
   switch(settings.scrollPosition) {
     case "Function Top At Top": 
@@ -137,24 +131,25 @@ export async function setScroll(editor: vscode.TextEditor,
             break;
     default: top = 0; break;
   }
-
-  // await measureViewportCapacity(editor);
-  // log('set2', settings.scrollPosition, {
-  //                   funcTop, funcBottom, functionTopMargin, funcHeight, 
-  //                   screenTop, screenBottom, screenHeight});
   if(top < 0) top = functionTopMargin;
-  // log('capacity', top);
   editor.revealRange(new vscode.Range(top, 0, top, 0), 
                          vscode.TextEditorRevealType.AtTop);
+  log('setScroll end', ignoreDidChangeVisible);
+  setTimeout(() => {
+    log('setTimeout', ignoreDidChangeVisible);
+    ignoreDidChangeVisible = false;
+  }, 500);
 }
 
 vscode.window.onDidChangeTextEditorVisibleRanges(event => {
+  log('visibleRangechg before', ignoreDidChangeVisible);
   if (ignoreDidChangeVisible) return;
-  log('visibleRanges changed');
+  log('visibleRangechg after', ignoreDidChangeVisible);
   screenHeight = -1;
 });
 
 export function enableDidChangeVisible() {
-  log('enableDidChangeVisible');
+  if (ignoreDidChangeVisible) return;
+  log('enableDidChangeVisible', ignoreDidChangeVisible);
   ignoreDidChangeVisible = false;
 }
