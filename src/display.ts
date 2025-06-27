@@ -45,10 +45,12 @@ class Items {
   getById(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }
-  setFldrFile(item: AllButFuncItem) {
-    if(!item.resourceUri) return;
-    const fsPath = item.resourceUri.fsPath;
-    Items.fldrItemsByFspath.set(fsPath, item);
+  setFolderItem(item: WsAndFolderItem) {
+    Items.fldrItemsByFspath.set(item.fsPath, item);
+    Items.itemsById.set(item.id, item);
+  }
+  setFileItem(item: FileItem) {
+    Items.fldrItemsByFspath.set(item.document.uri.fsPath, item);
     Items.itemsById.set(item.id, item);
   }
   getFldrFileByFsPath(fsPath:string): AllButFuncItem | null {
@@ -113,11 +115,14 @@ export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
 
 export class WsAndFolderItem extends Item {
   expanded:  boolean = false;
+  fsPath:    string;
   constructor(uri: vscode.Uri) {
-    super(uri, vscode.TreeItemCollapsibleState.Expanded);
+    super(uri.path.split('/').pop()!, 
+          vscode.TreeItemCollapsibleState.Expanded);
     this.id           = getItemId();
     this.expanded     = true;
-    itms.setFldrFile(this);
+    this.fsPath       = uri.fsPath;
+    itms.setFolderItem(this);
   }
   async getChildren() {
     if(this.children) return this.children;
@@ -130,7 +135,7 @@ export class WsAndFolderItem extends Item {
 
 async function getFolderChildren(parent: WsAndFolderItem,
                                  folders: Item[], files: Item[]) {
-  const parentFsPath = parent.resourceUri!.fsPath;
+  const parentFsPath = parent.fsPath;
   const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
   for (const entry of entries) {
     const fsPath    = path.join(parentFsPath, entry.name);
@@ -170,7 +175,6 @@ export class WsFolderItem extends WsAndFolderItem {
   }
   static async create(wsFolder: vscode.WorkspaceFolder): 
                                    Promise<WsFolderItem> {
-    files.clear();
     await files.addPaths(wsFolder.uri.fsPath);
     return new WsFolderItem(wsFolder);
   }
@@ -190,7 +194,7 @@ export class FolderItem extends WsAndFolderItem {
         parents = parents.reverse().slice(1);
         let decoration = '';
         for(const parent of parents) {
-          decoration += path.basename(this.resourceUri!.fsPath) + '/';
+          decoration += path.basename(this.fsPath) + '/';
         }
         this.decoration = decoration.slice(0, -1);
       }
@@ -205,7 +209,7 @@ export class FolderItem extends WsAndFolderItem {
 ////////////////////// FileItem //////////////////////
 
 export class FileItem extends Item {
-  declare parent:   WsAndFolderItem |null;
+  declare parent:   WsAndFolderItem | null;
   declare children: FuncItem[]      | null;
   document:         vscode.TextDocument;
   expanded:         boolean = false;;
@@ -217,7 +221,7 @@ export class FileItem extends Item {
     this.id           = getItemId();
     this.contextValue = 'file';
     this.iconPath     = new vscode.ThemeIcon('file');
-    itms.setFldrFile(this);
+    itms.setFileItem(this);
   }
   getChildren(noFilter = false): FuncItem[] {
     let structChg: boolean = false;
@@ -383,7 +387,7 @@ export async function getTree() {
     log('err', 'getTree, No folders in workspace');
     return [];
   }
-  if (wsFolders.length > 1) {
+  if (wsFolders.length > 0) {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) 
       tree.push(await WsFolderItem.create(wsFolder));
