@@ -128,23 +128,6 @@ export class WsAndFolderItem extends Item {
   }
 }
 
-export async function hasChildFuncTest(fsPath: string): Promise<boolean> {
-  let stat;
-  try { stat = await fs.stat(fsPath);
-  } catch { return false; }
-  if (stat.isDirectory()) {
-    let entries: string[];
-    try { entries = await fs.readdir(fsPath); } 
-    catch { return false; }
-    for (const entry of entries) {
-      const childPath = path.join(fsPath, entry);
-      if (await hasChildFuncTest(childPath)) return true;
-    }
-  }
-  else if(sett.includeFile(fsPath, false)) return true;
-  return false;
-}
-
 async function getFolderChildren(parent: WsAndFolderItem,
                                  folders: Item[], files: Item[]) {
   const parentFsPath = parent.resourceUri!.fsPath;
@@ -157,7 +140,7 @@ async function getFolderChildren(parent: WsAndFolderItem,
     if(!sett.includeFile(fsPath, isDir)) continue;
     let folderFileItem = itms.getFldrFileByFsPath(fsPath);
     if (isDir) {
-      folderFileItem ??= await FolderItem.create(uri);
+      folderFileItem ??= FolderItem.create(uri);
       if(!folderFileItem) continue;
       folderFileItem.parent = parent;
       folders.push(folderFileItem);
@@ -185,6 +168,12 @@ export class WsFolderItem extends WsAndFolderItem {
     this.contextValue = 'wsFolder';
     this.iconPath     = new vscode.ThemeIcon('root-folder');
   }
+  static async create(wsFolder: vscode.WorkspaceFolder): 
+                                   Promise<WsFolderItem> {
+    files.clear();
+    await files.addPaths(wsFolder.uri.fsPath);
+    return new WsFolderItem(wsFolder);
+  }
 }
 
 /////////////////////// FolderItem //////////////////////
@@ -207,8 +196,8 @@ export class FolderItem extends WsAndFolderItem {
       }
     }
   }
-  static async create(uri: vscode.Uri): Promise<FolderItem | null> {
-    if (!await hasChildFuncTest(uri.fsPath)) return null;
+  static create(uri: vscode.Uri): FolderItem | null {
+    if (!files.hasIncludedFile(uri.fsPath)) return null;
     return new FolderItem(uri);
   }
 }
@@ -397,10 +386,10 @@ export async function getTree() {
   if (wsFolders.length > 1) {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) 
-      tree.push(new WsFolderItem(wsFolder));
+      tree.push(await WsFolderItem.create(wsFolder));
     return tree;
   }
-  const wsFolderItem    = new WsFolderItem(wsFolders[0]);
+  const wsFolderItem    = await WsFolderItem.create(wsFolders[0]);
   const folders: Item[] = [];
   const files:   Item[] = [];
   await getFolderChildren(wsFolderItem, folders, files);
@@ -924,12 +913,43 @@ export async function revealFuncInEditor(
       itemDoc.uri, {preview: true, preserveFocus: true });
 }
 
-// @@ts-nocheck
-// https://github.com/acornjs/acorn/tree/master/acorn-loose/
-// https://github.com/acornjs/acorn/tree/master/acorn-walk/
-// https://github.com/estree/estree/blob/master/es5.md
-// https://hexdocs.pm/estree/api-reference.html
-/*
-ClassExpression
-YieldExpression
-*/
+////////////////////// Files //////////////////////////
+
+class Files {
+  private static includedfsPaths = new Set<string>();
+  clear() {
+    Files.includedfsPaths.clear();
+  }
+  async addPaths(fsPath: string) {
+    let pathCount = 0;
+    async function findFuncFiles(fsPath: string) {
+      let stat;
+      try { stat = await fs.stat(fsPath);
+      } catch { return; }
+      if (stat.isDirectory()) {
+        if(!sett.includeFile(fsPath, true)) return;
+        let entries: string[];
+        try { entries = await fs.readdir(fsPath); } 
+        catch { return; }
+        for (const entry of entries) {
+          const childPath = path.join(fsPath, entry);
+          await findFuncFiles(childPath);
+        }
+      }
+      else if(sett.includeFile(fsPath, false)) {
+        Files.includedfsPaths.add(fsPath);
+        pathCount++;
+      }
+    }
+    await findFuncFiles(fsPath);
+    log(`addPaths, found ${pathCount} funcFiles`);
+  }
+  hasIncludedFile(fsPath: string): boolean {
+    for(const includedPath of Files.includedfsPaths) {
+      if (includedPath.startsWith(fsPath)) return true;
+    }
+    return false;
+  }
+}
+const files = new Files();
+
