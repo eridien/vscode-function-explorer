@@ -195,29 +195,38 @@
       ]
     },
     "configuration": {
-      "title": "Function Explorer",
       "properties": {
-        "flattenFolders": {
+        "function-explorer.hideRootFolder": {
           "type": "boolean",
           "default": true,
           "order": 0,
-          "description": "Flatten folders in the function explorer. If disabled, all folders will be shown with their children which will make the functions further to the right and less visible."
+          "title": "Hide Root Folder",
+          "description": "If there is only one root folder in the workspace, hide it from the tree. Useful to reduce indentation and save space."
+        },
+        "function-explorer.flattenFolders": {
+          "type": "boolean",
+          "default": true,
+          "order": 1,
+          "title": "Flatten Folders",
+          "description": "Flatten folders in the function explorer. If disabled, all folders will be shown with their children which will increase the indentation and width of the explorer."
         },
         "function-explorer.showFileOnFileOpen": {
           "type": "boolean",
           "default": true,
-          "order": 1,
+          "order": 2,
+          "title": "Show File On File Open",
           "description": "When expanding a file in the explorer, show the file in an editor."
         },
         "function-explorer.fileWrap": {
           "type": "boolean",
           "default": true,
-          "order": 2,
+          "order": 3,
+          "title": "File Wrap",
           "description": "Next and previous wrap around all files instead of just active file."
         },
         "function-explorer.scrollPosition": {
           "type": "string",
-          "order": 3,
+          "order": 4,
           "default": "Function Center At Center If Needed",
           "enum": [
             "Function Top At Top",
@@ -233,30 +242,37 @@
             "Align the top of the function (with margin) to the top of the viewport, if needed.",
             "Align the center of the function to the center of the viewport, if needed."
           ],
+          "title": "Scroll Position",
           "description": "Controls the scroll position when revealing a function."
         },
         "function-explorer.topMargin": {
           "type": "number",
-          "default": 3,
-          "order": 4,
-          "description": "Number of margin lines above function when scrolling with \"At Top (with Margin)\"."
+          "default":  3,
+          "minimum":  0,
+          "maximum": 30,
+          "order": 5,
+          "title": "Top Margin",
+          "description": "Number of margin lines above function when scrolling with \"Function Top At Top\"."
         },
-        "function-explorer.alphaSortFuncs": {
+        "function-explorer.alphaSortFunctions": {
           "type": "boolean",
           "default": false,
-          "order": 5,
+          "order": 6,
+          "title": "Alpha Sort Functions",
           "description": "Sort functions in the file alphabetically instead of by position. This can be overidden in the sidebar file \"A\" button."
         },
         "function-explorer.filesToInclude": {
           "type": "string",
           "default": "**/*.js, **/*.ts",
-          "order": 6,
+          "order": 7,
+          "title": "Files To Include",
           "description": "Files to include in the function explorer. Separate glob patterns with commas."
         },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
-          "order": 7,
+          "order": 8,
+          "title": "Files To Exclude",
           "description": "Files to exclude in the function explorer. Separate glob patterns with commas."
         }
       }

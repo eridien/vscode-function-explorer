@@ -387,7 +387,7 @@ export async function getTree() {
     log('err', 'getTree, No folders in workspace');
     return [];
   }
-  if (wsFolders.length > 0) {
+  if (wsFolders.length > 1 || !settings.hideRootFolder) {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) 
       tree.push(await WsFolderItem.create(wsFolder));

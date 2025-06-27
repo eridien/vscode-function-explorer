@@ -4,6 +4,7 @@ import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 
 interface FunctionMarksSettings {
+  hideRootFolder:     boolean;
   flattenFolders:     boolean;
   scrollPosition:    "Function Top At Top"           | 
                      "Function Center At Center"     |
@@ -11,16 +12,17 @@ interface FunctionMarksSettings {
                      "Function Top At Top If Needed" |
                      "Function Center At Center If Needed";
   fileWrap:           boolean;
-  alphaSortFuncs:     boolean;
+  alphaSortFunctions: boolean;
   topMargin:          number;
   showFileOnFileOpen: boolean;
 }
 
 export let settings:  FunctionMarksSettings = {
+  hideRootFolder:     true,
   flattenFolders:     true,
   scrollPosition:     "Function Center At Center If Needed",
   fileWrap:           true,
-  alphaSortFuncs:     false,
+  alphaSortFunctions: false,
   topMargin:          3,
   showFileOnFileOpen: true
 };
@@ -34,12 +36,14 @@ export function loadSettings() {
   settings = {
     scrollPosition:     config.get('scrollPosition', 
                                    "Function Center At Center If Needed"),
+    hideRootFolder:     config.get('hideRootFolder',     true),
     flattenFolders:     config.get('flattenFolders',     true),
     showFileOnFileOpen: config.get('showFileOnFileOpen', true),
     fileWrap:           config.get('fileWrap',           true),
-    alphaSortFuncs:     config.get('alphaSortFuncs',     false),
-    topMargin: Math.max(0, Math.min(20, config.get('topMargin', 3))),
+    alphaSortFunctions: config.get('alphaSortFunctions', false),
+    topMargin:          config.get('topMargin',              3),
   };
+  log('loadSettings', settings);
   const incParts = config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                          .split(",").map(p => p.trim());
   if(incParts.length < 2) includeCfg =     incParts[0];
