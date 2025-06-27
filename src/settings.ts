@@ -58,10 +58,36 @@ export function includeFile(fsPath: string, folder?:boolean): boolean {
   return folder || minimatch(relPath, includeCfg);
 }
 
-function measureViewportCapacity(editor: vscode.TextEditor) {
-  const visibleRanges = editor.visibleRanges;
-  const screenTop     = visibleRanges[0].start.line;
-  const screenBottom  = visibleRanges[visibleRanges.length - 1].end.line;
+/*
+editor.selection = new vscode.Selection(line, 0, line, 0);
+await vscode.commands.executeCommand('editor.unfold', { levels: 1, direction: 'down' });
+*/
+
+async function measureViewportCapacity(editor: vscode.TextEditor): Promise<number> {
+  let visibleRanges = editor.visibleRanges;
+  let screenTop     = 0;
+  let screenBottom  = 0;
+  let idx           = visibleRanges[0].start.line;
+  let lastBottom    = visibleRanges[visibleRanges.length - 1].end.line;
+  let i = 0;
+  while(true) {
+    if(++i == 100) break;
+    if(--idx < 1) break;
+    editor.revealRange(new vscode.Range(idx-1, 0, idx-1, 0), 
+                           vscode.TextEditorRevealType.AtTop);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    visibleRanges = editor.visibleRanges;
+    screenTop     = visibleRanges[0].start.line;
+    screenBottom  = visibleRanges[visibleRanges.length - 1].end.line;
+    if(screenTop  == 0 || screenBottom != lastBottom) break;
+    lastBottom    = screenBottom;
+  }
+  log('i', i);
+  editor.revealRange(new vscode.Range(idx+2, 0, idx+2, 0), 
+                          vscode.TextEditorRevealType.AtTop);
+  visibleRanges = editor.visibleRanges;
+  screenTop     = visibleRanges[0].start.line;
+  screenBottom  = visibleRanges[visibleRanges.length - 1].end.line;
   const totalHeight   = screenBottom - screenTop;
   let totalGaps       = 0;
   let current         = screenTop;
@@ -70,21 +96,23 @@ function measureViewportCapacity(editor: vscode.TextEditor) {
       const gap = range.start.line - current - 1;
       totalGaps += gap;
     }
+    log('start, end, current,  totalGaps', range.start.line, 
+                                           range.end.line, current, totalGaps);
     current = range.end.line;
   }
-  const realCapacity = totalHeight - totalGaps;
-  log('measureViewportCapacity', realCapacity);
-  return realCapacity;
+  const capacity = totalHeight - totalGaps;
+  log('measureViewportCapacity', capacity);
+  return capacity;
 }
 
-export function setScroll(editor: vscode.TextEditor, 
+export async function setScroll(editor: vscode.TextEditor, 
                           funcTop: number, funcBottom: number) {
   const functionTopMargin   = funcTop - settings.topMargin;
   const funcHeight          = funcBottom - funcTop;
   const visibleRange        = editor.visibleRanges[0];
   const screenTop           = visibleRange.start.line;
   const screenBottom        = visibleRange.end.line;
-  const screenHeight        = measureViewportCapacity(editor);
+  const screenHeight        = await measureViewportCapacity(editor);
   let top = 0;
   switch(settings.scrollPosition) {
     case "Function Top At Top": 

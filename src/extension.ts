@@ -16,67 +16,67 @@ export async function activate(context: vscode.ExtensionContext) {
   
 	const toggleCmd = vscode.commands.registerCommand(
            'vscode-function-explorer.toggle', async (x:any) => {
-    log('toggleCmd');
+    // log('toggleCmd');
 		await cmds.toggleCmd();
 	});
 
 	const prev = vscode.commands.registerCommand(
                    'vscode-function-explorer.prev', async () => {
-    log('prev');
+    // log('prev');
 		await cmds.prev();
 	});
 
 	const next = vscode.commands.registerCommand(
                    'vscode-function-explorer.next', async () => {
-		log('next');
+		// log('next');
 		await cmds.next();
 	});
 
 	const toggleMarkedFilter = vscode.commands.registerCommand(
        'vscode-function-explorer.toggleMarkedFilter', (fileItem: FileItem) => {
-       log('toggleMarkedFilter');
+      //  log('toggleMarkedFilter');
 		disp.toggleMarkedFilter(fileItem);
 	});
 
 	const toggleMarkedFilterMenu = vscode.commands.registerCommand(
    'vscode-function-explorer.toggleMarkedFilterMenu', (fileItem: FileItem) => {
-		log('toggleMarkedFilterMenu');
+		// log('toggleMarkedFilterMenu');
 		disp.toggleMarkedFilter(fileItem);
 	});
 
 	const toggleAlphaSort = vscode.commands.registerCommand(
           'vscode-function-explorer.toggleAlphaSort', (fileItem: FileItem) => {
-          log('toggleAlphaSort');
+          // log('toggleAlphaSort');
 		disp.toggleAlphaSort(fileItem);
 	});
 
 	const toggleAlphaSortMenu = vscode.commands.registerCommand(
       'vscode-function-explorer.toggleAlphaSortMenu', (fileItem: FileItem) => {
-		log('toggleAlphaSortMenu');
+		// log('toggleAlphaSortMenu');
 		disp.toggleAlphaSort(fileItem);
 	});
 
 	const removeMarks = vscode.commands.registerCommand(
                 'vscode-function-explorer.removeMarks', async (item: Item) => {
-                log('removeMarks');
+                // log('removeMarks');
 		await cmds.removeMarks(item);
 	});
 
 	const removeMarksMenu = vscode.commands.registerCommand(
             'vscode-function-explorer.removeMarksMenu', async (item: Item) => {
-		log('removeMarksMenu');
+		// log('removeMarksMenu');
 		await cmds.removeMarks(item);
 	});
 
 	const toggleItemMark = vscode.commands.registerCommand(
 		'vscode-function-explorer.toggleItemMark', async (funcItem: FuncItem) => {
-	  log('toggleItemMark');
+	  // log('toggleItemMark');
   	await cmds.toggleItemMarkCmd(funcItem);
 	});
 
 	const funcClickCmd = vscode.commands.registerCommand(
        'vscode-function-explorer.funcClickCmd', async (funcItem: FuncItem) => {
-    log('funcClickCmd');
+    // log('funcClickCmd');
     await cmds.funcClickCmd(funcItem);
 	});
 
@@ -99,23 +99,23 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const sidebarVisChg = treeView.onDidChangeVisibility(async (visible) => {
-    log('sidebarVisChg');
+    // log('sidebarVisChg');
     if(visible) await disp.updatePointers();
   });
 
   const treeSelChg = treeView.onDidChangeSelection(() => {
-    log('treeSelChg');
+    // log('treeSelChg');
      // item selection[]
   });
 
   const itemExpandChg = treeView.onDidExpandElement(async event => {
-    log('itemExpandChg');
+    // log('itemExpandChg');
     await disp.itemExpandChg(
                    event.element as WsAndFolderItem | FileItem, true);
   });
 
   const itemCollapseChg = treeView.onDidCollapseElement(async event => {
-    log('itemCollapseChg');
+    // log('itemCollapseChg');
     await disp.itemExpandChg(
                    event.element as WsAndFolderItem | FileItem, false);
   });
@@ -125,18 +125,18 @@ export async function activate(context: vscode.ExtensionContext) {
   const selectionChg = vscode.window.onDidChangeTextEditorSelection(
     async event => {
       if (event.textEditor?.document.uri.scheme !== 'file') return;
-      log('selectionChg');
+      // log('selectionChg');
       await cmds.selectionChg(event);
   });
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => {if(editor) {
       await cmds.editorOrTextChg(editor);
-      log('editorChg');
+      // log('editorChg');
     }});
 
   const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
-    log('textChg');
+    // log('textChg');
     const editor = vscode.window.activeTextEditor;
     if (editor && event.document === editor.document) 
       await cmds.editorOrTextChg(editor);
