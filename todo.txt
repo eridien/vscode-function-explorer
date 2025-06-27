@@ -1,14 +1,16 @@
 bugs ...
-  folder icons missing using resourceuri
-  getlabel not in alpha sort (in f-xplorer workspace)
+  in f-xplorer workspace
+    getlabel not in alpha sort
+    methods broken
+    marks appear above function
   multiple ws roots
   center if needed on big funcs
   toggle next, ln 45 in misc/webview-msg-ext.js
   bounce on some func clicks
 
 todo ...
+  toggle closer
   looping in updatetree getchildre
-  finish flatten
   chg name click to gesture
   handle sel overlapping name line only
   sidebar refresh command/menu
@@ -16,7 +18,8 @@ todo ...
   many settings don't immediately change sidebar
 
 options ...
-  hide root folder
+  open in preview mode
+  default file wrap off
 
 testing ...
   settings changes

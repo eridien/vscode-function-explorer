@@ -114,28 +114,51 @@ export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
 ////////////////////// WsAndFolderItem //////////////////////
 
 export class WsAndFolderItem extends Item {
-  expanded:  boolean = false;
+  expanded:  boolean;
   fsPath:    string;
-  constructor(uri: vscode.Uri) {
+  root:      boolean;
+  constructor(uri: vscode.Uri, root = false) {
     super(uri.path.split('/').pop()!, 
           vscode.TreeItemCollapsibleState.Expanded);
-    this.id           = getItemId();
-    this.expanded     = true;
-    this.fsPath       = uri.fsPath;
+    this.id       = getItemId();
+    this.expanded = true;
+    this.fsPath   = uri.fsPath;
+    this.root     = root;
     itms.setFolderItem(this);
+  }
+  /**
+   * Returns the path of this item relative to the root workspace folder.
+   */
+  getRelativePath(): string {
+    const wsFolders = vscode.workspace.workspaceFolders;
+    if (!wsFolders || wsFolders.length === 0) return this.fsPath;
+    // Find the containing workspace folder
+    const wsFolder = wsFolders.find(f => this.fsPath.startsWith(f.uri.fsPath));
+    if (!wsFolder) return this.fsPath;
+    let rel = this.fsPath.substring(wsFolder.uri.fsPath.length);
+    if (rel.startsWith("\\") || rel.startsWith("/")) rel = rel.slice(1);
+    return rel;
   }
   async getChildren() {
     if(this.children) return this.children;
     const folders: Item[] = [];
     const files:   Item[] = [];
-    await getFolderChildren(this, folders, files);
+    await getFolderChildren(this, folders, files, this.root);
     return [...folders, ...files];
   }
 }
 
 async function getFolderChildren(parent: WsAndFolderItem,
-                                 folders: Item[], files: Item[]) {
+                foldersIn: Item[], filesIn: Item[], root = false) {
   const parentFsPath = parent.fsPath;
+  if(root && settings.flattenFolders) {
+    files.sortedFsPaths().forEach(fsPath => {
+      const folderItem = getOrMakeFolderItemByFsPath(fsPath);
+      if(!folderItem || parent === folderItem) return;
+      folderItem.parent = parent;
+      foldersIn.push(folderItem);
+    });
+  }
   const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
   for (const entry of entries) {
     const fsPath    = path.join(parentFsPath, entry.name);
@@ -143,21 +166,18 @@ async function getFolderChildren(parent: WsAndFolderItem,
     if(uri.scheme !== 'file') continue;
     const isDir = entry.isDirectory();
     if(!sett.includeFile(fsPath, isDir)) continue;
-    let folderFileItem = itms.getFldrFileByFsPath(fsPath);
-    if (isDir) {
-      folderFileItem ??= FolderItem.create(uri);
-      if(!folderFileItem) continue;
-      folderFileItem.parent = parent;
-      folders.push(folderFileItem);
+    if(isDir) {
+      if(settings.flattenFolders) continue;
+      const folderItem = getOrMakeFolderItemByFsPath(fsPath);
+      if(!folderItem) continue;
+      folderItem.parent = parent;
+      foldersIn.push(folderItem);
       continue;
     }
     if(entry.isFile()) {
-      if(!folderFileItem) {
-        const document = await vscode.workspace.openTextDocument(uri);
-        folderFileItem = new FileItem(document);
-      }
-      folderFileItem.parent = parent;
-      files.push(folderFileItem);
+      const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+      fileItem.parent = parent;
+      filesIn.push(fileItem);
       continue;
     }
   }
@@ -167,16 +187,16 @@ async function getFolderChildren(parent: WsAndFolderItem,
 
 export class WsFolderItem extends WsAndFolderItem {
   wsFolder: vscode.WorkspaceFolder;
-  constructor(wsFolder: vscode.WorkspaceFolder) {
-    super(wsFolder.uri);
+  constructor(wsFolder: vscode.WorkspaceFolder, root = false) {
+    super(wsFolder.uri, root);
     this.wsFolder     = wsFolder;
     this.contextValue = 'wsFolder';
     this.iconPath     = new vscode.ThemeIcon('root-folder');
   }
-  static async create(wsFolder: vscode.WorkspaceFolder): 
-                                   Promise<WsFolderItem> {
+  static async create(wsFolder: vscode.WorkspaceFolder, root = false): 
+                                Promise<WsFolderItem> {
     await files.addPaths(wsFolder.uri.fsPath);
-    return new WsFolderItem(wsFolder);
+    return new WsFolderItem(wsFolder, root);
   }
 }
 
@@ -188,15 +208,17 @@ export class FolderItem extends WsAndFolderItem {
     super(uri);
     this.contextValue = 'folder';
     this.iconPath     = new vscode.ThemeIcon('folder');
-    if(settings.flattenFolders) {
-      let parents = this.getParents();
-      if(parents.length > 1) {
-        parents = parents.reverse().slice(1);
-        let decoration = '';
-        for(const parent of parents) {
-          decoration += path.basename(this.fsPath) + '/';
+    if(settings.flattenFolders)  {
+      const wsFolders = vscode.workspace.workspaceFolders;
+      if (wsFolders && wsFolders.length > 0) {
+        const wsFolder = wsFolders.find(
+              wsFolder => uri.fsPath.startsWith(wsFolder.uri.fsPath));
+        if (wsFolder) {
+          let rel = uri.path.substring(wsFolder.uri.path.length);
+          if (rel.startsWith("/")) rel = rel.slice(1);
+          if(rel.indexOf("/") !== -1) this.description = ' ' + 
+                         rel.split('/').slice(0,-1).join('/') + '/';
         }
-        this.decoration = decoration.slice(0, -1);
       }
     }
   }
@@ -253,6 +275,12 @@ export async function getOrMakeFileItemByFsPath(
     fileItem       = new FileItem(document);
   }
   return fileItem;
+}
+
+export function getOrMakeFolderItemByFsPath(fsPath: string): FolderItem {
+  let folderItem = itms.getFldrFileByFsPath(fsPath) as FolderItem | undefined;
+  if (!folderItem) folderItem = new FolderItem(vscode.Uri.file(fsPath));
+  return folderItem;
 }
 
 export function toggleMarkedFilter(fileItem: FileItem) {
@@ -390,13 +418,13 @@ export async function getTree() {
   if (wsFolders.length > 1 || !settings.hideRootFolder) {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) 
-      tree.push(await WsFolderItem.create(wsFolder));
+      tree.push(await WsFolderItem.create(wsFolder, true));
     return tree;
   }
-  const wsFolderItem    = await WsFolderItem.create(wsFolders[0]);
+  const wsFolderItem    = await WsFolderItem.create(wsFolders[0], true);
   const folders: Item[] = [];
   const files:   Item[] = [];
-  await getFolderChildren(wsFolderItem, folders, files);
+  await getFolderChildren(wsFolderItem, folders, files, true);
   return [...folders, ...files];
 }
 
@@ -555,7 +583,8 @@ function updateFileChildrenFromAst(fileItem: FileItem):
 
 ///////////////////////////// sidebarProvider /////////////////////////////
 
-let blockItemRefreshCalls = true;
+let ignoreItemRefreshCalls = true;
+let delayItemRefreshCalls  = false;
 const refreshQueue: Item[] = [];
 let refreshTimeout: NodeJS.Timeout | undefined;
 
@@ -569,7 +598,8 @@ export class SidebarProvider {
   }
 
   refresh(item:Item | undefined, tryAgain = false): void {
-    if(blockItemRefreshCalls) {
+    if(ignoreItemRefreshCalls) return;
+    if(delayItemRefreshCalls) {
       if(!tryAgain) refreshQueue.push(item!);
       clearTimeout(refreshTimeout);
       refreshTimeout = setTimeout(() => {this.refresh(item, true);}, 10);
@@ -582,6 +612,7 @@ export class SidebarProvider {
   }
 
   getTreeItem(itemIn: Item): Item {
+    ignoreItemRefreshCalls = false;
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
     const item        = itms.getById(itemIn.id);
@@ -605,19 +636,19 @@ export class SidebarProvider {
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    blockItemRefreshCalls = true;
+    delayItemRefreshCalls = true;
     if(!item) {
       const tree = await getTree();
-      blockItemRefreshCalls = false;
+      delayItemRefreshCalls = false;
       return tree;
     }
     if(item instanceof FuncItem) {
-      blockItemRefreshCalls = false;
+      delayItemRefreshCalls = false;
       return [];
     }
     const getChildren = 
              await (item as WsAndFolderItem | FileItem).getChildren();
-    blockItemRefreshCalls = false;
+    delayItemRefreshCalls = false;
     return getChildren;
   }
 }
@@ -941,7 +972,7 @@ class Files {
         }
       }
       else if(sett.includeFile(fsPath, false)) {
-        Files.includedfsPaths.add(fsPath);
+        Files.includedfsPaths.add(path.dirname(fsPath));
         pathCount++;
       }
     }
@@ -953,6 +984,9 @@ class Files {
       if (includedPath.startsWith(fsPath)) return true;
     }
     return false;
+  }
+  sortedFsPaths(): string[] {
+    return Array.from(Files.includedfsPaths).sort();
   }
 }
 const files = new Files();

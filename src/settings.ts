@@ -43,7 +43,6 @@ export function loadSettings() {
     alphaSortFunctions: config.get('alphaSortFunctions', false),
     topMargin:          config.get('topMargin',              3),
   };
-  log('loadSettings', settings);
   const incParts = config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                          .split(",").map(p => p.trim());
   if(incParts.length < 2) includeCfg =     incParts[0];
