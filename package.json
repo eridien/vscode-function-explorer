@@ -218,7 +218,7 @@
         "function-explorer.scrollPosition": {
           "type": "string",
           "order": 3,
-          "default": "Function Center At Center",
+          "default": "Function Center At Center If Needed",
           "enum": [
             "Function Top At Top",
             "Function Center At Center",

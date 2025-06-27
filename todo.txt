@@ -4,12 +4,11 @@ bugs ...
   multiple ws roots
 
 todo ...
-  handle sel overlapping name line only
-  add "Fit Function (with margin)" as scroll option
+  finish flatten
   chg name click to gesture
+  handle sel overlapping name line only
   sidebar refresh command/menu
   handle fs changes
-  finish flatten
   many settings don't immediately change sidebar
 
 options ...

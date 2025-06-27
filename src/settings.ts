@@ -18,7 +18,7 @@ interface FunctionMarksSettings {
 
 export let settings:  FunctionMarksSettings = {
   flattenFolders:     true,
-  scrollPosition:     "Function Center At Center",
+  scrollPosition:     "Function Center At Center If Needed",
   fileWrap:           true,
   alphaSortFuncs:     false,
   topMargin:          3,
@@ -33,7 +33,7 @@ export function loadSettings() {
   const config = vscode.workspace.getConfiguration('function-explorer');
   settings = {
     scrollPosition:     config.get('scrollPosition', 
-                                   "Function Center At Center"),
+                                   "Function Center At Center If Needed"),
     flattenFolders:     config.get('flattenFolders',     true),
     showFileOnFileOpen: config.get('showFileOnFileOpen', true),
     fileWrap:           config.get('fileWrap',           true),
@@ -65,6 +65,8 @@ await vscode.commands.executeCommand('editor.unfold', { levels: 1, direction: 'd
 
 async function measureViewportCapacity(editor: vscode.TextEditor): Promise<number> {
   let visibleRanges = editor.visibleRanges;
+  if(!visibleRanges || visibleRanges.length == 0) 
+      visibleRanges = [new vscode.Range(0, 0, 1, 0)];
   let screenTop     = 0;
   let screenBottom  = 0;
   let idx           = visibleRanges[0].start.line;
@@ -77,6 +79,8 @@ async function measureViewportCapacity(editor: vscode.TextEditor): Promise<numbe
                            vscode.TextEditorRevealType.AtTop);
     await new Promise(resolve => setTimeout(resolve, 0));
     visibleRanges = editor.visibleRanges;
+    if(!visibleRanges || visibleRanges.length == 0) 
+        visibleRanges = [new vscode.Range(0, 0, 1, 0)];
     screenTop     = visibleRanges[0].start.line;
     screenBottom  = visibleRanges[visibleRanges.length - 1].end.line;
     if(screenTop  == 0 || screenBottom != lastBottom) break;
@@ -86,6 +90,8 @@ async function measureViewportCapacity(editor: vscode.TextEditor): Promise<numbe
   editor.revealRange(new vscode.Range(idx+2, 0, idx+2, 0), 
                           vscode.TextEditorRevealType.AtTop);
   visibleRanges = editor.visibleRanges;
+  if(!visibleRanges || visibleRanges.length == 0) 
+      visibleRanges = [new vscode.Range(0, 0, 1, 0)];
   screenTop     = visibleRanges[0].start.line;
   screenBottom  = visibleRanges[visibleRanges.length - 1].end.line;
   const totalHeight   = screenBottom - screenTop;
@@ -109,32 +115,41 @@ export async function setScroll(editor: vscode.TextEditor,
                           funcTop: number, funcBottom: number) {
   const functionTopMargin   = funcTop - settings.topMargin;
   const funcHeight          = funcBottom - funcTop;
-  const visibleRange        = editor.visibleRanges[0];
-  const screenTop           = visibleRange.start.line;
-  const screenBottom        = visibleRange.end.line;
-  const screenHeight        = await measureViewportCapacity(editor);
+  let visibleRanges = editor.visibleRanges;
+  if(!visibleRanges || visibleRanges.length == 0) 
+      visibleRanges = [new vscode.Range(0, 0, 1, 0)];
+  const visibleRange  = visibleRanges[0];
+  const screenTop     = visibleRange.start.line;
+  const screenHeight  = await measureViewportCapacity(editor);
+  const screenBottom  = screenTop + screenHeight;
   let top = 0;
   switch(settings.scrollPosition) {
     case "Function Top At Top": 
-            top = functionTopMargin; break;
+            top = functionTopMargin; 
+            break;
     case "Function Center At Center": 
-            top = functionTopMargin + 
+            top = funcTop -
                     (Math.floor( screenHeight / 2) - 
-                     Math.floor( funcHeight   / 2)); break;
+                     Math.floor( funcHeight   / 2)); 
+            break;
     case "Function Bottom At Bottom":
-            top = funcBottom - screenHeight; break;
+            top = funcBottom - screenHeight; 
+            break;
     case "Function Top At Top If Needed":
             if(functionTopMargin < screenTop || funcBottom > screenBottom)
               top = functionTopMargin; 
+            else top = screenTop;
             break;
     case "Function Center At Center If Needed":
             if(functionTopMargin < screenTop || funcBottom > screenBottom)
-              top = Math.floor(screenHeight / 2) - 
-                    Math.floor(funcHeight   / 2); 
+              top = funcTop -
+                      (Math.floor( screenHeight / 2) - 
+                       Math.floor( funcHeight   / 2));
+            else top = screenTop;
             break;
-    default: top = 0; break;
+    default: top = functionTopMargin; 
   }
-  if(top < 0) top = functionTopMargin;
+  if(top < 0) top = 0;
   editor.revealRange(new vscode.Range(top, 0, top, 0), 
                          vscode.TextEditorRevealType.AtTop);
 }
