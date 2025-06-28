@@ -12,8 +12,8 @@ const {log, start, end} = utils.getLog('extn');
 export async function activate(context: vscode.ExtensionContext) {
   start('extension');
 
-		await parse.main();
-    return;
+	parse.parseCode();
+
 ////////////  COMMANDS  ////////////
   
 	const toggleCmd = vscode.commands.registerCommand(
