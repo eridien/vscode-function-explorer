@@ -10,6 +10,8 @@ export default [{
     ignores: [
         "**/node_modules/**",
         "**/out/**",
+        "**/test-app/**",
+        "**/notes/**",
         "!**/src/*.ts"
     ],
     plugins: {
