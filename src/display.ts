@@ -1,11 +1,13 @@
-import * as vscode from 'vscode';
-import * as path   from 'path';
-import * as fs     from 'fs/promises';
-import * as acorn  from "acorn-loose";
-import * as walk   from 'acorn-walk';
-import * as sett   from './settings';
-import {settings}  from './settings';
-import * as utils  from './utils';
+import * as vscode     from 'vscode';
+import * as path       from 'path';
+import * as fs         from 'fs/promises';
+import * as acorn      from "acorn-loose";
+import * as walk       from 'acorn-walk';
+import * as parse      from './parse';
+import type {NodeData} from './parse';
+import * as sett       from './settings';
+import {settings}      from './settings';
+import * as utils      from './utils';
 const {log, start, end} = utils.getLog('disp');
 
 let context:         vscode.ExtensionContext;
@@ -429,17 +431,6 @@ export async function getTree() {
 }
 
 ///////////////// updateFileChildrenFromAst //////////////////////
-
-interface NodeData {
-  funcId:       string;
-  funcParents : NodeData[];
-  name:         string;
-  type:         string;
-  start:        number;
-  startName:    number;
-  endName:      number;
-  end:          number;
-}
 
 function updateFileChildrenFromAst(fileItem: FileItem): 
                          { structChg: boolean, funcItems: FuncItem[] } | null {

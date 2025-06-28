@@ -3,7 +3,6 @@ import * as cmds         from './commands';
 import * as disp         from './display';
 import {Item, WsAndFolderItem, FileItem, FuncItem, SidebarProvider} 
                          from './display';
-import * as parse        from './parse';
 import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
@@ -11,8 +10,6 @@ const {log, start, end} = utils.getLog('extn');
 
 export async function activate(context: vscode.ExtensionContext) {
   start('extension');
-
-	parse.parseCode();
 
 ////////////  COMMANDS  ////////////
   
