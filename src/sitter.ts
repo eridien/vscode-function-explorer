@@ -1,6 +1,6 @@
 import Parser       from 'tree-sitter';
 import type { SyntaxNode } from 'tree-sitter';
-// import JavaScript   from 'tree-sitter-javascript';
+import JavaScript   from 'tree-sitter-javascript';
 import { readFile } from 'fs/promises';
 
 export function walkTree(node: SyntaxNode, 
@@ -18,7 +18,7 @@ export async function main() {
   try {
     const code = await readFile(filePath, 'utf8');
     const parser = new Parser();
-    // parser.setLanguage(JavaScript);
+    parser.setLanguage(JavaScript as any);
     const tree = parser.parse(code);
 
     walkTree(tree.rootNode, node => {

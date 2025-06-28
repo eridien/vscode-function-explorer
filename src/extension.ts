@@ -2,14 +2,13 @@ import * as vscode       from 'vscode';
 import * as cmds         from './commands';
 import * as disp         from './display';
 import {SidebarProvider} from './display';
-import * as itms         from './display';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
                          from './display';
 import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
 
-import {main} from './sitter-py';
+// import {main} from './sitter';
 
 export async function activate(context: vscode.ExtensionContext) {
   start('extension');
@@ -19,8 +18,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const toggleCmd = vscode.commands.registerCommand(
            'vscode-function-explorer.toggle', async (x:any) => {
     // log('toggleCmd');
-		// await cmds.toggleCmd();
-		await main();
+		await cmds.toggleCmd();
+		// await main();
 	});
 
 	const prev = vscode.commands.registerCommand(
