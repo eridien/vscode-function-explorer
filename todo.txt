@@ -1,17 +1,17 @@
 bugs ...
-  in f-xplorer workspace
-    getlabel not in alpha sort
-    methods broken
-    marks appear above function
+  marks appear above function  disp.ts
+  getlabel not in alpha sort   disp.ts
   multiple ws roots
   center if needed on big funcs
   toggle next, ln 45 in misc/webview-msg-ext.js
   bounce on some func clicks
+  Show File On File Open
 
 todo ...
-  toggle closer
-  looping in updatetree getchildre
+  https://tree-sitter.github.io/tree-sitter/
   chg name click to gesture
+  if name not visible when adding mark then scroll
+  toggle closer
   handle sel overlapping name line only
   sidebar refresh command/menu
   handle fs changes
@@ -20,6 +20,7 @@ todo ...
 options ...
   open in preview mode
   default file wrap off
+  when adding mark then always scroll
 
 testing ...
   settings changes

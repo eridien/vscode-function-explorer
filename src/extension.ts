@@ -9,6 +9,8 @@ import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
 
+import {main} from './sitter-py';
+
 export async function activate(context: vscode.ExtensionContext) {
   start('extension');
 
@@ -17,7 +19,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const toggleCmd = vscode.commands.registerCommand(
            'vscode-function-explorer.toggle', async (x:any) => {
     // log('toggleCmd');
-		await cmds.toggleCmd();
+		// await cmds.toggleCmd();
+		await main();
 	});
 
 	const prev = vscode.commands.registerCommand(
@@ -149,8 +152,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await cmds.activate();
 
 	context.subscriptions.push(
-    // toggleCmd, 
-    prev, next, funcClickCmd, loadSettings,
+    toggleCmd, prev, next, funcClickCmd, loadSettings,
     editorChg, selectionChg, textChg, toggleItemMark,
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
