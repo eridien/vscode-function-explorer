@@ -81,7 +81,8 @@ export function getLog(module: string) : {
     const endTime = Date.now();
     const duration = endTime - timers[name];
     if (onlySlow && duration < 100) return;
-    const line = `${module}: ${name} ended, ${timeInSecs(duration)}s,  ${msg}`;
+    // const line = `${module}: ${name} ended, ${timeInSecs(duration)}s,  ${msg}`;
+    const line = `${module}: ${name} ended, ${duration}  ${msg}`;
     outputChannel.appendLine(line);
     console.log(line);
   };

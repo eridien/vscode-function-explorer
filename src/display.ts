@@ -1,8 +1,6 @@
 import * as vscode     from 'vscode';
 import * as path       from 'path';
 import * as fs         from 'fs/promises';
-import * as acorn      from "acorn-loose";
-import * as walk       from 'acorn-walk';
 import * as parse      from './parse';
 import type {NodeData} from './parse';
 import * as sett       from './settings';
@@ -318,7 +316,7 @@ export class FuncItem extends Item {
   endName!:           number;
   end!:               number;
   funcId!:            string;
-  funcParents!:       FuncItem[];
+  funcParents!:       [string, string][];
   stayVisible!:       boolean;
   private startLine!: number;
   private endLine!:   number;
@@ -348,27 +346,26 @@ export class FuncItem extends Item {
      utils.createSortKey(this.getFsPath(), this.getStartLine());};
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
-  isFunction(funcItem: FuncItem = this) {
-    return ['FunctionDeclaration', 'FunctionExpression',
-            'ArrowFunctionExpression', 'MethodDefinition',
-            'Constructor', 'Method']
-            .includes(funcItem.type);
+  isFunction() {
+    return ["function_declaration", "function_expression", "method_definition"]
+            .includes(this.type);
   }
-  getFuncItemStr(funcItem: FuncItem = this): string {
-    if(this.isFunction(funcItem)) return ` ƒ ${funcItem.name}`;
+  getFuncItemStr(nameType: [string, string]): string {
+    const [name, type] = nameType;
+    if(this.isFunction()) return ` ƒ ${name}`;
     let pfx: string;
-    switch (funcItem.type) {
+    switch (type) {
       case 'Property':            pfx = ':'; break;
       case 'CallExpression':      pfx = '('; break;
       case 'ClassDeclaration':
       case 'ClassExpression':     pfx = '©'; break;
       default:                    pfx = '='; break;
     }
-    return ` ${pfx} ${funcItem.name}`;
+    return ` ${pfx} ${name}`;
   }
   getLabel() {
     // log('getLabel', this.name, this.type, pointerItems.has(this));
-    let label = this.getFuncItemStr().slice(this.isFunction() ? 2 : 0) ;
+    let label = this.name;
     if(pointerItems.has(this)) label = '→ ' + label;
     return label.trim();
   }
@@ -448,78 +445,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
   };
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
-  let ast: any;
-  parse.parseCode(docText, fsPath);
-  try {
-    ast = acorn.parse(docText, { ecmaVersion: 'latest' });
-  } catch (err) {
-    log('err', 'parse error', (err as any).message);
-    return null;
-  }
-  let nodeData: NodeData[] = [];
-  walk.ancestor(ast, {
-    Property(node){
-      const {start, end, key} = node;
-      const startName         = start;
-      const endName           = key.end;
-      const name = docText.slice(start, endName);
-      const type = 'Property';
-      nodeData.push({funcId: '', funcParents: [],
-                      name, type, start, startName, endName, end});
-    },
-    VariableDeclarator(node) {
-      const {id, start, end, init} = node;
-      if (init) {
-        const startName = start;
-        const endName   = id.end!;
-        const name      = docText.slice(start, endName);
-        const type      = 'VariableDeclarator';
-      nodeData.push({funcId: '', funcParents: [],
-                      name, type, start, startName, endName, end});
-      }
-      return;
-    },
-    FunctionDeclaration(node) {
-      const start   = node.id!.start;
-      const startName = start;
-      const endName = node.id!.end;
-      const end     = node.end;
-      const name    = docText.slice(start, endName);
-      const type    = 'FunctionDeclaration';
-      nodeData.push({funcId: '', funcParents: [],
-                      name, type, start, startName, endName, end});
-      return;
-    },
-    Class(node) {
-      if(!node.id) return;
-      const {id, start, end, type} = node;
-      const startName = start;
-      const endName   = id.end;
-      const name      = id.name;
-      nodeData.push({funcId: '', funcParents: [],
-                      name, type, start, startName, endName, end});
-      return;
-    },
-    MethodDefinition(node) {
-      const {start, end, key, kind} = node;
-      const startName = start;
-      const endName = key.end;
-      if(kind      == 'constructor') {
-        const name  = 'constructor';
-        const type  = 'Constructor';
-      nodeData.push({funcId: '', funcParents: [],
-                      name, type, start, startName, endName, end});
-        return;
-      }
-      else {
-        const name = docText.slice(start, endName);
-        const type = 'Method';
-      nodeData.push({funcId: '', funcParents: [],
-                      name, type, start, startName, endName, end});
-        return;
-      }
-    }
-  });
+  const nodeData = parse.parseCode(docText, fsPath);
   if(nodeData.length === 0) return empty();
   nodeData.sort((a, b) => a.start - b.start);
   let matchCount              = 0;

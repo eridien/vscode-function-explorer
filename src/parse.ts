@@ -46,8 +46,6 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
       if (name) funcParents.push([name, parent.type]);
     }
     funcId += fsPath;
-    if(name == 'zasd')
-      log({name, funcParents, funcId, type: node.type}, '\n');
     return { name, funcParents, funcId,
              type     :  node.type,
              start    :  node.startIndex,
