@@ -8,6 +8,9 @@ import {settings}      from './settings';
 import * as utils      from './utils';
 const {log, start, end} = utils.getLog('disp');
 
+// const CLEAR_MARKS_ON_STARTUP = false; 
+const CLEAR_MARKS_ON_STARTUP = true; 
+
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
@@ -238,6 +241,9 @@ export class FileItem extends Item {
   filtered:         boolean = false;
   alphaSorted:      boolean = false;
   constructor(document: vscode.TextDocument) {
+
+    if(document.uri.path.includes('node_modules')) debugger;
+    
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
     this.document     = document;
     this.id           = getItemId();
@@ -678,8 +684,12 @@ class Marks {
 export const mrks = new Marks();
 
 function loadMarks() {
-  const fsPathMarkIdArr: Array<[string, string[]]> =  
+  let fsPathMarkIdArr: Array<[string, string[]]> =  
                          context.workspaceState.get('markIds', []);
+  if(CLEAR_MARKS_ON_STARTUP) {
+    fsPathMarkIdArr = [];
+    context.workspaceState.update('markIds', []);
+  }
   for(const [fsPath, markIds] of fsPathMarkIdArr) {
     for(const funcId of markIds) mrks.addMark(fsPath, funcId);
   }

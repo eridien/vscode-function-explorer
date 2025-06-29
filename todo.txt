@@ -1,14 +1,14 @@
 bugs ...
-  marks appear above function  disp.ts
+  bounce on some func clicks
   getlabel not in alpha sort   disp.ts
   multiple ws roots
-  center if needed on big funcs
-  toggle next, ln 45 in misc/webview-msg-ext.js
-  bounce on some func clicks
-  Show File On File Open
+  center-if-needed on big funcs over top
+  next on toggle, ln 45 in misc/webview-msg-ext.js
+  symbols
+  pointer not updated on func click
 
 todo ...
-  https://tree-sitter.github.io/tree-sitter/
+  darken hilite
   chg name click to gesture
   if name not visible when adding mark then scroll
   toggle closer
