@@ -32,18 +32,22 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     return nameNode.text + "\x00" + node.type + "\x00";
   }
 
-  function nodeToNodeData(nameCapture: Parser.QueryCapture, 
-                          funcCapture: Parser.QueryCapture): NodeData | null {
+  function nodeToNodeData(
+              nameCapture: Parser.QueryCapture, 
+              funcCapture: Parser.QueryCapture,
+              bodyCapture: Parser.QueryCapture | undefined): NodeData | null {
     const startName = nameCapture.node.startIndex;
     const endName   = nameCapture.node.endIndex;
     const name      = code.slice(startName, endName);
     if (!name) return null;
-    const funcNode = funcCapture.node;
+    let   funcNode = funcCapture.node;
     let   parents  = getAllParents(funcNode);
     const funcParents: [string, string][] = [];
     let funcId = idNodeName(funcNode);
-    if(funcCapture.name === 'arrowFunc') 
+    if(bodyCapture) {
+      funcNode = bodyCapture.node;
       parents = parents.slice(1);
+    }
     for(let parent of parents) {
       funcId  += idNodeName(parent);
       const nameNode = parent.childForFieldName('name');
@@ -90,7 +94,8 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
       if(!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
       if(!nameCapture || !nameCapture.node.isNamed) continue;
-      const nodeData = nodeToNodeData(nameCapture, funcCapture);
+      const bodyCapture = match.captures.find(c => c.name.endsWith('Body'));
+      const nodeData = nodeToNodeData(nameCapture, funcCapture, bodyCapture);
       if(!nodeData) continue;
       nodes.push(nodeData);
       switch(funcCapture?.name) {
