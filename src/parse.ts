@@ -72,17 +72,33 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     const Query = Parser!.Query!;
     const query = new Query(JavaScript as any, `
 
-         ((function_declaration 
-             name: (identifier) @funcname))
+      [
+        ((function_declaration
+          name: (identifier) @funcname) @funcdec)
+
+        ((variable_declarator
+          name: (identifier) @varname) @vardec)
+      ]
 
     `);
-    const captures = query.captures(tree.rootNode);
-    for (const capture of captures) {
-      if (capture.name === 'funcname') {
-        const node = capture.node;
-        log('info', `S-expr ${node.text} at ${
-                     node.startPosition.row}:${node.startPosition.column}`);
-      }
+    // const captures = query.captures(tree.rootNode);
+    // for (const capture of captures) {
+    //   if (capture.name === 'funcname') {
+    //     const node = capture.node;
+    //     log('info', `S-expr ${node.text} at ${
+    //                  node.startPosition.row}:${node.startPosition
+
+    const matches = query.matches(tree.rootNode);
+    for (const match of matches) {
+      const funcnameCapture = match.captures.find(c => c.name === 'funcname');
+      const funcdecCapture  = match.captures.find(c => c.name === 'funcdec');
+
+      const funcname = code.slice(funcnameCapture!.node.startIndex, funcnameCapture!.node.endIndex);
+      const funcdec  = code.slice(funcdecCapture! .node.startIndex,  funcdecCapture! .node.endIndex);
+
+      console.log(`Function declaration: ${funcdec.trim()}`);
+      console.log(`→ Function name: ${funcname}`);
+      console.log('---');
     }
   } catch (e) {
     log('err', 'S-expression query failed', (e as any).message);
