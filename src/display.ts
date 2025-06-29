@@ -449,6 +449,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
   let ast: any;
+  parse.parseCode(docText, fsPath);
   try {
     ast = acorn.parse(docText, { ecmaVersion: 'latest' });
   } catch (err) {
@@ -521,20 +522,6 @@ function updateFileChildrenFromAst(fileItem: FileItem):
   });
   if(nodeData.length === 0) return empty();
   nodeData.sort((a, b) => a.start - b.start);
-  for(const node of nodeData) {
-    const funcParents: NodeData[] = [];
-    for(const innerNode of nodeData) {
-      if(innerNode === node) continue;
-      if(innerNode.start > node.start) break;
-      if(innerNode.end  >= node.end) funcParents.unshift(innerNode);
-    }
-    let funcId = node.name  + "\x00" + node.type   + "\x00";
-    for(let parent of funcParents) 
-      funcId += parent.name + "\x00" + parent.type + "\x00";
-    funcId += fsPath;
-    node.funcId      = funcId;
-    node.funcParents = funcParents;
-  }
   let matchCount              = 0;
   let structChg               = false;
   const children              = fileItem.children as FuncItem[] | undefined;
