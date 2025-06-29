@@ -66,6 +66,28 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   parser.setLanguage(JavaScript as any);
   const tree = parser.parse(code);
   const nodes: NodeData[] = [];
+
+  // S-expression query for functions
+  try {
+    const Query = Parser!.Query!;
+    const query = new Query(JavaScript as any, `
+
+         ((function_declaration 
+             name: (identifier) @funcname))
+
+    `);
+    const captures = query.captures(tree.rootNode);
+    for (const capture of captures) {
+      if (capture.name === 'funcname') {
+        const node = capture.node;
+        log('info', `S-expr ${node.text} at ${
+                     node.startPosition.row}:${node.startPosition.column}`);
+      }
+    }
+  } catch (e) {
+    log('err', 'S-expression query failed', (e as any).message);
+  }
+
   walkTree(tree.rootNode, node => {
     const nodeData = nodeToNodeData(node);
     if (nodeData) nodes.push(nodeData);

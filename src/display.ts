@@ -8,8 +8,8 @@ import {settings}      from './settings';
 import * as utils      from './utils';
 const {log, start, end} = utils.getLog('disp');
 
-// const CLEAR_MARKS_ON_STARTUP = false; 
-const CLEAR_MARKS_ON_STARTUP = true; 
+const CLEAR_MARKS_ON_STARTUP = false; 
+// const CLEAR_MARKS_ON_STARTUP = true; 
 
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
@@ -243,7 +243,7 @@ export class FileItem extends Item {
   constructor(document: vscode.TextDocument) {
 
     if(document.uri.path.includes('node_modules')) debugger;
-    
+
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
     this.document     = document;
     this.id           = getItemId();
