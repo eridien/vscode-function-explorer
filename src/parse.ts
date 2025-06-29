@@ -32,13 +32,18 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     return nameNode.text + "\x00" + node.type + "\x00";
   }
 
-  function nodeToNodeData(node: SyntaxNode): NodeData | null {
-    const nameNode = node.childForFieldName('name');
-    const name = nameNode?.text;
+  function nodeToNodeData(nameCapture: Parser.QueryCapture, 
+                          funcCapture: Parser.QueryCapture): NodeData | null {
+    const startName = nameCapture.node.startIndex;
+    const endName   = nameCapture.node.endIndex;
+    const name      = code.slice(startName, endName);
     if (!name) return null;
-    const parents = getAllParents(node);
+    const funcNode = funcCapture.node;
+    let   parents  = getAllParents(funcNode);
     const funcParents: [string, string][] = [];
-    let funcId = idNodeName(node);
+    let funcId = idNodeName(funcNode);
+    if(funcCapture.name === 'arrowFunc') 
+      parents = parents.slice(1);
     for(let parent of parents) {
       funcId  += idNodeName(parent);
       const nameNode = parent.childForFieldName('name');
@@ -46,12 +51,10 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
       if (name) funcParents.push([name, parent.type]);
     }
     funcId += fsPath;
-    return { name, funcParents, funcId,
-             type     :  node.type,
-             start    :  node.startIndex,
-             startName:  nameNode!.startIndex,
-             endName  :  nameNode!.endIndex,
-             end      :  node.endIndex };
+    return { name, funcParents, funcId, startName, endName,
+             type:  funcNode.type,
+             start: funcNode.startIndex,
+             end:   funcNode.endIndex };
   }
 
   function walkTree(node: SyntaxNode, visit: (node: SyntaxNode) => void) {
@@ -66,50 +69,56 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   parser.setLanguage(JavaScript as any);
   const tree = parser.parse(code);
   const nodes: NodeData[] = [];
-
-  // S-expression query for functions
   try {
     const Query = Parser!.Query!;
     const query = new Query(JavaScript as any, `
-
-      [
-        ((function_declaration
-          name: (identifier) @funcname) @funcdec)
-
-        ((variable_declarator
-          name: (identifier) @varname) @vardec)
-      ]
-
+        [
+          ((function_declaration
+            name: (identifier) @funcDecName)   @funcDec)
+          ((function_expression
+            name: (identifier) @funcExprName)  @funcExpr)
+          ((variable_declarator
+            name: (identifier)      @arrowFuncName
+            value: (arrow_function) @arrowFunc) @arrowFuncBody)
+        ]
     `);
-    // const captures = query.captures(tree.rootNode);
-    // for (const capture of captures) {
-    //   if (capture.name === 'funcname') {
-    //     const node = capture.node;
-    //     log('info', `S-expr ${node.text} at ${
-    //                  node.startPosition.row}:${node.startPosition
-
     const matches = query.matches(tree.rootNode);
     for (const match of matches) {
-      const funcnameCapture = match.captures.find(c => c.name === 'funcname');
-      const funcdecCapture  = match.captures.find(c => c.name === 'funcdec');
-
-      const funcname = code.slice(funcnameCapture!.node.startIndex, funcnameCapture!.node.endIndex);
-      const funcdec  = code.slice(funcdecCapture! .node.startIndex,  funcdecCapture! .node.endIndex);
-
-      console.log(`Function declaration: ${funcdec.trim()}`);
-      console.log(`→ Function name: ${funcname}`);
-      console.log('---');
+      const funcCapture  = match.captures.find(c => 
+        ['funcDec', 'funcExpr', 'arrowFunc']
+         .includes(c.name));
+      if(!funcCapture || !funcCapture.node.isNamed) continue;
+      const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
+      if(!nameCapture || !nameCapture.node.isNamed) continue;
+      const nodeData = nodeToNodeData(nameCapture, funcCapture);
+      if(!nodeData) continue;
+      nodes.push(nodeData);
+      switch(funcCapture?.name) {
+        case 'funcDec':
+          log(`function declaration: ${nameCapture?.node.text} at ` +
+          `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
+          break;
+        case 'funcExpr':
+          log(`function expression: ${nameCapture?.node.text} at ` +
+                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
+          break;
+        case 'arrowFunc':
+          log(`arrow function: ${nameCapture?.node.text} at ` +
+                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
+          break;
+        case 'varDec':
+          log(`variable declaration: ${nameCapture?.node.text} at ` +
+                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
+          break;
+        default:
+          log(`unknown type: ${funcCapture?.name} at ` +
+                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
+      }
     }
   } catch (e) {
     log('err', 'S-expression query failed', (e as any).message);
   }
-
-  walkTree(tree.rootNode, node => {
-    const nodeData = nodeToNodeData(node);
-    if (nodeData) nodes.push(nodeData);
-  });
   log(`Parsed ${nodes.length} nodes`);
-  // console.log(JSON.stringify(nodes, null, 2));
   end('parseCode', false);
   return nodes;
 }
