@@ -6,8 +6,20 @@ import * as utils          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 // const langObj = JavaScript;
-const langObj = typescript;
-// const langObj = tsx;
+// const langObj = typescript;
+const langObj = tsx;
+
+const sExpr = `
+  [
+    ((function_declaration
+      name: (identifier) @funcDecName)   @funcDec)
+    ((function_expression
+      name: (identifier) @funcExprName)  @funcExpr)
+    ((variable_declarator
+      name: (identifier)      @funcArrowName
+      value: (arrow_function) @funcArrow) @funcArrowBody)
+  ]
+`;
 
 export interface NodeData {
   funcId:       string;
@@ -66,13 +78,6 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
              end:   funcNode.endIndex };
   }
 
-  function walkTree(node: SyntaxNode, visit: (node: SyntaxNode) => void) {
-    visit(node);
-    for (let i = 0; i < node.childCount; i++) {
-      const child = node.child(i);
-      if (child) walkTree(child, visit);
-    }
-  }
   start('parseCode');
   const parser = new Parser();
   parser.setLanguage(langObj as any);
@@ -80,17 +85,7 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   const nodes: NodeData[] = [];
   try {
     const Query = Parser!.Query!;
-    const query = new Query(langObj as any, `
-        [
-          ((function_declaration
-            name: (identifier) @funcDecName)   @funcDec)
-          ((function_expression
-            name: (identifier) @funcExprName)  @funcExpr)
-          ((variable_declarator
-            name: (identifier)      @funcArrowName
-            value: (arrow_function) @funcArrow) @funcArrowBody)
-        ]
-    `);
+    const query = new Query(langObj as any, sExpr);
     const matches = query.matches(tree.rootNode);
     for (const match of matches) {
       const funcCapture  = match.captures.find(c => 
@@ -103,30 +98,10 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
       const nodeData = nodeToNodeData(nameCapture, funcCapture, bodyCapture);
       if(!nodeData) continue;
       nodes.push(nodeData);
-      switch(funcCapture?.name) {
-        case 'funcDec':
-          log(`function declaration: ${nameCapture?.node.text} at ` +
-          `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
-          break;
-        case 'funcExpr':
-          log(`function expression: ${nameCapture?.node.text} at ` +
-                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
-          break;
-        case 'funcArrow':
-          log(`arrow function: ${nameCapture?.node.text} at ` +
-                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
-          break;
-        case 'varDec':
-          log(`variable declaration: ${nameCapture?.node.text} at ` +
-                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
-          break;
-        default:
-          log(`unknown type: ${funcCapture?.name} at ` +
-                      `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
-      }
     }
   } catch (e) {
     log('err', 'S-expression query failed', (e as any).message);
+    return [];
   }
   log(`Parsed ${nodes.length} nodes`);
   end('parseCode', false);

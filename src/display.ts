@@ -353,8 +353,8 @@ export class FuncItem extends Item {
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
   isFunction() {
-    return ["function_declaration", "function_expression", "method_definition"]
-            .includes(this.type);
+    return ["function_declaration", "function_expression", "method_definition",
+            "arrow_function"].includes(this.type);
   }
   getFuncItemStr(nameType: [string, string]): string {
     const [name, type] = nameType;
