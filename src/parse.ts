@@ -1,8 +1,13 @@
 import Parser              from 'tree-sitter';
 import type { SyntaxNode } from 'tree-sitter';
 import JavaScript          from 'tree-sitter-javascript';
+const {typescript, tsx}  = require('tree-sitter-typescript');
 import * as utils          from './utils';
 const {log, start, end} = utils.getLog('pars');
+
+// const langObj = JavaScript;
+const langObj = typescript;
+// const langObj = tsx;
 
 export interface NodeData {
   funcId:       string;
@@ -32,10 +37,10 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     return nameNode.text + "\x00" + node.type + "\x00";
   }
 
-  function nodeToNodeData(
-              nameCapture: Parser.QueryCapture, 
-              funcCapture: Parser.QueryCapture,
-              bodyCapture: Parser.QueryCapture | undefined): NodeData | null {
+  function nodeToNodeData(nameCapture: Parser.QueryCapture, 
+                          funcCapture: Parser.QueryCapture,
+                          bodyCapture: Parser.QueryCapture | undefined)
+                                      :NodeData | null {
     const startName = nameCapture.node.startIndex;
     const endName   = nameCapture.node.endIndex;
     const name      = code.slice(startName, endName);
@@ -49,7 +54,7 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
       parents = parents.slice(1);
     }
     for(let parent of parents) {
-      funcId  += idNodeName(parent);
+      funcId += idNodeName(parent);
       const nameNode = parent.childForFieldName('name');
       const name     = nameNode?.text;
       if (name) funcParents.push([name, parent.type]);
@@ -70,26 +75,26 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   }
   start('parseCode');
   const parser = new Parser();
-  parser.setLanguage(JavaScript as any);
+  parser.setLanguage(langObj as any);
   const tree = parser.parse(code);
   const nodes: NodeData[] = [];
   try {
     const Query = Parser!.Query!;
-    const query = new Query(JavaScript as any, `
+    const query = new Query(langObj as any, `
         [
           ((function_declaration
             name: (identifier) @funcDecName)   @funcDec)
           ((function_expression
             name: (identifier) @funcExprName)  @funcExpr)
           ((variable_declarator
-            name: (identifier)      @arrowFuncName
-            value: (arrow_function) @arrowFunc) @arrowFuncBody)
+            name: (identifier)      @funcArrowName
+            value: (arrow_function) @funcArrow) @funcArrowBody)
         ]
     `);
     const matches = query.matches(tree.rootNode);
     for (const match of matches) {
       const funcCapture  = match.captures.find(c => 
-        ['funcDec', 'funcExpr', 'arrowFunc']
+        ['funcDec', 'funcExpr', 'funcArrow']
          .includes(c.name));
       if(!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
@@ -107,7 +112,7 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
           log(`function expression: ${nameCapture?.node.text} at ` +
                       `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
           break;
-        case 'arrowFunc':
+        case 'funcArrow':
           log(`arrow function: ${nameCapture?.node.text} at ` +
                       `${nameCapture?.node.startPosition.row}:${nameCapture?.node.endPosition.row}`);
           break;
