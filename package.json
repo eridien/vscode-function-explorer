@@ -240,10 +240,10 @@
         },
         "function-explorer.showFileOnFileOpen": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "order": 2,
-          "title": "Show File On File Open",
-          "description": "When expanding a file in the explorer, show the file in an editor."
+          "title": "Open File When Expanded",
+          "description": "When expanding a file item in the explorer, open that file in an editor. Files can also be opened by selecting 'Open File' in the file menu."
         },
         "function-explorer.fileWrap": {
           "type": "boolean",

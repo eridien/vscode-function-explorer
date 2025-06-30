@@ -6,27 +6,34 @@ import * as utils            from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 // const langObj = JavaScript;
-// const langObj = typescript;
-const langObj = tsx;
+const langObj = typescript;
+// const langObj = tsx;
+
+const PARSE_DEBUG_TYPE: string = '';
+const PARSE_DEBUG_NAME: string = '';
+// const PARSE_DEBUG_TYPE: string = 'class_declaration';
+// const PARSE_DEBUG_NAME: string = 'Item';
 
 const sExpr = `
   [
     ((function_declaration
-      name: (identifier) @funcDecName) @funcDec)
+        name: (identifier) @funcDecName) @funcDec)
     ((function_expression
-      (identifier) @funcExprName) @funcExpr)
+        (identifier) @funcExprName) @funcExpr)
     ((variable_declarator
-      name: (identifier) @funcExprDeclName
-      value: (function_expression) @funcExprDecl) @funcExprDeclBody)
+        name: (identifier) @funcExprDeclName
+        value: (function_expression) @funcExprDecl) @funcExprDeclBody)
     ((method_definition
-      name: (property_identifier) @methodDefName) @methodDef)
+        name: (property_identifier) @methodDefName) @methodDef)
+    ((class_declaration
+        name: (type_identifier) @classDecName) @classDec)
     ((variable_declarator
-      name: (identifier) @arrowFuncDeclName
-      value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
+        name: (identifier) @arrowFuncDeclName
+        value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
   ]
 `;
-const funcDecs =  ['funcDec', 'funcExpr', 'funcExprDecl', 'arrowFuncDecl',  
-                   'methodDef'];
+const funcDecs =  ['funcDec', 'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
+                   'classDec', 'methodDef'];
 
 export interface NodeData {
   funcId:       string;
@@ -39,7 +46,7 @@ export interface NodeData {
   end:          number;
 }
 
-function debugParse(rootNode: SyntaxNode) {
+function parseDebug(rootNode: SyntaxNode) {
     function walkTree(node: SyntaxNode, visit: (node: SyntaxNode) => void) {
     visit(node);
     for (let i = 0; i < node.childCount; i++) {
@@ -57,7 +64,8 @@ function debugParse(rootNode: SyntaxNode) {
       start: node.startIndex,
       end: node.endIndex
     };
-    log('node', nodeData);
+    if(node.type === PARSE_DEBUG_TYPE) debugger;
+    if(nodeData && PARSE_DEBUG_NAME === name) debugger;
   });
 }
 
@@ -116,9 +124,7 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   const parser = new Parser();
   parser.setLanguage(langObj as any);
   const tree = parser.parse(code);
-
-  // debugParse(tree.rootNode);
-
+  if(PARSE_DEBUG_NAME !== '') parseDebug(tree.rootNode);
   const nodes: NodeData[] = [];
   try {
     const Query = Parser!.Query!;

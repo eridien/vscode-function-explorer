@@ -4,11 +4,13 @@ bugs ...
   multiple ws roots
   center-if-needed on big funcs over top
   next on toggle, line 45 in misc/webview-msg-ext.js
-  fix symbols
   pointer not updated on func click
   const x = function () not captured
+  fix symbols
+  no mark at getStartLine in disp.ts (FileItem getChildren works)
 
 todo ...
+  sel name when side open -> reveal item & set stayalive
   finish js s-expression
   incremental parsing
   darken hilite

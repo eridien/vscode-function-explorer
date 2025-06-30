@@ -24,7 +24,7 @@ export let settings:  FunctionMarksSettings = {
   fileWrap:           true,
   alphaSortFunctions: false,
   topMargin:          3,
-  showFileOnFileOpen: true
+  showFileOnFileOpen: false
 };
 
 export let filesGlobPattern: string;
@@ -38,7 +38,7 @@ export function loadSettings() {
                                    "Function Center At Center If Needed"),
     hideRootFolder:     config.get('hideRootFolder',     true),
     flattenFolders:     config.get('flattenFolders',     true),
-    showFileOnFileOpen: config.get('showFileOnFileOpen', true),
+    showFileOnFileOpen: config.get('showFileOnFileOpen', false),
     fileWrap:           config.get('fileWrap',           true),
     alphaSortFunctions: config.get('alphaSortFunctions', false),
     topMargin:          config.get('topMargin',              3),
