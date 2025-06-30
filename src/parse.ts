@@ -17,23 +17,23 @@ const PARSE_DEBUG_NAME: string = '';
 const sExpr = `
   [
     ((function_declaration
-        name: (identifier) @funcDecName) @funcDec)
+        name: (identifier) @funcDeclName) @funcDecl)
     ((function_expression
         (identifier) @funcExprName) @funcExpr)
     ((variable_declarator
         name: (identifier) @funcExprDeclName
         value: (function_expression) @funcExprDecl) @funcExprDeclBody)
-    ((method_definition
-        name: (property_identifier) @methodDefName) @methodDef)
-    ((class_declaration
-        name: (type_identifier) @classDecName) @classDec)
     ((variable_declarator
         name: (identifier) @arrowFuncDeclName
         value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
+    ((class_declaration
+        name: (type_identifier) @classDeclName) @classDecl)
+    ((method_definition
+        name: (property_identifier) @methodDefName) @methodDef)
   ]
 `;
-const funcDecs =  ['funcDec', 'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
-                   'classDec', 'methodDef'];
+const funcDecls =  ['funcDecl',  'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
+                    'classDecl', 'methodDef'];
 
 export interface NodeData {
   funcId:       string;
@@ -132,7 +132,7 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     const matches = query.matches(tree.rootNode);
     for (const match of matches) {
       const funcCapture = match.captures.find(
-                             capture => funcDecs.includes(capture.name));
+                             capture => funcDecls.includes(capture.name));
       if(!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
       if(!nameCapture || !nameCapture.node.isNamed) continue;

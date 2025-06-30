@@ -238,7 +238,7 @@
           "title": "Flatten Folders",
           "description": "Flatten folders in the function explorer. If disabled, all folders will be shown with their children which will increase the indentation and width of the explorer."
         },
-        "function-explorer.showFileOnFileOpen": {
+        "function-explorer.openFileWhenExpanded": {
           "type": "boolean",
           "default": false,
           "order": 2,
@@ -247,10 +247,10 @@
         },
         "function-explorer.fileWrap": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "order": 3,
           "title": "File Wrap",
-          "description": "Next and previous wrap around all files instead of just active file."
+          "description": "Next and previous navigation will wrap around all files instead of just the active file."
         },
         "function-explorer.scrollPosition": {
           "type": "string",

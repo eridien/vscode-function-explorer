@@ -355,26 +355,28 @@ export class FuncItem extends Item {
      utils.createSortKey(this.getFsPath(), this.getStartLine());};
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
-  isFunction() {
-    return ["function_declaration", "function_expression", "method_definition",
-            "arrow_function"].includes(this.type);
+  isFunction(type: string = this.type): boolean {
+    return ["function_declaration", "function_expression", 
+            "method_definition", "arrow_function"].includes(type);
   }
   getFuncItemStr(nameType: [string, string]): string {
     const [name, type] = nameType;
-    if(this.isFunction()) return ` ƒ ${name}`;
+    if(this.isFunction(type)) return ` ƒ ${name}`;
     let pfx: string;
     switch (type) {
-      case 'Property':            pfx = ':'; break;
-      case 'CallExpression':      pfx = '('; break;
-      case 'ClassDeclaration':
-      case 'ClassExpression':     pfx = '©'; break;
-      default:                    pfx = '='; break;
+      case 'Property':          pfx = ':'; break;
+      case 'CallExpression':    pfx = '('; break;
+      case 'class_declaration':
+      case 'class_expression':  pfx = '©'; break;
+      default:                  pfx = '='; break;
     }
     return ` ${pfx} ${name}`;
   }
   getLabel() {
     // log('getLabel', this.name, this.type, pointerItems.has(this));
     let label = this.name;
+    if(!this.isFunction())     
+      label = this.getFuncItemStr([label, this.type]);
     if(pointerItems.has(this)) label = '→ ' + label;
     return label.trim();
   }
@@ -382,7 +384,7 @@ export class FuncItem extends Item {
     let description = '';
     for(const funcParent of this.funcParents) 
       description += this.getFuncItemStr(funcParent);
-    if(DEBUG_FUNC_TYPE) description += ` (${this.type})`;
+    if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
     return description.slice(1).trim();
   }
   getIconPath() {
@@ -591,7 +593,7 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
     for(const fileItem of filesChanged) updateItemInTree(fileItem);
   }
   if(!item.expanded && expanded && item.contextValue === 'file' &&
-                                   settings.showFileOnFileOpen) {
+                                   settings.openFileWhenExpanded) {
     await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
   }
   item.expanded = expanded;

@@ -14,17 +14,17 @@ interface FunctionMarksSettings {
   fileWrap:           boolean;
   alphaSortFunctions: boolean;
   topMargin:          number;
-  showFileOnFileOpen: boolean;
+  openFileWhenExpanded: boolean;
 }
 
 export let settings:  FunctionMarksSettings = {
   hideRootFolder:     true,
   flattenFolders:     true,
   scrollPosition:     "Function Center At Center If Needed",
-  fileWrap:           true,
+  fileWrap:           false,
   alphaSortFunctions: false,
   topMargin:          3,
-  showFileOnFileOpen: false
+  openFileWhenExpanded: false
 };
 
 export let filesGlobPattern: string;
@@ -38,8 +38,8 @@ export function loadSettings() {
                                    "Function Center At Center If Needed"),
     hideRootFolder:     config.get('hideRootFolder',     true),
     flattenFolders:     config.get('flattenFolders',     true),
-    showFileOnFileOpen: config.get('showFileOnFileOpen', false),
-    fileWrap:           config.get('fileWrap',           true),
+    openFileWhenExpanded: config.get('openFileWhenExpanded', false),
+    fileWrap:           config.get('fileWrap',           false),
     alphaSortFunctions: config.get('alphaSortFunctions', false),
     topMargin:          config.get('topMargin',              3),
   };
