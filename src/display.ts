@@ -201,7 +201,7 @@ export class WsFolderItem extends WsAndFolderItem {
   }
   static async create(wsFolder: vscode.WorkspaceFolder, root = false): 
                                 Promise<WsFolderItem> {
-    await files.addPaths(wsFolder.uri.fsPath);
+    await files.loadPaths(wsFolder.uri.fsPath);
     return new WsFolderItem(wsFolder, root);
   }
 }
@@ -872,7 +872,7 @@ class Files {
   clear() {
     Files.includedfsPaths.clear();
   }
-  async addPaths(fsPath: string) {
+  async loadPaths(fsPath: string) {
     let pathCount = 0;
     async function findFuncFiles(fsPath: string) {
       let stat;
@@ -894,7 +894,7 @@ class Files {
       }
     }
     await findFuncFiles(fsPath);
-    log(`addPaths, found ${pathCount} funcFiles`);
+    // log(`loadPaths, found ${pathCount} funcFiles`);
   }
   hasIncludedFile(fsPath: string): boolean {
     for(const includedPath of Files.includedfsPaths) {

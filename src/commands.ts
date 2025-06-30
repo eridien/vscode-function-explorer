@@ -1,6 +1,6 @@
 import * as vscode      from 'vscode';
 import * as disp        from './display';
-import {FuncItem, Item, itms} from './display';
+import {FuncItem, Item, FileItem} from './display';
 import * as sett        from './settings';
 import {settings}       from './settings';
 import * as utils       from './utils';
@@ -133,6 +133,14 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   // }
   utils.startDelaying('selChg');
   await disp.updatePointers();
+}
+
+export async function openFile(item: Item) {
+  if (item === undefined) {
+    log('info', 'No file item was selected.');
+    return;
+  }
+  await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
 }
 
 export function fileChanged(uri: vscode.Uri) {

@@ -39,6 +39,29 @@ export interface NodeData {
   end:          number;
 }
 
+function debugParse(rootNode: SyntaxNode) {
+    function walkTree(node: SyntaxNode, visit: (node: SyntaxNode) => void) {
+    visit(node);
+    for (let i = 0; i < node.childCount; i++) {
+      const child = node.child(i);
+      if (child) walkTree(child, visit);
+    }
+  }
+  walkTree(rootNode, node => {
+    let name = 'anonymous';
+    const nameNode = node.childForFieldName('name');
+    if(nameNode) name = nameNode.text;
+    const nodeData = {
+      name,
+      type: node.type,
+      start: node.startIndex,
+      end: node.endIndex
+    };
+    log('node', nodeData);
+  });
+}
+
+
 export function parseCode(code: string, fsPath: string): NodeData[] {
 
   function getAllParents(node: SyntaxNode): SyntaxNode[] {
@@ -89,11 +112,13 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     return { name, funcParents, funcId, 
              start, startName, endName, end, type };
   }
-
-  start('parseCode');
+  start('parseCode', true);
   const parser = new Parser();
   parser.setLanguage(langObj as any);
   const tree = parser.parse(code);
+
+  // debugParse(tree.rootNode);
+
   const nodes: NodeData[] = [];
   try {
     const Query = Parser!.Query!;
@@ -114,7 +139,7 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     log('err', 'S-expression query failed', (e as any).message);
     return [];
   }
-  log(`Parsed ${nodes.length} nodes`);
+  // log(`Parsed ${nodes.length} nodes`);
   end('parseCode', false);
   return nodes;
 }

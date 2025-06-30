@@ -54,6 +54,15 @@
         "title": " Toggle Mark Filter"
       },
       {
+        "command": "vscode-function-explorer.openFile",
+        "title": " ▶ ",
+        "category": "Function Explorer: Open File"
+      },
+      {
+        "command": "vscode-function-explorer.openFileMenu",
+        "title": "Open File"
+      },
+      {
         "command": "vscode-function-explorer.toggleAlphaSort",
         "title": " A ",
         "category": "Function Explorer: Toggle Alpha Sort"
@@ -200,6 +209,15 @@
         },
         {
           "command": "vscode-function-explorer.removeMarksMenu",
+          "when": "view == sidebarView && viewItem == file"
+        },
+        {
+          "command": "vscode-function-explorer.openFile",
+          "when": "view == sidebarView && viewItem == file",
+          "group": "inline@5"
+        },
+        {
+          "command": "vscode-function-explorer.openFileMenu",
           "when": "view == sidebarView && viewItem == file"
         }
       ]
