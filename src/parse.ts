@@ -1,8 +1,8 @@
-import Parser              from 'tree-sitter';
-import type { SyntaxNode } from 'tree-sitter';
-import JavaScript          from 'tree-sitter-javascript';
-const {typescript, tsx}  = require('tree-sitter-typescript');
-import * as utils          from './utils';
+import Parser                from 'tree-sitter';
+import type { SyntaxNode }   from 'tree-sitter';
+import JavaScript            from 'tree-sitter-javascript';
+const {typescript, tsx} = require('tree-sitter-typescript');
+import * as utils            from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 // const langObj = JavaScript;
@@ -20,6 +20,7 @@ const sExpr = `
       value: (arrow_function) @funcArrow) @funcArrowBody)
   ]
 `;
+const funcDecs =  ['funcDec', 'funcExpr', 'funcArrow'];
 
 export interface NodeData {
   funcId:       string;
@@ -43,13 +44,14 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     }
     return parents;
   }
+
   function idNodeName(node: SyntaxNode): string {
     const  nameNode = node.childForFieldName('name');
     if(!nameNode) return '';
     return nameNode.text + "\x00" + node.type + "\x00";
   }
 
-  function nodeToNodeData(nameCapture: Parser.QueryCapture, 
+  function capsToNodeData(nameCapture: Parser.QueryCapture, 
                           funcCapture: Parser.QueryCapture,
                           bodyCapture: Parser.QueryCapture | undefined)
                                       :NodeData | null {
@@ -57,8 +59,8 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     const endName   = nameCapture.node.endIndex;
     const name      = code.slice(startName, endName);
     if (!name) return null;
-    let   funcNode = funcCapture.node;
-    let   parents  = getAllParents(funcNode);
+    let funcNode = funcCapture.node;
+    let parents  = getAllParents(funcNode);
     const funcParents: [string, string][] = [];
     let funcId = idNodeName(funcNode);
     if(bodyCapture) {
@@ -88,14 +90,13 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     const query = new Query(langObj as any, sExpr);
     const matches = query.matches(tree.rootNode);
     for (const match of matches) {
-      const funcCapture  = match.captures.find(c => 
-        ['funcDec', 'funcExpr', 'funcArrow']
-         .includes(c.name));
+      const funcCapture = match.captures.find(
+                             capture => funcDecs.includes(capture.name));
       if(!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
       if(!nameCapture || !nameCapture.node.isNamed) continue;
       const bodyCapture = match.captures.find(c => c.name.endsWith('Body'));
-      const nodeData = nodeToNodeData(nameCapture, funcCapture, bodyCapture);
+      const nodeData = capsToNodeData(nameCapture, funcCapture, bodyCapture);
       if(!nodeData) continue;
       nodes.push(nodeData);
     }

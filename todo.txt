@@ -3,11 +3,13 @@ bugs ...
   getlabel not in alpha sort   disp.ts
   multiple ws roots
   center-if-needed on big funcs over top
-  next on toggle, ln 45 in misc/webview-msg-ext.js
+  next on toggle, line 45 in misc/webview-msg-ext.js
   symbols
   pointer not updated on func click
+  function_expression broken -- see line 9 in sample.tsx
 
 todo ...
+  incremental parsing
   darken hilite
   chg name click to gesture
   if name not visible when adding mark then scroll
