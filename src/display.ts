@@ -11,6 +11,9 @@ const {log, start, end} = utils.getLog('disp');
 const CLEAR_MARKS_ON_STARTUP = false; 
 // const CLEAR_MARKS_ON_STARTUP = true; 
 
+// const DEBUG_FUNC_TYPE = false;
+const DEBUG_FUNC_TYPE = true;
+
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
@@ -379,7 +382,7 @@ export class FuncItem extends Item {
     let description = '';
     for(const funcParent of this.funcParents) 
       description += this.getFuncItemStr(funcParent);
-    // description += ` (${this.type})`;
+    if(DEBUG_FUNC_TYPE) description += ` (${this.type})`;
     return description.slice(1).trim();
   }
   getIconPath() {

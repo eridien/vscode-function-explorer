@@ -4,11 +4,12 @@ bugs ...
   multiple ws roots
   center-if-needed on big funcs over top
   next on toggle, line 45 in misc/webview-msg-ext.js
-  symbols
+  fix symbols
   pointer not updated on func click
-  function_expression broken -- see line 9 in sample.tsx
+  const x = function () not captured
 
 todo ...
+  finish js s-expression
   incremental parsing
   darken hilite
   chg name click to gesture

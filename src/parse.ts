@@ -12,15 +12,21 @@ const langObj = tsx;
 const sExpr = `
   [
     ((function_declaration
-      name: (identifier) @funcDecName)   @funcDec)
+      name: (identifier) @funcDecName) @funcDec)
     ((function_expression
-      name: (identifier) @funcExprName)  @funcExpr)
+      (identifier) @funcExprName) @funcExpr)
     ((variable_declarator
-      name: (identifier)      @funcArrowName
-      value: (arrow_function) @funcArrow) @funcArrowBody)
+      name: (identifier) @funcExprDeclName
+      value: (function_expression) @funcExprDecl) @funcExprDeclBody)
+    ((method_definition
+      name: (property_identifier) @methodDefName) @methodDef)
+    ((variable_declarator
+      name: (identifier) @arrowFuncDeclName
+      value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
   ]
 `;
-const funcDecs =  ['funcDec', 'funcExpr', 'funcArrow'];
+const funcDecs =  ['funcDec', 'funcExpr', 'funcExprDecl', 'arrowFuncDecl',  
+                   'methodDef'];
 
 export interface NodeData {
   funcId:       string;
@@ -55,16 +61,22 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
                           funcCapture: Parser.QueryCapture,
                           bodyCapture: Parser.QueryCapture | undefined)
                                       :NodeData | null {
-    const startName = nameCapture.node.startIndex;
-    const endName   = nameCapture.node.endIndex;
+    const nameNode  = nameCapture.node;
+    const startName = nameNode.startIndex;
+    const endName   = nameNode.endIndex;
     const name      = code.slice(startName, endName);
     if (!name) return null;
     let funcNode = funcCapture.node;
+    let start    = funcNode.startIndex;
+    let end      = funcNode.endIndex;
+    let type     = funcNode.type;
     let parents  = getAllParents(funcNode);
     const funcParents: [string, string][] = [];
     let funcId = idNodeName(funcNode);
+    if( funcId === '') funcId = name + "\x00" + type + "\x00";
     if(bodyCapture) {
-      funcNode = bodyCapture.node;
+      start = bodyCapture.node.startIndex;
+      end   = bodyCapture.node.endIndex;
       parents = parents.slice(1);
     }
     for(let parent of parents) {
@@ -74,10 +86,8 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
       if (name) funcParents.push([name, parent.type]);
     }
     funcId += fsPath;
-    return { name, funcParents, funcId, startName, endName,
-             type:  funcNode.type,
-             start: funcNode.startIndex,
-             end:   funcNode.endIndex };
+    return { name, funcParents, funcId, 
+             start, startName, endName, end, type };
   }
 
   start('parseCode');
