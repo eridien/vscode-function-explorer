@@ -11,7 +11,7 @@ const langObj = typescript;
 
 const PARSE_DEBUG_TYPE: string = '';
 const PARSE_DEBUG_NAME: string = '';
-// const PARSE_DEBUG_TYPE: string = 'class_declaration';
+// const PARSE_DEBUG_TYPE: string = 'assignment_expression';
 // const PARSE_DEBUG_NAME: string = 'Item';
 
 const sExpr = `
@@ -30,10 +30,14 @@ const sExpr = `
         name: (type_identifier) @classDeclName) @classDecl)
     ((method_definition
         name: (property_identifier) @methodDefName) @methodDef)
+    ((variable_declarator
+        name: (identifier) @varDeclName) @varDecl)
+    ((assignment_expression
+        left: (identifier) @assExprName) @assExpr)
   ]
 `;
 const funcDecls =  ['funcDecl',  'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
-                    'classDecl', 'methodDef'];
+                    'classDecl', 'methodDef', 'varDecl','assExpr'];
 
 export interface NodeData {
   funcId:       string;
@@ -124,7 +128,9 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   const parser = new Parser();
   parser.setLanguage(langObj as any);
   const tree = parser.parse(code);
-  if(PARSE_DEBUG_NAME !== '') parseDebug(tree.rootNode);
+  if(PARSE_DEBUG_NAME !== '' || 
+     PARSE_DEBUG_TYPE !== '')   
+    parseDebug(tree.rootNode);
   const nodes: NodeData[] = [];
   try {
     const Query = Parser!.Query!;
