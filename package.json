@@ -224,12 +224,12 @@
     },
     "configuration": {
       "properties": {
-        "function-explorer.hideRootFolder": {
+        "function-explorer.hideRootFolders": {
           "type": "boolean",
           "default": true,
           "order": 0,
-          "title": "Hide Root Folder",
-          "description": "If there is only one root folder in the workspace, hide it from the tree. Useful to reduce indentation and save space."
+          "title": "Hide Root Folders",
+          "description": "Hide root folders from the tree. Useful to reduce indentation and save space."
         },
         "function-explorer.flattenFolders": {
           "type": "boolean",

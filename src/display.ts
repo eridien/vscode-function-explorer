@@ -425,16 +425,18 @@ export async function getTree() {
     log('err', 'getTree, No folders in workspace');
     return [];
   }
-  if (wsFolders.length > 1 || !settings.hideRootFolder) {
+  if (!settings.hideRootFolders) {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) 
       tree.push(await WsFolderItem.create(wsFolder, true));
     return tree;
   }
-  const wsFolderItem    = await WsFolderItem.create(wsFolders[0], true);
   const folders: Item[] = [];
   const files:   Item[] = [];
-  await getFolderChildren(wsFolderItem, folders, files, true);
+  for(const wsFolder of wsFolders){
+    const wsFolderItem = await WsFolderItem.create(wsFolder, true);
+    await getFolderChildren(wsFolderItem, folders, files, true);
+  }
   return [...folders, ...files];
 }
 
