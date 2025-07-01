@@ -38,6 +38,16 @@ const sExpr = `
 `;
 const funcDecls =  ['funcDecl',  'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
                     'classDecl', 'methodDef', 'varDecl','assExpr'];
+                    
+const priorityByType: Record<string, number> = {
+  'function_declaration':  1,
+  'arrow_function':        2,
+  'function_expression':   3,
+  'method_definition':     4,
+  'assignment_expression': 5,
+  'variable_declarator':   6,
+  'class_declaration':     7,
+};
 
 export interface NodeData {
   funcId:       string;
@@ -152,23 +162,28 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     return [];
   }
   nodes.sort((a, b) => a.start - b.start);
-  let lastNode: NodeData | null = null;
-  const oldNodes = nodes.slice();
-  for (const node of nodes) {
-    if (lastNode) {
-      // Check for overlap
-      if (node.start < lastNode.end) {
-        log('warn', 'Overlapping nodes detected', {
-          current: node,
-          last: lastNode
-        });
+  const result: NodeData[] = [];
+  let i = 0;
+  while (i < nodes.length) {
+    const node = nodes[i];
+    let j = i + 1;
+    while(
+      j < nodes.length &&
+      nodes[j].start === node.start &&
+      nodes[j].end   === node.end
+    ) j++;
+    if (j > i + 1) {
+      let best = node;
+      for (let k = i + 1; k < j; k++) {
+        if(priorityByType[nodes[k].type] < priorityByType[best.type])
+          best = nodes[k];
       }
-    }
-    lastNode = node;
+      result.push(best);
+    } 
+    else result.push(node);
+    i = j;
   }
-
-
   // log(`Parsed ${nodes.length} nodes`);
   end('parseCode', false);
-  return nodes;
+  return result;
 }
