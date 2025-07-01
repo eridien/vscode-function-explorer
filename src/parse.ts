@@ -30,25 +30,26 @@ const sExpr = `
         name: (type_identifier) @classDeclName) @classDecl)
     ((method_definition
         name: (property_identifier) @methodDefName) @methodDef)
-    ((call_expression
-        (member_expression) @callExprName) @callExpr)
-    ((variable_declarator
-        name: (identifier) @varDeclName) @varDecl)
+    ((pair
+        key: (property_identifier) @propertyName) @property)
     ((assignment_expression
         left: (identifier) @assExprName) @assExpr)
+    ((variable_declarator
+        name: (identifier) @varDeclName) @varDecl)
   ]
 `;
 const funcDecls =  ['funcDecl',  'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
-                    'classDecl', 'methodDef', 'callExpr', 'varDecl','assExpr'];
+                    'classDecl', 'methodDef', 'property','assExpr', 'varDecl'];
                     
 const priorityByType: Record<string, number> = {
   'function_declaration':  1,
   'arrow_function':        2,
   'function_expression':   3,
   'method_definition':     4,
-  'assignment_expression': 5,
-  'variable_declarator':   6,
-  'class_declaration':     7,
+  'property':              5,
+  'assignment_expression': 6,
+  'variable_declarator':   7,
+  'class_declaration':     8,
 };
 
 export interface NodeData {

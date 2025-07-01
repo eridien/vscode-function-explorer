@@ -6,12 +6,11 @@ bugs ...
   next on toggle, line 45 in misc/webview-msg-ext.js
   pointer not updated on func click
   const x = function () not captured
-  fix symbols
   no mark at getStartLine in disp.ts (FileItem getChildren works)
 
 todo ...
+  handle multiple marks in line
   sel name when side open -> reveal item & set stayalive
-  finish js s-expression
   incremental parsing
   darken hilite
   chg name click to gesture
