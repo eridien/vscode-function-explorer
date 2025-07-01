@@ -151,6 +151,23 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     log('err', 'S-expression query failed', (e as any).message);
     return [];
   }
+  nodes.sort((a, b) => a.start - b.start);
+  let lastNode: NodeData | null = null;
+  const oldNodes = nodes.slice();
+  for (const node of nodes) {
+    if (lastNode) {
+      // Check for overlap
+      if (node.start < lastNode.end) {
+        log('warn', 'Overlapping nodes detected', {
+          current: node,
+          last: lastNode
+        });
+      }
+    }
+    lastNode = node;
+  }
+
+
   // log(`Parsed ${nodes.length} nodes`);
   end('parseCode', false);
   return nodes;

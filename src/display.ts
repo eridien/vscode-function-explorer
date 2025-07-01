@@ -458,7 +458,6 @@ function updateFileChildrenFromAst(fileItem: FileItem):
   if (!docText || docText.length === 0) return empty();
   const nodeData = parse.parseCode(docText, fsPath);
   if(nodeData.length === 0) return empty();
-  nodeData.sort((a, b) => a.start - b.start);
   let matchCount              = 0;
   let structChg               = false;
   const children              = fileItem.children as FuncItem[] | undefined;
