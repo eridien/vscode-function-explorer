@@ -1,8 +1,6 @@
 bugs ...
   many settings don't immediately change sidebar
   bounce on some func clicks
-  pointer not updated on func click
-  pointers broken in alpha sort
   file changes ignored
 
 todo ...
