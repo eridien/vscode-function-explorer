@@ -1,13 +1,13 @@
 bugs ...
   many settings don't immediately change sidebar
   bounce on some func clicks
-  next on toggle, line 45 in misc/webview-msg-ext.js
   pointer not updated on func click
-  no mark at getStartLine in disp.ts (FileItem getChildren works)
   pointers broken in alpha sort
-  next stuck at getById in disp.ts
+  file changes ignored
 
 todo ...
+  add call to capture
+  handle fs changes
   handle multiple marks in line
   sel name when side open -> reveal item & set stayalive
   incremental parsing
@@ -16,7 +16,6 @@ todo ...
   if name not visible when adding mark then scroll
   toggle closer
   finish sidebar refresh command/menu
-  handle fs changes
 
 options ...
   open in preview mode

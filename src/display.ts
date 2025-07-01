@@ -81,8 +81,8 @@ class Items {
     return funcSet;
   }
 }
-
 export const itms = new Items();
+
 let nextItemId = 0;
 function getItemId() { return '' + nextItemId++; }
 

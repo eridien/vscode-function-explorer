@@ -12,21 +12,44 @@ const NEXT_DEBUG = false;
 export async function activate() {
   await editorOrTextChg();
 }
+
+// export async function toggleCmd() {
+//   log('toggleCmd');
+//   let funcItem = await disp.getFuncInAroundSelection();
+//   if(!funcItem) {
+//     await prevNext(true, true);
+//     return;
+//   }
+//   await disp.setMark(funcItem, true);
+// }
+
 export async function toggleCmd() {
   log('toggleCmd');
-  let funcItem = await disp.getFuncInAroundSelection();
-  if(!funcItem) {
+  let aroundFuncItem = await disp.getFuncInAroundSelection();
+  if(!aroundFuncItem) {
     await prevNext(true, true);
     return;
   }
-  await disp.setMark(funcItem, true);
+  const activeEditor = vscode.window.activeTextEditor;
+  if (!activeEditor) return;
+  const selFsPath = activeEditor.document.uri.fsPath;
+  const funcItems = await disp.getSortedFuncs(selFsPath, false, false);
+  if(funcItems.length == 0) return;
+  const selLine = activeEditor.selection.active.line;
+  const nextFuncItem = funcItems.find(item => item.getStartLine() > selLine);
+  let funcItemToMark = (nextFuncItem as FuncItem);
+  if(!nextFuncItem || 
+      nextFuncItem.getStartLine() > aroundFuncItem.getEndLine())
+    funcItemToMark = aroundFuncItem;
+  await disp.revealFuncInEditor(funcItemToMark);
+  await disp.setMark(funcItemToMark, true);
 }
 
 export async function toggleItemMarkCmd(funcItem: FuncItem) {
   await disp.setMark(funcItem, true);
 }
 
-async function prevNext(next: boolean, setMark = false) {
+async function prevNext(next: boolean, fromToggle = false) {
   let activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
                      !sett.includeFile(activeEditor.document.uri.fsPath)) {
@@ -40,8 +63,8 @@ async function prevNext(next: boolean, setMark = false) {
       activeEditor.document.uri.scheme === 'file' &&
       sett.includeFile(activeEditor.document.uri.fsPath)) {
     const fsPath   = activeEditor.document.uri.fsPath;
-    const fileWrap = settings.fileWrap && !setMark;
-    const filtered = !setMark && !NEXT_DEBUG;
+    const fileWrap = settings.fileWrap && !fromToggle;
+    const filtered = !fromToggle && !NEXT_DEBUG;
     const funcs = await disp.getSortedFuncs(fsPath, fileWrap, filtered);
     if(funcs.length == 0) return;
     const selFsPath = (fileWrap ? fsPath : '');
@@ -55,13 +78,16 @@ async function prevNext(next: boolean, setMark = false) {
       const funcFsPath = (fileWrap ? func.getFsPath() : '');
       if(next ? (funcFsPath < selFsPath) 
               : (funcFsPath > selFsPath)) continue;
-      if(funcFsPath !== selFsPath) break;
+      if(funcFsPath !== selFsPath) {
+        if(fromToggle) return;
+        break;
+      }
       const funcKey = utils.createSortKey(
                                funcFsPath, func.getStartLine());
       if(next) {
         if(selKey < funcKey) break;
-        else if(i == funcs.length-1) {
-          if(setMark) return;
+        else if(i == funcs.length-1) {  
+          if(fromToggle) return;
           func = funcs[0];
           break;
         }
@@ -69,15 +95,23 @@ async function prevNext(next: boolean, setMark = false) {
       else {
         if(selKey > funcKey) break;
         else if(i == 0) {
-          if(setMark) return;
+          if(fromToggle) return;
           func = funcs[funcs.length-1];
           break;
         }
       }
     }
     if(!func) return;
+    if(fromToggle) {
+      if(activeEditor.visibleRanges.length > 0) {
+        const lastRange = activeEditor
+                .visibleRanges[activeEditor.visibleRanges.length - 1];
+        const lastVisibleLine = lastRange.end.line;
+        if(func.getStartLine() >= lastVisibleLine) return;
+      }
+    }
     await disp.revealFuncInEditor(func);
-    if(setMark) await disp.setMark(func, true);
+    if(fromToggle) await disp.setMark(func, true);
   }
 }
 
