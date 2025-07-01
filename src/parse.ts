@@ -11,7 +11,7 @@ const langObj = typescript;
 
 const PARSE_DEBUG_TYPE: string = '';
 const PARSE_DEBUG_NAME: string = '';
-// const PARSE_DEBUG_TYPE: string = 'assignment_expression';
+// const PARSE_DEBUG_TYPE: string = 'call_expression';
 // const PARSE_DEBUG_NAME: string = 'Item';
 
 const sExpr = `
@@ -30,6 +30,8 @@ const sExpr = `
         name: (type_identifier) @classDeclName) @classDecl)
     ((method_definition
         name: (property_identifier) @methodDefName) @methodDef)
+    ((call_expression
+        (member_expression) @callExprName) @callExpr)
     ((variable_declarator
         name: (identifier) @varDeclName) @varDecl)
     ((assignment_expression
@@ -37,7 +39,7 @@ const sExpr = `
   ]
 `;
 const funcDecls =  ['funcDecl',  'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
-                    'classDecl', 'methodDef', 'varDecl','assExpr'];
+                    'classDecl', 'methodDef', 'callExpr', 'varDecl','assExpr'];
                     
 const priorityByType: Record<string, number> = {
   'function_declaration':  1,
