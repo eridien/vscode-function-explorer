@@ -2,6 +2,8 @@ bugs ...
   many settings don't immediately change sidebar
   bounce on some func clicks
   file changes ignored
+  red broken
+  toggling if(distFromSelToAround <= distFromSelToNext) makes many marks
 
 todo ...
   add call to capture
@@ -11,8 +13,6 @@ todo ...
   incremental parsing
   darken hilite
   chg name click toggle to gesture
-  if name not visible when adding mark then scroll
-  toggle closer
   finish sidebar refresh command/menu
 
 options ...

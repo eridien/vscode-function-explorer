@@ -38,9 +38,16 @@ export async function toggleCmd() {
   const selLine = activeEditor.selection.active.line;
   const nextFuncItem = funcItems.find(item => item.getStartLine() > selLine);
   let funcItemToMark = (nextFuncItem as FuncItem);
-  if(!nextFuncItem || 
-      nextFuncItem.getStartLine() > aroundFuncItem.getEndLine())
+  if(!nextFuncItem) 
     funcItemToMark = aroundFuncItem;
+  else if(nextFuncItem.getStartLine() > aroundFuncItem.getEndLine())
+    funcItemToMark = aroundFuncItem;
+  else {
+    const distFromSelToAround = selLine - aroundFuncItem.getStartLine();
+    const distFromSelToNext   = nextFuncItem.getStartLine() - selLine;
+    if(distFromSelToAround <= distFromSelToNext)
+      funcItemToMark = aroundFuncItem;
+  }
   await disp.revealFuncInEditor(funcItemToMark);
   await disp.setMark(funcItemToMark, true);
 }
