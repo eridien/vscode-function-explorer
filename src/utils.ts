@@ -88,10 +88,10 @@ export function getLog(module: string) : {
   };
 
   const log = function (...args: any[]): void {
-    let errFlag = false;
+    let errFlag    = false;
     let errMsgFlag = false;
-    let infoFlag = false;
-    let nomodFlag = false;
+    let infoFlag   = false;
+    let nomodFlag  = false;
 
     if (typeof args[0] === 'string') {
       errFlag = args[0].includes('err');
@@ -104,8 +104,8 @@ export function getLog(module: string) : {
 
     let errMsg: string | undefined;
     if (errMsgFlag) {
-      errMsg = args[0]?.message + ' -> ';
-      args = args.slice(1);
+      errMsg  = args[0]?.message + ' -> ';
+      args    = args.slice(1);
       errFlag = true;
     }
 
@@ -124,8 +124,7 @@ export function getLog(module: string) : {
                  (errMsg !== undefined ? errMsg : '') +
                  par.join(' ');
 
-    const infoLine = par.join(' ')
-                        .replace('parse: ','');
+    const infoLine = par.join(' ').replace('parse: ','');
 
     outputChannel.appendLine(line);
     if (errFlag) console.error(line);

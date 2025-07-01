@@ -140,7 +140,13 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   start('parseCode', true);
   const parser = new Parser();
   parser.setLanguage(langObj as any);
-  const tree = parser.parse(code);
+  let tree: Parser.Tree;
+  try {
+    tree = parser.parse(code);
+  } catch (e) {
+    log('infoerrmsg', e, 'Function Explorer: Parse failed. Usually parsing works even with bad syntax.');
+    return [];
+  }
   if(PARSE_DEBUG_NAME !== '' || 
      PARSE_DEBUG_TYPE !== '')   
     parseDebug(tree.rootNode);

@@ -156,8 +156,10 @@ async function getFolderChildren(parent: WsAndFolderItem,
   if(root && settings.flattenFolders) {
     files.sortedFsPaths().forEach(fsPath => {
       const folderItem = getOrMakeFolderItemByFsPath(fsPath);
-      if(!folderItem || parent === folderItem ||
-          folderItem.contextValue === 'wsFolder') return;
+      if(!folderItem || parent === folderItem    ||
+          folderItem.contextValue === 'wsFolder' ||
+         (root && !folderItem.fsPath.startsWith(parent.fsPath))) 
+        return;
       folderItem.parent = parent;
       foldersIn.push(folderItem);
     });
