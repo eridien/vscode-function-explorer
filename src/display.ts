@@ -11,8 +11,8 @@ const {log, start, end} = utils.getLog('disp');
 const CLEAR_MARKS_ON_STARTUP = false; 
 // const CLEAR_MARKS_ON_STARTUP = true; 
 
-// const DEBUG_FUNC_TYPE = false;
-const DEBUG_FUNC_TYPE = true;
+const DEBUG_FUNC_TYPE = false;
+// const DEBUG_FUNC_TYPE = true;
 
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
@@ -132,13 +132,9 @@ export class WsAndFolderItem extends Item {
     this.root     = root;
     itms.setFolderItem(this);
   }
-  /**
-   * Returns the path of this item relative to the root workspace folder.
-   */
   getRelativePath(): string {
     const wsFolders = vscode.workspace.workspaceFolders;
     if (!wsFolders || wsFolders.length === 0) return this.fsPath;
-    // Find the containing workspace folder
     const wsFolder = wsFolders.find(f => this.fsPath.startsWith(f.uri.fsPath));
     if (!wsFolder) return this.fsPath;
     let rel = this.fsPath.substring(wsFolder.uri.fsPath.length);
@@ -160,7 +156,8 @@ async function getFolderChildren(parent: WsAndFolderItem,
   if(root && settings.flattenFolders) {
     files.sortedFsPaths().forEach(fsPath => {
       const folderItem = getOrMakeFolderItemByFsPath(fsPath);
-      if(!folderItem || parent === folderItem) return;
+      if(!folderItem || parent === folderItem ||
+          folderItem.contextValue === 'wsFolder') return;
       folderItem.parent = parent;
       foldersIn.push(folderItem);
     });
@@ -173,9 +170,11 @@ async function getFolderChildren(parent: WsAndFolderItem,
     const isDir = entry.isDirectory();
     if(!sett.includeFile(fsPath, isDir)) continue;
     if(isDir) {
+      if(!files.hasIncludedFile(fsPath)) continue;
       if(settings.flattenFolders) continue;
       const folderItem = getOrMakeFolderItemByFsPath(fsPath);
-      if(!folderItem) continue;
+      if(!folderItem ||
+          folderItem.contextValue === 'wsFolder') continue;
       folderItem.parent = parent;
       foldersIn.push(folderItem);
       continue;
@@ -518,13 +517,17 @@ export class SidebarProvider {
       refreshTimeout = setTimeout(() => {this.refresh(item, true);}, 10);
       return;
     }
-    for(const queueItem of refreshQueue) 
+    for(const queueItem of refreshQueue) {
+      log('refresh1', item?.label, item?.id);
       this._onDidChangeTreeData.fire(queueItem);
+    }
     refreshQueue.length = 0;
+    log('refresh2', item?.label, item?.id);
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(itemIn: Item): Item {
+    log('getTreeItem', itemIn.label, itemIn.id);
     ignoreItemRefreshCalls = false;
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
@@ -543,12 +546,13 @@ export class SidebarProvider {
   }
 
   getParent(item: Item): Item | null {
-    // log(++count, 'getParent', item?.label || 'undefined');
+    log('getParent', item.label, item.id);
     if(item?.parent) return item.parent;
     return null;
   }
 
   async getChildren(item: Item): Promise<Item[]> {
+    log('getChildren', item?.label, item?.id);
     delayItemRefreshCalls = true;
     if(!item) {
       const tree = await getTree();

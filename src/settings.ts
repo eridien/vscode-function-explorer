@@ -55,10 +55,14 @@ export function loadSettings() {
 }
 
 export function includeFile(fsPath: string, folder?:boolean): boolean {
-  const filePath = vscode.workspace.asRelativePath(fsPath);
+  for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
+    if(fsPath === wsFolder.uri.fsPath) return true;
+  }
+  let filePath = vscode.workspace.asRelativePath(fsPath, true);
+  filePath = filePath.replace(/\\/g, '/').split('/').slice(1).join('/');
   const relPath = folder ? filePath + '/' : filePath;
-  if(minimatch(relPath, excludeCfg)) return false;
-  return folder || minimatch(relPath, includeCfg);
+  if(minimatch(relPath, excludeCfg, { dot: true })) return false;
+  return folder || minimatch(relPath, includeCfg, { dot: true });
 }
 
 /*
@@ -126,31 +130,35 @@ export async function setScroll(editor: vscode.TextEditor,
   const screenHeight  = await measureViewportCapacity(editor);
   const screenBottom  = screenTop + screenHeight;
   let top = 0;
-  switch(settings.scrollPosition) {
-    case "Function Top At Top": 
-            top = functionTopMargin; 
-            break;
-    case "Function Center At Center": 
-            top = funcTop -
-                    (Math.floor( screenHeight / 2) - 
-                     Math.floor( funcHeight   / 2)); 
-            break;
-    case "Function Bottom At Bottom":
-            top = funcBottom - screenHeight; 
-            break;
-    case "Function Top At Top If Needed":
-            if(functionTopMargin < screenTop || funcBottom > screenBottom)
+  if(funcHeight >= screenHeight)
+    top = functionTopMargin; 
+  else {
+    switch(settings.scrollPosition) {
+      case "Function Top At Top": 
               top = functionTopMargin; 
-            else top = screenTop;
-            break;
-    case "Function Center At Center If Needed":
-            if(functionTopMargin < screenTop || funcBottom > screenBottom)
+              break;
+      case "Function Center At Center": 
               top = funcTop -
                       (Math.floor( screenHeight / 2) - 
-                       Math.floor( funcHeight   / 2));
-            else top = screenTop;
-            break;
-    default: top = functionTopMargin; 
+                      Math.floor( funcHeight   / 2)); 
+              break;
+      case "Function Bottom At Bottom":
+              top = funcBottom - screenHeight; 
+              break;
+      case "Function Top At Top If Needed":
+              if(functionTopMargin < screenTop || funcBottom > screenBottom)
+                top = functionTopMargin; 
+              else top = screenTop;
+              break;
+      case "Function Center At Center If Needed":
+              if(functionTopMargin < screenTop || funcBottom > screenBottom)
+                top = funcTop -
+                        (Math.floor( screenHeight / 2) - 
+                        Math.floor( funcHeight   / 2));
+              else top = screenTop;
+              break;
+      default: top = functionTopMargin; 
+    }
   }
   if(top < 0) top = 0;
   editor.revealRange(new vscode.Range(top, 0, top, 0), 

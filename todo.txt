@@ -1,25 +1,22 @@
 bugs ...
+  many settings don't immediately change sidebar
   bounce on some func clicks
-  getlabel not in alpha sort   disp.ts
-  multiple ws roots
-  center-if-needed on big funcs over top
   next on toggle, line 45 in misc/webview-msg-ext.js
   pointer not updated on func click
-  const x = function () not captured
   no mark at getStartLine in disp.ts (FileItem getChildren works)
+  pointers broken in alpha sort
+  next stuck at getById in disp.ts
 
 todo ...
   handle multiple marks in line
   sel name when side open -> reveal item & set stayalive
   incremental parsing
   darken hilite
-  chg name click to gesture
+  chg name click toggle to gesture
   if name not visible when adding mark then scroll
   toggle closer
-  handle sel overlapping name line only
-  sidebar refresh command/menu
+  finish sidebar refresh command/menu
   handle fs changes
-  many settings don't immediately change sidebar
 
 options ...
   open in preview mode
