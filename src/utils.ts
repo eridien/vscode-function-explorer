@@ -30,8 +30,8 @@ export function flashRange(editor: vscode.TextEditor,
                            startPos: vscode.Position, 
                            endPos: vscode.Position, red = false) {
   const decorationType = vscode.window.createTextEditorDecorationType({
-    backgroundColor: red ? 'rgba(255,   0, 0, 0.05)' 
-                         : 'rgba(255, 255, 0, 0.10)',
+    backgroundColor: red ? 'rgba(255,   0, 0, 0.15)' 
+                         : 'rgba(255, 255, 0, 0.30)',
     borderRadius: '2px'
   });
   editor.setDecorations(decorationType, [new vscode.Range(startPos, endPos)]);

@@ -718,7 +718,8 @@ function saveMarks() {
   }, 1000);
 }
 
-export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean = false) {
+export async function setMark(funcItem: FuncItem, 
+          toggle = false, mark:boolean = false): Promise<boolean | undefined> {
   log('setMark', funcItem.name, toggle, mark);
   const fsPath = funcItem.getFsPath();
   if(!fsPath) return;
@@ -736,6 +737,7 @@ export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean =
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
   updateGutter(activeEditor, funcItem.parent);
+  return marked;
 }
 
 let pointerItems = new Set<FuncItem>();
@@ -852,7 +854,7 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
 export async function scrollAndFlash(editor: vscode.TextEditor, 
           startPos: vscode.Position, endPos: vscode.Position, red = false) {
   await sett.setScroll(  editor, startPos.line, endPos.line);
-  utils.flashRange(editor, startPos,      endPos, red);
+  utils.flashRange(editor, startPos, endPos, red);
 }
 
 export async function revealFuncInEditor(

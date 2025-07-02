@@ -48,12 +48,13 @@ export async function toggleCmd() {
     if(distFromSelToAround <= distFromSelToNext)
       funcItemToMark = aroundFuncItem;
   }
-  await disp.revealFuncInEditor(funcItemToMark);
-  await disp.setMark(funcItemToMark, true);
+  const red = !await disp.setMark(funcItemToMark, true);
+  await disp.revealFuncInEditor(funcItemToMark, red);
 }
 
 export async function toggleItemMarkCmd(funcItem: FuncItem) {
-  await disp.setMark(funcItem, true);
+  const red = !await disp.setMark(funcItem, true);
+  await disp.revealFuncInEditor(funcItem, red);
 }
 
 async function prevNext(next: boolean, fromToggle = false) {
