@@ -5,10 +5,12 @@ bugs ...
   red broken
   missed method at SidebarProvider.refresh
   broken file (X) on funcItemToMark
-  toggling if(distFromSelToAround <= distFromSelToNext) makes many marks
-    add single add-mark filter for items and gutter
+  mark from item (M) has no flash
 
 todo ...
+  chg funcnodes to use indexes not lines
+  toggling if(distFromSelToAround <= distFromSelToNext) makes many marks
+    add single add-mark filter for items and gutter
   don't refresh item from single click selection pointer changes?
   add call to capture
   handle fs changes

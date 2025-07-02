@@ -18,8 +18,6 @@ const sExpr = `
   [
     ((function_declaration
         name: (identifier) @funcDeclName) @funcDecl)
-    ((function_expression
-        (identifier) @funcExprName) @funcExpr)
     ((variable_declarator
         name: (identifier) @funcExprDeclName
         value: (function_expression) @funcExprDecl) @funcExprDeclBody)
@@ -31,26 +29,19 @@ const sExpr = `
     ((method_definition
         name: (property_identifier) @methodDefName) @methodDef)
     ((pair
-        key: (property_identifier) @propertyName) @property)
+        key: (property_identifier) @propertyName) @property) @propertyBody
     ((assignment_expression
-        left: (identifier) @assExprName) @assExpr)
+        left: [(identifier) (member_expression) (subscript_expression)]
+                                                  @assExprName) @assExpr)
     ((variable_declarator
         name: (identifier) @varDeclName) @varDecl)
   ]
 `;
-const funcDecls =  ['funcDecl',  'funcExpr', 'funcExprDecl', 'arrowFuncDecl', 
-                    'classDecl', 'methodDef', 'property','assExpr', 'varDecl'];
-                    
-const priorityByType: Record<string, number> = {
-  'function_declaration':  1,
-  'arrow_function':        2,
-  'function_expression':   3,
-  'method_definition':     4,
-  'property':              5,
-  'assignment_expression': 6,
-  'variable_declarator':   7,
-  'class_declaration':     8,
-};
+const funcDecls =  ['funcDecl',  'funcExprDecl', 'arrowFuncDecl', 
+                    'classDecl', 'methodDef', 
+                    'property',  'assExpr', 'varDecl'];
+
+const lowPriority = new Set(['variable_declarator']);
 
 export interface NodeData {
   funcId:       string;
@@ -181,15 +172,16 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
       nodes[j].start === node.start &&
       nodes[j].end   === node.end
     ) j++;
+    let ok = node;
     if (j > i + 1) {
-      let best = node;
       for (let k = i + 1; k < j; k++) {
-        if(priorityByType[nodes[k].type] < priorityByType[best.type])
-          best = nodes[k];
+        if(!lowPriority.has(nodes[k].type)) {
+          ok = nodes[k];
+          break;
+        }
       }
-      result.push(best);
     } 
-    else result.push(node);
+    result.push(ok);
     i = j;
   }
   // log(`Parsed ${nodes.length} nodes`);

@@ -362,9 +362,8 @@ export class FuncItem extends Item {
     if(this.isFunction(type)) return ` ƒ ${name}`;
     let pfx: string;
     switch (type) {
-      case 'pair':              pfx = ':'; break;
-      case 'class_declaration':
-      case 'class_expression':  pfx = '©'; break;
+      case 'object':            pfx = ':'; break;
+      case 'class_declaration': pfx = '©'; break;
       default:                  pfx = '='; break;
     }
     return ` ${pfx} ${name}`;

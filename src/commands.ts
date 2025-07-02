@@ -38,7 +38,7 @@ export async function toggleCmd() {
   const selLine = activeEditor.selection.active.line;
   const nextFuncItem = funcItems.find(item => item.getStartLine() > selLine);
   let funcItemToMark = (nextFuncItem as FuncItem);
-  if(!nextFuncItem) 
+  if(!nextFuncItem)
     funcItemToMark = aroundFuncItem;
   else if(nextFuncItem.getStartLine() > aroundFuncItem.getEndLine())
     funcItemToMark = aroundFuncItem;
