@@ -1,6 +1,5 @@
 bugs ...
   many settings don't immediately change sidebar
-  file changes ignored
   bounce on some func clicks
 
 todo ...

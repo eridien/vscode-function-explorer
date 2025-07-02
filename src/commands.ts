@@ -149,13 +149,18 @@ export async function editorOrTextChg(
     editor = vscode.window.activeTextEditor;
     if(!editor) return;
   }
+  const fsPath = editor.document.uri.fsPath;
   if(editor.document.uri.scheme !== 'file' ||
-     !sett.includeFile(editor.document.uri.fsPath)) return;
-  const fsPath      = editor.document.uri.fsPath;
-  const fileItem    = await disp.getOrMakeFileItemByFsPath(fsPath);
-  fileItem.children = null;
-  if(fileItem.parent) disp.updateItemInTree(fileItem);
+     !sett.includeFile(fsPath)) return;
+  const fileItem = await disp.getOrMakeFileItemByFsPath(fsPath);
+  // log('editorOrTextChg start', fileItem.label, fileItem.id, 
+  //                              fileItem?.children?.length);
+  // fileItem.children  = null;
+  disp.updateFileChildrenFromAst(fileItem);
   disp.updateGutter(editor, fileItem);
+  if(!fileItem.children) return;
+  // log('editorOrTextChg end', fileItem.label, fileItem.id, 
+  //                            fileItem?.children);
 }
 
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {

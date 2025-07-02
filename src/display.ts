@@ -325,10 +325,10 @@ export class FuncItem extends Item {
   funcId!:            string;
   funcParents!:       [string, string][];
   stayVisible!:       boolean;
-  private startLine!: number;
-  private endLine!:   number;
-  private startKey!:  string;
-  private endKey!:    string;
+  private startLine: number | undefined;
+  private endLine:   number | undefined;
+  private startKey:  string | undefined;
+  private endKey:    string | undefined;
 
   constructor(params: FuncData) {
     super('', vscode.TreeItemCollapsibleState.None);
@@ -356,6 +356,12 @@ export class FuncItem extends Item {
   isFunction(type: string = this.type): boolean {
     return ["function_declaration", "function_expression", 
             "method_definition", "arrow_function"].includes(type);
+  }
+  clear() {
+    this.startLine = undefined;
+    this.endLine   = undefined;
+    this.startKey  = undefined;
+    this.endKey    = undefined;
   }
   getFuncItemStr(nameType: [string, string]): string {
     const [name, type] = nameType;
@@ -438,7 +444,7 @@ export async function getTree() {
 
 ///////////////// updateFileChildrenFromAst //////////////////////
 
-function updateFileChildrenFromAst(fileItem: FileItem): 
+export function updateFileChildrenFromAst(fileItem: FileItem): 
                          { structChg: boolean, funcItems: FuncItem[] } | null {
   // start('updateFileChildrenFromAst');
   const document = fileItem.document;
@@ -447,7 +453,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
   if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return null;
   function empty(): {structChg: boolean, funcItems: FuncItem[]} {
     const structChg = (!!fileItem.children && fileItem.children.length > 0);
-    fileItem.children = [];
+    fileItem.children = null;
     log(`no funcs in ${path.basename(fsPath)}`);
     end('updateFileChildrenFromAst');
     return {structChg, funcItems:[]};
@@ -481,6 +487,7 @@ function updateFileChildrenFromAst(fileItem: FileItem):
     }
     else matchCount++;
     Object.assign(funcItem, node);
+    funcItem.clear();
     funcItems.push(funcItem);
     funcItemsInList.add(funcItem);
   }
@@ -518,16 +525,16 @@ export class SidebarProvider {
       return;
     }
     for(const queueItem of refreshQueue) {
-      log('refresh1', item?.label, item?.id);
+      // log('refresh1', item?.label, item?.id);
       this._onDidChangeTreeData.fire(queueItem);
     }
     refreshQueue.length = 0;
-    log('refresh2', item?.label, item?.id);
+    // log('refresh2', item?.label, item?.id);
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(itemIn: Item): Item {
-    log('getTreeItem', itemIn.label, itemIn.id);
+    // log('getTreeItem start', itemIn.label, itemIn.id);
     ignoreItemRefreshCalls = false;
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
@@ -542,17 +549,18 @@ export class SidebarProvider {
                   itemInId, itemInLabel, item.id, item.label);
       return itemIn;
     }
+    // log('getTreeItem end', itemIn.label, itemIn.id);
     return item;
   }
 
   getParent(item: Item): Item | null {
-    log('getParent', item.label, item.id);
+    // log('getParent', item.label, item.id);
     if(item?.parent) return item.parent;
     return null;
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    log('getChildren', item?.label, item?.id);
+    // log('getChildren', item?.label, item?.id);
     delayItemRefreshCalls = true;
     if(!item) {
       const tree = await getTree();
@@ -671,7 +679,7 @@ class Marks {
       funcIdSet = new Set<string>();
       Marks.markIdSetByFspath.set(fsPath, funcIdSet);
     }
-    log('addMark', funcId);
+    // log('addMark', funcId);
     funcIdSet.add(funcId);
     saveMarks();
   }

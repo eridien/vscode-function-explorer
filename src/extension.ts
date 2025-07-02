@@ -141,16 +141,21 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
-    async editor => {if(editor) {
-      await cmds.editorOrTextChg(editor);
-      // log('editorChg');
-    }});
+    async editor => {
+      if(editor) { 
+        await cmds.editorOrTextChg(editor);
+        // log('editorChg');
+      }
+    });
 
-  const textChg = vscode.workspace.onDidChangeTextDocument(async event => {
-    // log('textChg');
-    const editor = vscode.window.activeTextEditor;
-    if (editor && event.document === editor.document) 
+  const textChg = vscode.workspace.onDidChangeTextDocument(
+    async event => {
+      log('textChg');
+      const {document} = event;
+    for(const editor of vscode.window.visibleTextEditors
+                    .filter(editor => editor.document === document)) {
       await cmds.editorOrTextChg(editor);
+    }
   });
 
 ////////////  INIT  ////////////
