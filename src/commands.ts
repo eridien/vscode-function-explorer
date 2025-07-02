@@ -163,19 +163,26 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const {textEditor, selections} = p;
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
+  const document  = textEditor.document;
+  const fsPath    = document.uri.fsPath;
+  const selection = selections[0];
+  const selStart  = document.offsetAt(selection.start);
+  const selEnd    = document.offsetAt(selection.end);
+  log('selectionChg', selStart, selEnd);
+  if(selStart != selEnd && selection.start.line === selection.end.line) {
+    const funcs = await disp.getSortedFuncs(fsPath, false, false);
+    for(const func of [...funcs]) {
+      if(selStart === func.startName && selEnd === func.endName) {
+        func.stayVisible = true;
+        await disp.revealItemByFunc(func);
+        await disp.updatePointers();
+        return;
+      }
+    }
+  }
   if(utils.isDelaying('selChg')) return;
-  // const document  = textEditor.document;
-  // const fsPath    = document.uri.fsPath;
-  // const selection = selections[0];
-  // const selStart  = document.offsetAt(selection.start);
-  // const selEnd    = document.offsetAt(selection.end);
-  // const func      = disp.getFuncAtLine(fsPath, selection.start.line);
-  // if(func && selStart >= func.start && selEnd <= func.endName) {
-  //   await setMark(func, true);
-  //   return;
-  // }
-  utils.startDelaying('selChg');
   await disp.updatePointers();
+  utils.startDelaying('selChg');
 }
 
 export async function openFile(item: Item) {

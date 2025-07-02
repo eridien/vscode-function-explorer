@@ -3,8 +3,6 @@ bugs ...
   bounce on some func clicks
 
 todo ...
-  when no marks always show all funcs under file item
-  don't refresh item from single click selection pointer changes?
   handle fs changes
   sel name in editor when side open -> reveal item & set stayalive
   chg name click toggle to gesture
