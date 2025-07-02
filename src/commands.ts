@@ -159,6 +159,11 @@ export async function editorOrTextChg(
   disp.updateGutter(editor, fileItem);
 }
 
+let sideBarVisible = false;
+export function setSideBarVisibility(visible: boolean) {
+  sideBarVisible = visible;
+}
+
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const {textEditor, selections} = p;
   if (textEditor.document.uri.scheme !== 'file' ||
@@ -168,8 +173,8 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const selection = selections[0];
   const selStart  = document.offsetAt(selection.start);
   const selEnd    = document.offsetAt(selection.end);
-  log('selectionChg', selStart, selEnd);
-  if(selStart != selEnd && selection.start.line === selection.end.line) {
+  if(sideBarVisible && selStart != selEnd && 
+                       selection.start.line === selection.end.line) {
     const funcs = await disp.getSortedFuncs(fsPath, false, false);
     for(const func of [...funcs]) {
       if(selStart === func.startName && selEnd === func.endName) {

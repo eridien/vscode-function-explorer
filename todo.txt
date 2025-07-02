@@ -4,7 +4,6 @@ bugs ...
 
 todo ...
   handle fs changes
-  sel name in editor when side open -> reveal item & set stayalive
   chg name click toggle to gesture
   finish sidebar refresh command/menu
 
