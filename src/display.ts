@@ -11,8 +11,8 @@ const {log, start, end} = utils.getLog('disp');
 const CLEAR_MARKS_ON_STARTUP = false; 
 // const CLEAR_MARKS_ON_STARTUP = true; 
 
-const DEBUG_FUNC_TYPE = false;
-// const DEBUG_FUNC_TYPE = true;
+// const DEBUG_FUNC_TYPE = false;
+const DEBUG_FUNC_TYPE = true;
 
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
@@ -245,9 +245,6 @@ export class FileItem extends Item {
   filtered:         boolean = false;
   alphaSorted:      boolean = false;
   constructor(document: vscode.TextDocument) {
-
-    if(document.uri.path.includes('node_modules')) debugger;
-
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
     this.document     = document;
     this.id           = getItemId();
@@ -535,13 +532,13 @@ export class SidebarProvider {
     ignoreItemRefreshCalls = false;
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
-    const item        = itms.getById(itemIn.id);
+    const item        = itms.getById(itemInId);
     if(!item) {
-      log('err', 'getTreeItem, item not found:', itemIn.label);
+      log('err', 'getTreeItem, item not found:', itemInLabel);
       return itemIn;
     }
     item.refresh();
-    if(item !== itemIn || item.id !== itemIn.id) {
+    if(item !== itemIn || item.id !== itemInId) {
       log('err', 'getTreeItem, item return mismatch:', 
                   itemInId, itemInLabel, item.id, item.label);
       return itemIn;
@@ -675,6 +672,7 @@ class Marks {
       funcIdSet = new Set<string>();
       Marks.markIdSetByFspath.set(fsPath, funcIdSet);
     }
+    log('addMark', funcId);
     funcIdSet.add(funcId);
     saveMarks();
   }
@@ -722,6 +720,7 @@ function saveMarks() {
 }
 
 export async function setMark(funcItem: FuncItem, toggle = false, mark:boolean = false) {
+  log('setMark', funcItem.name, toggle, mark);
   const fsPath = funcItem.getFsPath();
   if(!fsPath) return;
   const funcId  = funcItem.funcId;

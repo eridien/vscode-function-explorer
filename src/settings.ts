@@ -93,7 +93,6 @@ async function measureViewportCapacity(editor: vscode.TextEditor): Promise<numbe
     if(screenTop  == 0 || screenBottom != lastBottom) break;
     lastBottom    = screenBottom;
   }
-  log('i', i);
   editor.revealRange(new vscode.Range(idx+2, 0, idx+2, 0), 
                           vscode.TextEditorRevealType.AtTop);
   visibleRanges = editor.visibleRanges;
@@ -109,12 +108,12 @@ async function measureViewportCapacity(editor: vscode.TextEditor): Promise<numbe
       const gap = range.start.line - current - 1;
       totalGaps += gap;
     }
-    log('start, end, current,  totalGaps', range.start.line, 
-                                           range.end.line, current, totalGaps);
+    // log('start, end, current,  totalGaps', range.start.line, 
+    //                                        range.end.line, current, totalGaps);
     current = range.end.line;
   }
   const capacity = totalHeight - totalGaps;
-  log('measureViewportCapacity', capacity);
+  // log('measureViewportCapacity', capacity);
   return capacity;
 }
 

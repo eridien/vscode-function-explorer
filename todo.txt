@@ -3,9 +3,13 @@ bugs ...
   bounce on some func clicks
   file changes ignored
   red broken
+  missed method at SidebarProvider.refresh
+  broken file (X) on funcItemToMark
   toggling if(distFromSelToAround <= distFromSelToNext) makes many marks
+    add single add-mark filter for items and gutter
 
 todo ...
+  don't refresh item from single click selection pointer changes?
   add call to capture
   handle fs changes
   handle multiple marks in line
@@ -16,6 +20,7 @@ todo ...
   finish sidebar refresh command/menu
 
 options ...
+  reveal item when marking
   open in preview mode
   default file wrap off
   when adding mark then always scroll
