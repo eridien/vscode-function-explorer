@@ -259,13 +259,16 @@ export class FileItem extends Item {
       if(!chgs) return [];
       structChg = chgs.structChg;
     }
+    let hasMark = false;
     const funcItems = [...this.children as FuncItem[]].filter( func => {
       const marked = mrks.hasMark(func);
+      hasMark          ||= marked;
       func.stayVisible ||= marked;
       func.stayVisible &&= !this.filtered;
       return noFilter || marked || func.stayVisible ||
             (func.isFunction() && !this.filtered);
     });
+    if(!hasMark) this.filtered = false;
     if(this.alphaSorted) 
       funcItems.sort((a, b) => a.name.localeCompare(b.name));
     if(structChg) updateItemInTree(this);
@@ -594,17 +597,23 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
   if(!expanded) {
     const funcItems = await getFuncItemsUnderNode(item);
     let filesChanged = new Set<FileItem>();
+    let haveMark = false;
     for(const funcItem of funcItems) {
+      if(mrks.hasMark(funcItem)) haveMark = true;
       if(funcItem.stayVisible) {
         filesChanged.add(funcItem.parent);
         funcItem.clrStayVisible();
       }
     }
+    if(item.contextValue === 'file') {
+      if(!haveMark &&(item as FileItem).filtered) {
+        filesChanged.add(item as FileItem);
+        (item as FileItem).filtered = false;
+      }
+      if(settings.openFileWhenExpanded)
+        await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);    
+    }
     for(const fileItem of filesChanged) updateItemInTree(fileItem);
-  }
-  if(!item.expanded && expanded && item.contextValue === 'file' &&
-                                   settings.openFileWhenExpanded) {
-    await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
   }
   item.expanded = expanded;
 }

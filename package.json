@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -243,7 +243,7 @@
           "default": false,
           "order": 2,
           "title": "Open File When Expanded",
-          "description": "When expanding a file item in the explorer, open that file in an editor. Files can also be opened by selecting 'Open File' in the file menu."
+          "description": "When expanding a file item in the explorer, open that file in an editor. Files can also be opened by selecting 'Open File' in the file menu or clicking on ▶."
         },
         "function-explorer.fileWrap": {
           "type": "boolean",

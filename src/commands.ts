@@ -155,12 +155,8 @@ export async function editorOrTextChg(
   const fileItem = await disp.getOrMakeFileItemByFsPath(fsPath);
   // log('editorOrTextChg start', fileItem.label, fileItem.id, 
   //                              fileItem?.children?.length);
-  // fileItem.children  = null;
   disp.updateFileChildrenFromAst(fileItem);
   disp.updateGutter(editor, fileItem);
-  if(!fileItem.children) return;
-  // log('editorOrTextChg end', fileItem.label, fileItem.id, 
-  //                            fileItem?.children);
 }
 
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
