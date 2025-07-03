@@ -151,7 +151,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const textChg = vscode.workspace.onDidChangeTextDocument(
     async event => {
-      log('textChg');
+      // log('textChg');
       const {document} = event;
     for(const editor of vscode.window.visibleTextEditors
                     .filter(editor => editor.document === document)) {

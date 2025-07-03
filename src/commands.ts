@@ -1,6 +1,7 @@
 import * as vscode      from 'vscode';
 import * as disp        from './display';
-import {FuncItem, Item, FileItem} from './display';
+import {Item, WsAndFolderItem, FolderItem, 
+        FileItem, FuncItem, itms} from './display';
 import * as sett        from './settings';
 import {settings}       from './settings';
 import * as utils       from './utils';
@@ -225,29 +226,21 @@ export async function openFile(item: Item) {
   await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
 }
 
-// export async function fileChanged(uri: vscode.Uri) {
-//   log('info', `File changed: ${uri.fsPath}`);
-//   const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-//   fileItem.refresh();
-// }
-// export async function fileCreated(uri: vscode.Uri) {
-//   log('info', `File created: ${uri.fsPath}`);
-//   const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-//   fileItem.refresh();
-// }
-// export async function fileDeleted(uri: vscode.Uri) {
-//   log('info', `File deleted: ${uri.fsPath}`);
-//   const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-//   fileItem.refresh();
-// }
-
-// let watcher: vscode.FileSystemWatcher | undefined;
-
-// export function setFileWatcher() {
-//   if (watcher) watcher.dispose();
-//   watcher = vscode.workspace.createFileSystemWatcher(globPattern);
-//   watcher.onDidChange(async uri => { await fileChanged(uri); });
-//   watcher.onDidCreate(async uri => { await fileCreated(uri); });
-//   watcher.onDidDelete(async uri => { await fileDeleted(uri); });
-// }
-
+export async function fileCreated(uri: vscode.Uri) {
+  log(`File created: ${uri.path}`);
+  const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
+  fileItem.create();
+}
+export async function fileChanged(uri: vscode.Uri) {
+  log(`File changed: ${uri.path}`);
+  const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
+  fileItem.refresh();
+}
+export function fileDeleted(uri: vscode.Uri) {
+  log(`File deleted: ${uri.path}`);
+  const fileItem = itms.getFldrFileByFsPath(uri.fsPath);
+  if (fileItem instanceof WsAndFolderItem || 
+      fileItem instanceof FileItem) 
+    fileItem.delete();
+}
+sett.setWatcherCallbacks( fileCreated, fileChanged, fileDeleted );

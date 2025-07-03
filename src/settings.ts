@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
 import {minimatch} from 'minimatch';
 import * as path from 'path';
-import * as fs from 'fs';
 import * as utils  from './utils';
-import { file } from '@babel/types';
 const {log} = utils.getLog('sett');
 
 interface FunctionMarksSettings {
@@ -21,118 +19,14 @@ interface FunctionMarksSettings {
 }
 
 export let settings:  FunctionMarksSettings = {
-  hideRootFolders:     true,
-  flattenFolders:     true,
-  scrollPosition:     "Function Center At Center If Needed",
-  fileWrap:           false,
-  alphaSortFunctions: false,
-  topMargin:          3,
+  hideRootFolders:      true,
+  flattenFolders:       true,
+  scrollPosition:       "Function Center At Center If Needed",
+  fileWrap:             false,
+  alphaSortFunctions:   false,
+  topMargin:            3,
   openFileWhenExpanded: false
 };
-
-let includePattern:  string;
-let excludePattern:  string;
-export let globPattern: string;
-
-export function loadSettings() {
-  const config = vscode.workspace.getConfiguration('function-explorer');
-  settings = {
-    scrollPosition:     config.get('scrollPosition', 
-                                   "Function Center At Center If Needed"),
-    hideRootFolders:     config.get('hideRootFolders',     true),
-    flattenFolders:     config.get('flattenFolders',     true),
-    openFileWhenExpanded: config.get('openFileWhenExpanded', false),
-    fileWrap:           config.get('fileWrap',           false),
-    alphaSortFunctions: config.get('alphaSortFunctions', false),
-    topMargin:          config.get('topMargin',              3),
-  };
-
-  includePattern = config.get('filesToInclude', '**/*.js, **/*.ts');
-  excludePattern = config.get('filesToExclude', 'node_modules/**, prism/**, out/**');
-}
-
-export function includeFile(
-  filePath: string,
-  isFolder= false
-): boolean {
-  // filePath = "c:\\Users\\mark\\apps\\test-app\\node_modules";
-  // isFolder= true;
-
-  const includeGlobs = includePattern
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  const excludeFolderPatterns = excludePattern
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  const normalizedPath = path.normalize(filePath).replace(/\\/g, '/');
-
-  if (isFolder) {
-    const segments = normalizedPath.split('/');
-    const isExcluded = excludeFolderPatterns.some(pattern => {
-      const base = pattern.replace(/\/\*\*$/, ''); // strip trailing /**
-      return segments.includes(base);
-    });
-    return !isExcluded;
-  } else {
-    const isIncluded = includeGlobs.some(pattern =>
-      minimatch(normalizedPath, pattern, { matchBase: true, dot: true })
-    );
-    return isIncluded;
-  }
-}
-
-export let watcher: vscode.FileSystemWatcher;
-watcher = createFilteredWatcher(
-  '**/*.js, **/*.ts',
-  'node_modules/**, prism/**, out/**',
-  (uri) => { log('File changed:', uri.fsPath); }
-);
-
-function createFilteredWatcher(
-  filesToInclude: string,
-  filesToExclude: string,
-  onFileChange: (uri: vscode.Uri) => void
-): vscode.FileSystemWatcher {
-  const includeGlobs = filesToInclude
-    .split(',')
-    .map(p => p.trim())
-    .filter(Boolean);
-
-  const excludeGlobs = filesToExclude
-    .split(',')
-    .map(p => p.trim())
-    .filter(Boolean);
-
-  // Combine include globs into a single pattern
-  const includePattern = includeGlobs.length === 1
-    ? includeGlobs[0]
-    : `{${includeGlobs.join(',')}}`;
-
-  const watcher = vscode.workspace.createFileSystemWatcher(includePattern);
-
-  const shouldIgnore = (uri: vscode.Uri): boolean => {
-    const normalized = uri.fsPath.replace(/\\/g, '/');
-    return excludeGlobs.some(pattern =>
-      minimatch(normalized, pattern, { dot: true })
-    );
-  };
-
-  const handleEvent = (uri: vscode.Uri) => {
-    if (!shouldIgnore(uri)) {
-      onFileChange(uri);
-    }
-  };
-
-  watcher.onDidCreate(handleEvent);
-  watcher.onDidChange(handleEvent);
-  watcher.onDidDelete(handleEvent);
-
-  return watcher;
-}
 
 async function measureViewportCapacity(editor: vscode.TextEditor): Promise<number> {
   let visibleRanges = editor.visibleRanges;
@@ -172,12 +66,9 @@ async function measureViewportCapacity(editor: vscode.TextEditor): Promise<numbe
       const gap = range.start.line - current - 1;
       totalGaps += gap;
     }
-    // log('start, end, current,  totalGaps', range.start.line, 
-    //                                        range.end.line, current, totalGaps);
     current = range.end.line;
   }
   const capacity = totalHeight - totalGaps;
-  // log('measureViewportCapacity', capacity);
   return capacity;
 }
 
@@ -226,4 +117,90 @@ export async function setScroll(editor: vscode.TextEditor,
   if(top < 0) top = 0;
   editor.revealRange(new vscode.Range(top, 0, top, 0), 
                          vscode.TextEditorRevealType.AtTop);
+}
+
+let includeFilesPattern:   string;
+let excludeFoldersPattern: string;
+
+export function includeFile( filePath: string, isFolder= false ): boolean {
+  const normalizedPath = path.normalize(filePath).replace(/\\/g, '/');
+  const includeGlobs = includeFilesPattern
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  const excludeFolderPatterns = excludeFoldersPattern
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  if (isFolder) {
+    const segments = normalizedPath.split('/');
+    const isExcluded = excludeFolderPatterns.some(pattern => {
+      const base = pattern.replace(/\/\*\*$/, ''); // strip trailing /**
+      return segments.includes(base);
+    });
+    return !isExcluded;
+  } else {
+    const isIncluded = includeGlobs.some(pattern =>
+      minimatch(normalizedPath, pattern, { matchBase: true, dot: true })
+    );
+    return isIncluded;
+  }
+}
+
+let fileChanged: (uri: vscode.Uri) => void;
+let fileCreated: (uri: vscode.Uri) => void;
+let fileDeleted: (uri: vscode.Uri) => void;
+
+export function setWatcherCallbacks(
+       fileCreatedIn: (uri: vscode.Uri) => void,
+       fileChangedIn: (uri: vscode.Uri) => void,
+       fileDeletedIn: (uri: vscode.Uri) => void) {
+  fileCreated = fileCreatedIn;
+  fileChanged = fileChangedIn;
+  fileDeleted = fileDeletedIn;
+}
+
+let fileWatcher: vscode.FileSystemWatcher | undefined;
+
+function setFileWatcher(filesToInclude: string, 
+                               filesToExclude: string) {
+  if (fileWatcher) fileWatcher.dispose();
+  const includeGlobs = filesToInclude
+    .split(',')
+    .map(p => p.trim())
+    .filter(Boolean);
+  const excludeGlobs = filesToExclude
+    .split(',')
+    .map(p => p.trim())
+    .filter(Boolean);
+  const includePattern = includeGlobs.length === 1
+    ? includeGlobs[0]
+    : `{${includeGlobs.join(',')}}`;
+  fileWatcher = vscode.workspace.createFileSystemWatcher(includePattern);
+  const shouldIgnore = (uri: vscode.Uri): boolean => {
+    const normalized = uri.fsPath.replace(/\\/g, '/');
+    return excludeGlobs.some(pattern =>
+      minimatch(normalized, pattern, { dot: true })
+    );
+  };
+  fileWatcher.onDidCreate(fileCreated);
+  fileWatcher.onDidChange(fileChanged);
+  fileWatcher.onDidDelete(fileDeleted);
+}
+
+export function loadSettings() {
+  const config = vscode.workspace.getConfiguration('function-explorer');
+  settings = {
+    scrollPosition:       config.get('scrollPosition', 
+                            "Function Center At Center If Needed"),
+    hideRootFolders:      config.get('hideRootFolders',      true),
+    flattenFolders:       config.get('flattenFolders',       true),
+    openFileWhenExpanded: config.get('openFileWhenExpanded', false),
+    fileWrap:             config.get('fileWrap',             false),
+    alphaSortFunctions:   config.get('alphaSortFunctions',   false),
+    topMargin:            config.get('topMargin',                3),
+  };
+  includeFilesPattern   = config.get('filesToInclude', '**/*.js, **/*.ts');
+  excludeFoldersPattern = config.get('filesToExclude', 'node_modules/**');
+  setFileWatcher(includeFilesPattern, excludeFoldersPattern);
 }

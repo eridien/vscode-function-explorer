@@ -101,7 +101,6 @@ export class Item extends vscode.TreeItem {
     }
     return parents;
   }
-  refresh(){}
 }
 
 export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
@@ -147,6 +146,10 @@ export class WsAndFolderItem extends Item {
     const files:   Item[] = [];
     await getFolderChildren(this, folders, files, this.root);
     return [...folders, ...files];
+  }
+  create()  {}
+  refresh() {}
+  delete()  {
   }
 }
 
@@ -274,6 +277,12 @@ export class FileItem extends Item {
     if(structChg) updateItemInTree(this);
     return funcItems;
   };
+  create() {
+  }
+  refresh() {
+  }
+  delete() {
+  }
 }
 
 export async function getOrMakeFileItemByFsPath(
@@ -395,10 +404,14 @@ export class FuncItem extends Item {
   getIconPath() {
      return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;
   }
+  create() {
+  }
   refresh(){
     this.label       = this.getLabel();
     this.description = this.getDescription();
     this.iconPath    = this.getIconPath();
+  }
+  delete() {
   }
 }
 
