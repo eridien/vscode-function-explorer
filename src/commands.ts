@@ -12,6 +12,7 @@ const NEXT_DEBUG = false;
 
 export async function activate() {
   await editorOrTextChg();
+  // setFileWatcher();
 }
 
 // export async function toggleCmd() {
@@ -174,7 +175,6 @@ function clrGesture() {
   gestureTimeout  = undefined;
   gestureFuncItem = undefined;
 }
-start('gesture', false);
 
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const {textEditor, selections} = p;
@@ -225,29 +225,29 @@ export async function openFile(item: Item) {
   await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
 }
 
-export async function fileChanged(uri: vscode.Uri) {
-  log('info', `File changed: ${uri.fsPath}`);
-  const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-  fileItem.refresh();
-}
-export async function fileCreated(uri: vscode.Uri) {
-  log('info', `File created: ${uri.fsPath}`);
-  const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-  fileItem.refresh();
-}
-export async function fileDeleted(uri: vscode.Uri) {
-  log('info', `File deleted: ${uri.fsPath}`);
-  const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-  fileItem.refresh();
-}
+// export async function fileChanged(uri: vscode.Uri) {
+//   log('info', `File changed: ${uri.fsPath}`);
+//   const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
+//   fileItem.refresh();
+// }
+// export async function fileCreated(uri: vscode.Uri) {
+//   log('info', `File created: ${uri.fsPath}`);
+//   const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
+//   fileItem.refresh();
+// }
+// export async function fileDeleted(uri: vscode.Uri) {
+//   log('info', `File deleted: ${uri.fsPath}`);
+//   const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
+//   fileItem.refresh();
+// }
 
-let watcher: vscode.FileSystemWatcher | undefined;
+// let watcher: vscode.FileSystemWatcher | undefined;
 
-export function setFileWatcher() {
-  if (watcher) watcher.dispose();
-  watcher = vscode.workspace.createFileSystemWatcher(sett.filesGlobPattern);
-  watcher.onDidChange(async uri => { await fileChanged(uri); });
-  watcher.onDidCreate(async uri => { await fileCreated(uri); });
-  watcher.onDidDelete(async uri => { await fileDeleted(uri); });
-}
+// export function setFileWatcher() {
+//   if (watcher) watcher.dispose();
+//   watcher = vscode.workspace.createFileSystemWatcher(globPattern);
+//   watcher.onDidChange(async uri => { await fileChanged(uri); });
+//   watcher.onDidCreate(async uri => { await fileCreated(uri); });
+//   watcher.onDidDelete(async uri => { await fileDeleted(uri); });
+// }
 

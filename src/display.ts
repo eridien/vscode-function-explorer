@@ -8,8 +8,8 @@ import {settings}      from './settings';
 import * as utils      from './utils';
 const {log, start, end} = utils.getLog('disp');
 
-const CLEAR_MARKS_ON_STARTUP = false; 
-// const CLEAR_MARKS_ON_STARTUP = true; 
+// const CLEAR_MARKS_ON_STARTUP = false; 
+const CLEAR_MARKS_ON_STARTUP = true; 
 
 // const DEBUG_FUNC_TYPE = false;
 const DEBUG_FUNC_TYPE = true;
@@ -912,7 +912,7 @@ class Files {
           await findFuncFiles(childPath);
         }
       }
-      else if(sett.includeFile(fsPath, false)) {
+      else if(sett.includeFile(fsPath)) {
         Files.includedfsPaths.add(path.dirname(fsPath));
         pathCount++;
       }

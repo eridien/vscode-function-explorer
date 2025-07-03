@@ -294,14 +294,14 @@
           "default": "**/*.js, **/*.ts",
           "order": 7,
           "title": "Files To Include",
-          "description": "Files to include in the function explorer. Separate glob patterns with commas."
+          "description": "Files/folders to include in the function explorer. Separate glob patterns with commas.  If a file/folder matches both this include pattern and the exclude pattern below, it will be excluded."
         },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/**",
           "order": 8,
           "title": "Files To Exclude",
-          "description": "Files to exclude in the function explorer. Separate glob patterns with commas."
+          "description": "Files/folders to exclude in the function explorer. Separate glob patterns with commas."
         }
       }
     }
