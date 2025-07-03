@@ -111,10 +111,10 @@ export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
     children = await (item as any).getChildren(true);
   else return [];
   if (!children || children.length === 0) return [];
-  let funcItem: FuncItem[] = [];
+  let funcItems: FuncItem[] = [];
   for (const child of children)
-    funcItem = funcItem.concat(await getFuncItemsUnderNode(child));
-  return funcItem;
+    funcItems = funcItems.concat(await getFuncItemsUnderNode(child));
+  return funcItems;
 }
 
 ////////////////////// WsAndFolderItem //////////////////////

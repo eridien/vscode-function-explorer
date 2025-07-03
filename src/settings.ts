@@ -54,7 +54,7 @@ export function loadSettings() {
   filesGlobPattern = `${includeCfg},!${excludeCfg}`;
 }
 
-export function includeFile(fsPath: string, folder?:boolean): boolean {
+export function includeFile(fsPath: string, folder = false): boolean {
   for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
     if(fsPath === wsFolder.uri.fsPath) return true;
   }
