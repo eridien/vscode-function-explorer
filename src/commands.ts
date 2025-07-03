@@ -4,7 +4,8 @@ import {FuncItem, Item, FileItem} from './display';
 import * as sett        from './settings';
 import {settings}       from './settings';
 import * as utils       from './utils';
-const {log} = utils.getLog('cmds');
+import { clear } from 'console';
+const {log, start, end} = utils.getLog('cmds');
 
 const NEXT_DEBUG = false;
 // const NEXT_DEBUG = true;
@@ -164,30 +165,56 @@ export function setSideBarVisibility(visible: boolean) {
   sideBarVisible = visible;
 }
 
+let gestureTimeout:  NodeJS.Timeout | undefined;
+let gestureFuncItem: FuncItem       | undefined;
+
+function clrGesture() {
+  end('gesture', false, 'clrGesture');
+  clearTimeout(gestureTimeout);
+  gestureTimeout  = undefined;
+  gestureFuncItem = undefined;
+}
+start('gesture', false);
+
 export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
   const {textEditor, selections} = p;
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
-  const document  = textEditor.document;
-  const fsPath    = document.uri.fsPath;
   const selection = selections[0];
-  const selStart  = document.offsetAt(selection.start);
-  const selEnd    = document.offsetAt(selection.end);
-  if(sideBarVisible && selStart != selEnd && 
-                       selection.start.line === selection.end.line) {
-    const funcs = await disp.getSortedFuncs(fsPath, false, false);
-    for(const func of [...funcs]) {
-      if(selStart === func.startName && selEnd === func.endName) {
-        func.stayVisible = true;
-        await disp.revealItemByFunc(func);
-        await disp.updatePointers();
-        return;
+  if(selection.start.line === selection.end.line) {
+    const document  = textEditor.document;
+    const fsPath    = document.uri.fsPath;
+    const selStart  = document.offsetAt(selection.anchor);
+    const selEnd    = document.offsetAt(selection.active);
+    log('selectionChg', selStart, selEnd);
+    end('gesture', false);
+    if(gestureFuncItem && selection.isEmpty &&
+          selStart >= gestureFuncItem.start && selEnd <= gestureFuncItem.end) {
+      await disp.setMark(gestureFuncItem, true);
+      end('gesture', false, 'ended setMark');
+      clrGesture();
+    }
+    if(selStart != selEnd) {
+      const funcs = await disp.getSortedFuncs(fsPath, false, false);
+      for(const func of [...funcs]) {
+        if(!gestureTimeout && selEnd > func.endName && 
+              selStart >= func.startName && selStart <= func.endName ) {
+          gestureTimeout  = setTimeout(clrGesture, 5000);
+          gestureFuncItem = func;
+          start('gesture', false);
+          return;
+        }
+        if(sideBarVisible && selStart === func.startName && 
+                             selEnd   === func.endName) {
+          func.stayVisible = true;
+          await disp.revealItemByFunc(func);
+          await disp.updatePointers();
+          return;
+        }
       }
     }
   }
-  if(utils.isDelaying('selChg')) return;
   await disp.updatePointers();
-  utils.startDelaying('selChg');
 }
 
 export async function openFile(item: Item) {

@@ -737,7 +737,7 @@ function saveMarks() {
 
 export async function setMark(funcItem: FuncItem, 
           toggle = false, mark:boolean = false): Promise<boolean | undefined> {
-  log('setMark', funcItem.name, toggle, mark);
+  // log('setMark', funcItem.name, toggle, mark);
   const fsPath = funcItem.getFsPath();
   if(!fsPath) return;
   const funcId  = funcItem.funcId;
@@ -883,7 +883,6 @@ export async function revealFuncInEditor(
     const startPos = document.positionAt(itemDoc.start);
     const endPos   = document.positionAt(itemDoc.end);
     await scrollAndFlash(editor, startPos, endPos, red);
-    utils.startDelaying('selChg');
     editor.selection = new vscode.Selection(startPos, startPos);
   }
   else if(itemDoc) await vscode.window.showTextDocument(

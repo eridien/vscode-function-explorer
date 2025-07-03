@@ -6,22 +6,6 @@ function timeInSecs(ms: number): string {
   return (ms / 1000).toFixed(2);
 }
 
-const delaying: Map<string, NodeJS.Timeout> = new Map();
-export function startDelaying(tag: string, delay = 300) {
-  // start(tag);
-  if(delaying.has(tag)) {
-    clearTimeout(delaying.get(tag));
-    delaying.delete(tag);
-  }
-  delaying.set(tag, setTimeout(() => {
-    delaying.delete(tag);
-    // end(tag);
-  }, delay));
-}
-export function isDelaying(tag: string): boolean {
-  return delaying.has(tag);
-}
-
 export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
 }
