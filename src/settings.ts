@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import * as chokidar from 'chokidar';
-import * as path from 'path';
 import {minimatch} from 'minimatch';
-import type { FSWatcher } from 'chokidar';
+import * as chokidar from 'chokidar';
+import path from 'path';
 import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 
@@ -162,82 +161,59 @@ export function setWatcherCallbacks(
   fileDeleted = fileDeletedIn;
 }
 
-let chokidarWatcher: chokidar.FSWatcher | undefined;
+let watcher: chokidar.FSWatcher | undefined;
 
-function setFileWatcher(filesToInclude: string, filesToExclude: string) {
-  const normalizePath = (p: string) => path.join(p).replace(/\\/g, '/');
-
-  // Normalize input strings
-  filesToInclude = normalizePath(filesToInclude);
-  filesToExclude = normalizePath(filesToExclude);
-
-  // Close previous watcher if it exists
-  if (chokidarWatcher) void chokidarWatcher.close();
-
+async function setFileWatcher(filesToInclude: string, filesToExclude: string) {
+  if (watcher) {
+    await watcher.close().then(() => console.log('Previous watcher closed.'));
+  }
   const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
 
-  // Build include globs
-  const includeGlobs = filesToInclude
-    .split(',')
-    .map(p => p.trim())
-    .filter(Boolean)
-    .map(p => p.startsWith('/') || p.match(/^\w:/) ? normalizePath(p) : normalizePath(path.join(cwd, p)));
+  const excludePatterns = filesToExclude.split(',').map(p => p.trim());
 
-  // Add a broad pattern to ensure folder events are captured
-  includeGlobs.push(normalizePath(path.join(cwd, '**')));
-
-  // Build exclude globs
-  const excludeGlobs = filesToExclude
-    .split(',')
-    .map(p => p.trim())
-    .filter(Boolean)
-    .map(p => normalizePath(p)); // no path.join with cwd
-
-  log('setFileWatcher', { includeGlobs, excludeGlobs, cwd });
-
-  // Create the watcher
-  chokidarWatcher = chokidar.watch(cwd, {
-    ignored: excludeGlobs,
+  watcher = chokidar.watch('.', {
+    cwd,
+    ignored: (filePath) => {
+      const relPath = filePath.replace(/\\/g, '/');
+      return excludePatterns.some(pattern => minimatch(relPath, pattern, { dot: true }));
+    },
+    usePolling: true,
+    interval: 100,
     ignoreInitial: true,
     persistent: true,
-    depth: undefined,
-    awaitWriteFinish: true,
   });
-
-  // Log watched paths after initial scan
-  chokidarWatcher.on('ready', () => {
-    log('Watcher is ready. Watched paths:', 
-        chokidarWatcher?.getWatched());
+  watcher.on('add', (filePath) => {
+    const fullPath = path.join(cwd, filePath);
+    const uri = vscode.Uri.file(fullPath);
+    fileCreated?.(uri);
   });
-
-  // Event handlers
-  chokidarWatcher.on('add', (path: string) => {
-    log('File added:', path);
-    if (fileCreated) fileCreated(vscode.Uri.file(path));
+  watcher.on('addDir', (dirPath) => {
+    log('addDir:', dirPath);
+    const fullPath = path.join(cwd, dirPath);
+    const uri = vscode.Uri.file(fullPath);
+    fileCreated?.(uri);
   });
-
-  chokidarWatcher.on('change', (path: string) => {
-    log('File changed:', path);
-    if (fileChanged) fileChanged(vscode.Uri.file(path));
+  watcher.on('change', (filePath) => {
+    const fullPath = path.join(cwd, filePath);
+    const uri = vscode.Uri.file(fullPath);
+    fileChanged?.(uri);
   });
-
-  chokidarWatcher.on('unlink', (path: string) => {
-    log('File deleted:', path);
-    if (fileDeleted) fileDeleted(vscode.Uri.file(path));
+  watcher.on('unlink', (filePath) => {
+    const fullPath = path.join(cwd, filePath);
+    const uri = vscode.Uri.file(fullPath);
+    fileDeleted?.(uri);
   });
-
-  chokidarWatcher.on('addDir', (path: string) => {
-    log('Folder added:', path);
-    if (fileCreated) fileCreated(vscode.Uri.file(path));
+  watcher.on('unlinkDir', (dirPath) => {
+    const fullPath = path.join(cwd, dirPath);
+    const uri = vscode.Uri.file(fullPath);
+    fileDeleted?.(uri);
   });
-
-  chokidarWatcher.on('unlinkDir', (path: string) => {
-    log('Folder deleted:', path);
-    if (fileDeleted) fileDeleted(vscode.Uri.file(path));
+  watcher.on('ready', () => {
+    log('Watcher is ready.');
   });
 }
 
-export function loadSettings() {
+export async function loadSettings() {
   const config = vscode.workspace.getConfiguration('function-explorer');
   settings = {
     scrollPosition:       config.get('scrollPosition', 
@@ -251,5 +227,5 @@ export function loadSettings() {
   };
   includeFilesPattern   = config.get('filesToInclude', '**/*.js, **/*.ts');
   excludeFoldersPattern = config.get('filesToExclude', 'node_modules/**');
-  setFileWatcher(includeFilesPattern, excludeFoldersPattern);
+  await setFileWatcher(includeFilesPattern, excludeFoldersPattern);
 }
