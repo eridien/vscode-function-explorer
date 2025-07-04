@@ -182,6 +182,7 @@ async function setFileWatcher(filesToInclude: string, filesToExclude: string) {
     ignoreInitial: true,
     persistent: true,
   });
+  
   watcher.on('add', (filePath) => {
     const fullPath = path.join(cwd, filePath);
     const uri = vscode.Uri.file(fullPath);
