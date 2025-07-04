@@ -94,9 +94,9 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  SETTINGS  ////////////
 
   const loadSettings = vscode.workspace
-                             .onDidChangeConfiguration(event => {
+                             .onDidChangeConfiguration(async event => {
     if (event.affectsConfiguration('function-explorer')) {
-      sett.loadSettings();
+      await sett.loadSettings();
       // disp.setFileWatcher();
       // cmds.updateSide();
     }
@@ -161,7 +161,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 ////////////  INIT  ////////////
 
-  sett.loadSettings();
+  await sett.loadSettings();
   await disp.activate(context, treeView, sidebarProvider);
   await cmds.activate();
 

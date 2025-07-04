@@ -163,12 +163,10 @@ export function setWatcherCallbacks(
 
 let watcher: chokidar.FSWatcher | undefined;
 
-async function setFileWatcher(filesToInclude: string, filesToExclude: string) {
-  if (watcher) {
-    await watcher.close().then(() => console.log('Previous watcher closed.'));
-  }
+async function setFileWatcher(filesToExclude: string) {
+  if (watcher) await watcher.close().then(
+                     () => log('Previous watcher closed.'));
   const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
-
   const excludePatterns = filesToExclude.split(',').map(p => p.trim());
 
   watcher = chokidar.watch('.', {
@@ -182,8 +180,9 @@ async function setFileWatcher(filesToInclude: string, filesToExclude: string) {
     ignoreInitial: true,
     persistent: true,
   });
-  
+
   watcher.on('add', (filePath) => {
+    log('addFile:', filePath);
     const fullPath = path.join(cwd, filePath);
     const uri = vscode.Uri.file(fullPath);
     fileCreated?.(uri);
@@ -195,16 +194,19 @@ async function setFileWatcher(filesToInclude: string, filesToExclude: string) {
     fileCreated?.(uri);
   });
   watcher.on('change', (filePath) => {
+    log('changeFile:', filePath);
     const fullPath = path.join(cwd, filePath);
     const uri = vscode.Uri.file(fullPath);
     fileChanged?.(uri);
   });
   watcher.on('unlink', (filePath) => {
+    log('unlinkFile:', filePath);
     const fullPath = path.join(cwd, filePath);
     const uri = vscode.Uri.file(fullPath);
     fileDeleted?.(uri);
   });
   watcher.on('unlinkDir', (dirPath) => {
+    log('unlinkDir:', dirPath);
     const fullPath = path.join(cwd, dirPath);
     const uri = vscode.Uri.file(fullPath);
     fileDeleted?.(uri);
@@ -228,5 +230,5 @@ export async function loadSettings() {
   };
   includeFilesPattern   = config.get('filesToInclude', '**/*.js, **/*.ts');
   excludeFoldersPattern = config.get('filesToExclude', 'node_modules/**');
-  await setFileWatcher(includeFilesPattern, excludeFoldersPattern);
+  await setFileWatcher(excludeFoldersPattern);
 }
