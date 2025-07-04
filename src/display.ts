@@ -283,6 +283,7 @@ export class FileItem extends Item {
       if(!chgs) return [];
       structChg = chgs.structChg;
     }
+    if(!this.children) return [];
     let hasMark = false;
     const funcItems = [...this.children as FuncItem[]].filter( func => {
       const marked = mrks.hasMark(func);

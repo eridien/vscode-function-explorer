@@ -226,21 +226,21 @@ export async function openFile(item: Item) {
   await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
 }
 
-export async function fileCreated(uri: vscode.Uri) {
+export function fileCreated(uri: vscode.Uri) {
   log(`File created: ${uri.path}`);
-  const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-  fileItem.create();
+  // const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
+  // fileItem.create();
 }
-export async function fileChanged(uri: vscode.Uri) {
+export function fileChanged(uri: vscode.Uri) {
   log(`File changed: ${uri.path}`);
-  const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-  fileItem.refresh();
+  // const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
+  // fileItem.refresh();
 }
 export function fileDeleted(uri: vscode.Uri) {
   log(`File deleted: ${uri.path}`);
-  const fileItem = itms.getFldrFileByFsPath(uri.fsPath);
-  if (fileItem instanceof FolderItem || 
-      fileItem instanceof FileItem) 
-    fileItem.delete();
+  // const fileItem = itms.getFldrFileByFsPath(uri.fsPath);
+  // if (fileItem instanceof FolderItem || 
+  //     fileItem instanceof FileItem) 
+  //   fileItem.delete();
 }
 sett.setWatcherCallbacks( fileCreated, fileChanged, fileDeleted );

@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
-import {minimatch} from 'minimatch';
+import * as chokidar from 'chokidar';
 import * as path from 'path';
+import {minimatch} from 'minimatch';
+import type { FSWatcher } from 'chokidar';
 import * as utils  from './utils';
 const {log} = utils.getLog('sett');
 
@@ -160,32 +162,79 @@ export function setWatcherCallbacks(
   fileDeleted = fileDeletedIn;
 }
 
-let fileWatcher: vscode.FileSystemWatcher | undefined;
+let chokidarWatcher: chokidar.FSWatcher | undefined;
 
-function setFileWatcher(filesToInclude: string, 
-                               filesToExclude: string) {
-  if (fileWatcher) fileWatcher.dispose();
+function setFileWatcher(filesToInclude: string, filesToExclude: string) {
+  const normalizePath = (p: string) => path.join(p).replace(/\\/g, '/');
+
+  // Normalize input strings
+  filesToInclude = normalizePath(filesToInclude);
+  filesToExclude = normalizePath(filesToExclude);
+
+  // Close previous watcher if it exists
+  if (chokidarWatcher) void chokidarWatcher.close();
+
+  const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+
+  // Build include globs
   const includeGlobs = filesToInclude
     .split(',')
     .map(p => p.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map(p => p.startsWith('/') || p.match(/^\w:/) ? normalizePath(p) : normalizePath(path.join(cwd, p)));
+
+  // Add a broad pattern to ensure folder events are captured
+  includeGlobs.push(normalizePath(path.join(cwd, '**')));
+
+  // Build exclude globs
   const excludeGlobs = filesToExclude
     .split(',')
     .map(p => p.trim())
-    .filter(Boolean);
-  const includePattern = includeGlobs.length === 1
-    ? includeGlobs[0]
-    : `{${includeGlobs.join(',')}}`;
-  fileWatcher = vscode.workspace.createFileSystemWatcher(includePattern);
-  const shouldIgnore = (uri: vscode.Uri): boolean => {
-    const normalized = uri.fsPath.replace(/\\/g, '/');
-    return excludeGlobs.some(pattern =>
-      minimatch(normalized, pattern, { dot: true })
-    );
-  };
-  fileWatcher.onDidCreate(fileCreated);
-  fileWatcher.onDidChange(fileChanged);
-  fileWatcher.onDidDelete(fileDeleted);
+    .filter(Boolean)
+    .map(p => normalizePath(p)); // no path.join with cwd
+
+  log('setFileWatcher', { includeGlobs, excludeGlobs, cwd });
+
+  // Create the watcher
+  chokidarWatcher = chokidar.watch(cwd, {
+    ignored: excludeGlobs,
+    ignoreInitial: true,
+    persistent: true,
+    depth: undefined,
+    awaitWriteFinish: true,
+  });
+
+  // Log watched paths after initial scan
+  chokidarWatcher.on('ready', () => {
+    log('Watcher is ready. Watched paths:', 
+        chokidarWatcher?.getWatched());
+  });
+
+  // Event handlers
+  chokidarWatcher.on('add', (path: string) => {
+    log('File added:', path);
+    if (fileCreated) fileCreated(vscode.Uri.file(path));
+  });
+
+  chokidarWatcher.on('change', (path: string) => {
+    log('File changed:', path);
+    if (fileChanged) fileChanged(vscode.Uri.file(path));
+  });
+
+  chokidarWatcher.on('unlink', (path: string) => {
+    log('File deleted:', path);
+    if (fileDeleted) fileDeleted(vscode.Uri.file(path));
+  });
+
+  chokidarWatcher.on('addDir', (path: string) => {
+    log('Folder added:', path);
+    if (fileCreated) fileCreated(vscode.Uri.file(path));
+  });
+
+  chokidarWatcher.on('unlinkDir', (path: string) => {
+    log('Folder deleted:', path);
+    if (fileDeleted) fileDeleted(vscode.Uri.file(path));
+  });
 }
 
 export function loadSettings() {
