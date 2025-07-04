@@ -3,6 +3,7 @@ bugs ...
   bounce on some func clicks
 
 todo ...
+  clnup includeFile, use minimatch
   only first root folder watched
   don't show syntax errors in info
   handle fs changes

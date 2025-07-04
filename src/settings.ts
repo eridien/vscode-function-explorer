@@ -29,6 +29,9 @@ export let settings:  FunctionMarksSettings = {
   openFileWhenExpanded: false
 };
 
+let excludeCfg:              string;
+let includeCfg:              string;
+
 async function measureViewportCapacity(editor: vscode.TextEditor): Promise<number> {
   let visibleRanges = editor.visibleRanges;
   if(!visibleRanges || visibleRanges.length == 0) 
@@ -120,32 +123,15 @@ export async function setScroll(editor: vscode.TextEditor,
                          vscode.TextEditorRevealType.AtTop);
 }
 
-let includeFilesPattern:   string;
-let excludeFoldersPattern: string;
-
-export function includeFile( filePath: string, isFolder= false ): boolean {
-  const normalizedPath = path.normalize(filePath).replace(/\\/g, '/');
-  const includeGlobs = includeFilesPattern
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
-  const excludeFolderPatterns = excludeFoldersPattern
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
-  if (isFolder) {
-    const segments = normalizedPath.split('/');
-    const isExcluded = excludeFolderPatterns.some(pattern => {
-      const base = pattern.replace(/\/\*\*$/, ''); // strip trailing /**
-      return segments.includes(base);
-    });
-    return !isExcluded;
-  } else {
-    const isIncluded = includeGlobs.some(pattern =>
-      minimatch(normalizedPath, pattern, { matchBase: true, dot: true })
-    );
-    return isIncluded;
+export function includeFile(fsPath: string, folder?:boolean): boolean {
+  for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
+    if(fsPath === wsFolder.uri.fsPath) return true;
   }
+  let filePath = vscode.workspace.asRelativePath(fsPath, true);
+  filePath = filePath.replace(/\\/g, '/').split('/').slice(1).join('/');
+  const relPath = folder ? filePath + '/' : filePath;
+  if(minimatch(relPath, excludeCfg, { dot: true })) return false;
+  return folder || minimatch(relPath, includeCfg, { dot: true });
 }
 
 let fileChanged: (uri: vscode.Uri) => void;
@@ -163,11 +149,11 @@ export function setWatcherCallbacks(
 
 let watcher: chokidar.FSWatcher | undefined;
 
-async function setFileWatcher(filesToExclude: string) {
+async function setFileWatcher(foldersToExclude: string) {
   if (watcher) await watcher.close().then(
                      () => log('Previous watcher closed.'));
   const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
-  const excludePatterns = filesToExclude.split(',').map(p => p.trim());
+  const excludePatterns = foldersToExclude.split(',').map(p => p.trim());
 
   watcher = chokidar.watch('.', {
     cwd,
@@ -228,7 +214,15 @@ export async function loadSettings() {
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
     topMargin:            config.get('topMargin',                3),
   };
-  includeFilesPattern   = config.get('filesToInclude', '**/*.js, **/*.ts');
-  excludeFoldersPattern = config.get('filesToExclude', 'node_modules/**');
+  const includeFilesPattern = 
+            config.get<string>("filesToInclude", "**/*.js, **/*.ts")
+                  .split(",").map(p => p.trim());
+  const excludeFoldersPattern = config.get('foldersToExclude', 'node_modules/**');
+  if(includeFilesPattern.length < 2) includeCfg = includeFilesPattern[0];
+  else                    includeCfg = '{'+includeFilesPattern.join(",")+'}';
+  const excParts = config.get<string>("filesToExclude", "node_modules/**")
+                         .split(",").map(p => p.trim());
+  if(excParts.length < 2) excludeCfg =     excParts[0];
+  else                    excludeCfg = '{'+excParts.join(",")+'}';
   await setFileWatcher(excludeFoldersPattern);
 }
