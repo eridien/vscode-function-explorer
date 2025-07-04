@@ -58,6 +58,13 @@ class Items {
       Items.fldrItemsByFspath.delete(folderItem.fsPath);
     }
   }
+  deleteFileById(id: string) {
+    const fileItem = Items.itemsById.get(id) as FileItem;
+    if(fileItem) {
+      Items.itemsById.delete(id);
+      Items.fldrItemsByFspath.delete(fileItem.document.uri.fsPath);
+    }
+  }
   setFolderItem(item: WsAndFolderItem) {
     Items.fldrItemsByFspath.set(item.fsPath, item);
     Items.itemsById.set(item.id, item);
@@ -304,6 +311,15 @@ export class FileItem extends Item {
   refresh() {
   }
   delete() {
+    itms.deleteFileById(this.id);
+    if(this.children) {
+      for(const child of this.children) child.delete();
+    }
+    if(this.parent) {
+      this.parent.children = null;
+      log('FileItem deleted, parent:', this.parent.label);
+      updateItemInTree(this.parent);
+    }
   }
 }
 
@@ -434,6 +450,12 @@ export class FuncItem extends Item {
     this.iconPath    = this.getIconPath();
   }
   delete() {
+    itms.delFuncSetByFuncId(this.funcId);
+    if(this.parent) {
+      this.parent.children = null;
+      log('FuncItem deleted, parent:', this.parent.label);
+      updateItemInTree(this.parent);
+    }
   }
 }
 
@@ -806,25 +828,6 @@ export async function updatePointers() {
 
 ///////////////////// editor text //////////////////////
 
-// export async function getFuncAtLine(
-//                 fsPath: string, lineNumber: number) : FuncItem | null {
-//   const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-//   const children = fileItem.getChildren() as FuncItem[] | undefined;
-//   if (!children || children.length === 0) return null;
-//   let minFunc: FuncItem | null = null;
-//   let minFuncLen = 1e9;
-//   for(const func of children) {
-//     if(lineNumber >= func.getStartLine() && 
-//        lineNumber < (func.getEndLine() + 1)) {
-//       if((func.getEndLine() - func.getStartLine()) < minFuncLen) {
-//         minFuncLen = func.getEndLine() - func.getStartLine();
-//         minFunc = func;
-//       }
-//     }
-//   }
-//   return minFunc;
-// }
-
 export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return null;
@@ -965,7 +968,11 @@ class Files {
     return Array.from(Files.includedfsPaths).sort();
   }
   deleteByFsPath(fsPath: string) {
-    Files.includedfsPaths.delete(fsPath);
+    for(const includedPath of Files.includedfsPaths) {
+      if (includedPath.startsWith(fsPath)) {
+        Files.includedfsPaths.delete(includedPath);
+      }
+    }
   }
 }
 const files = new Files();

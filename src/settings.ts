@@ -29,8 +29,8 @@ export let settings:  FunctionMarksSettings = {
   openFileWhenExpanded: false
 };
 
-let excludeCfg:              string;
-let includeCfg:              string;
+let excludeCfg: string;
+let includeCfg: string;
 
 async function measureViewportCapacity(editor: vscode.TextEditor): Promise<number> {
   let visibleRanges = editor.visibleRanges;
@@ -149,17 +149,18 @@ export function setWatcherCallbacks(
 
 let watcher: chokidar.FSWatcher | undefined;
 
-async function setFileWatcher(foldersToExclude: string) {
+async function setFileWatcher(filesToExclude: string) {
   if (watcher) await watcher.close().then(
                      () => log('Previous watcher closed.'));
   const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
-  const excludePatterns = foldersToExclude.split(',').map(p => p.trim());
+  const excludePatterns = filesToExclude.split(',').map(p => p.trim());
 
   watcher = chokidar.watch('.', {
     cwd,
     ignored: (filePath) => {
       const relPath = filePath.replace(/\\/g, '/');
-      return excludePatterns.some(pattern => minimatch(relPath, pattern, { dot: true }));
+      return excludePatterns.some(
+                 pattern => minimatch(relPath, pattern, { dot: true }));
     },
     usePolling: true,
     interval: 100,
@@ -217,12 +218,12 @@ export async function loadSettings() {
   const includeFilesPattern = 
             config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                   .split(",").map(p => p.trim());
-  const excludeFoldersPattern = config.get('foldersToExclude', 'node_modules/**');
+  const excludeFoldersPattern = config.get('filesToExclude', 'node_modules/');
   if(includeFilesPattern.length < 2) includeCfg = includeFilesPattern[0];
   else                    includeCfg = '{'+includeFilesPattern.join(",")+'}';
-  const excParts = config.get<string>("filesToExclude", "node_modules/**")
+  const excParts = excludeFoldersPattern
                          .split(",").map(p => p.trim());
-  if(excParts.length < 2) excludeCfg =     excParts[0];
+  if(excParts.length < 2) excludeCfg = excParts[0];
   else                    excludeCfg = '{'+excParts.join(",")+'}';
   await setFileWatcher(excludeFoldersPattern);
 }
