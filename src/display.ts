@@ -51,6 +51,13 @@ class Items {
   getById(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }
+  deleteFolderById(id: string) {
+    const folderItem = Items.itemsById.get(id) as FolderItem;
+    if(folderItem) {
+      Items.itemsById.delete(id);
+      Items.fldrItemsByFspath.delete(folderItem.fsPath);
+    }
+  }
   setFolderItem(item: WsAndFolderItem) {
     Items.fldrItemsByFspath.set(item.fsPath, item);
     Items.itemsById.set(item.id, item);
@@ -101,6 +108,7 @@ export class Item extends vscode.TreeItem {
     }
     return parents;
   }
+  refresh() {}
 }
 
 export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
@@ -146,10 +154,6 @@ export class WsAndFolderItem extends Item {
     const files:   Item[] = [];
     await getFolderChildren(this, folders, files, this.root);
     return [...folders, ...files];
-  }
-  create()  {}
-  refresh() {}
-  delete()  {
   }
 }
 
@@ -235,6 +239,23 @@ export class FolderItem extends WsAndFolderItem {
   static create(uri: vscode.Uri): FolderItem | null {
     if (!files.hasIncludedFile(uri.fsPath)) return null;
     return new FolderItem(uri);
+  }
+  create()  {}
+  refresh() {}
+  delete()  {
+    itms.deleteFolderById(this.id);
+    files.deleteByFsPath(this.fsPath);
+    if(this.children) {
+      for(const child of this.children) {
+        if(child instanceof FolderItem || 
+           child instanceof FileItem) child.delete();
+      }
+    }
+    if(this.parent) {
+      this.parent.children = null;
+      log('FolderItem deleted, parent:', this.parent.label);
+      updateItemInTree(this.parent);
+    }
   }
 }
 
@@ -941,6 +962,9 @@ class Files {
   }
   sortedFsPaths(): string[] {
     return Array.from(Files.includedfsPaths).sort();
+  }
+  deleteByFsPath(fsPath: string) {
+    Files.includedfsPaths.delete(fsPath);
   }
 }
 const files = new Files();

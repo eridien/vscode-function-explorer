@@ -239,7 +239,7 @@ export async function fileChanged(uri: vscode.Uri) {
 export function fileDeleted(uri: vscode.Uri) {
   log(`File deleted: ${uri.path}`);
   const fileItem = itms.getFldrFileByFsPath(uri.fsPath);
-  if (fileItem instanceof WsAndFolderItem || 
+  if (fileItem instanceof FolderItem || 
       fileItem instanceof FileItem) 
     fileItem.delete();
 }
