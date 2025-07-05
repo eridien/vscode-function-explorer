@@ -1,6 +1,7 @@
 bugs ...
   many settings don't immediately change sidebar
   bounce on some func clicks
+  loading is slow
 
 todo ...
   clnup includeFile, use minimatch

@@ -48,34 +48,25 @@ class Items {
     }
     return result;
   }
+
   getById(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }
-  deleteFolderById(id: string) {
-    const folderItem = Items.itemsById.get(id) as FolderItem;
-    if(folderItem) {
-      Items.itemsById.delete(id);
-      Items.fldrItemsByFspath.delete(folderItem.fsPath);
-    }
-  }
-  deleteFileById(id: string) {
-    const fileItem = Items.itemsById.get(id) as FileItem;
-    if(fileItem) {
-      Items.itemsById.delete(id);
-      Items.fldrItemsByFspath.delete(fileItem.document.uri.fsPath);
-    }
-  }
+
   setFolderItem(item: WsAndFolderItem) {
     Items.fldrItemsByFspath.set(item.fsPath, item);
     Items.itemsById.set(item.id, item);
   }
+
   setFileItem(item: FileItem) {
     Items.fldrItemsByFspath.set(item.document.uri.fsPath, item);
     Items.itemsById.set(item.id, item);
   }
+
   getFldrFileByFsPath(fsPath:string): AllButFuncItem | null {
     return Items.fldrItemsByFspath.get(fsPath) ?? null;
   }
+
   setFunc(item: FuncItem) {
     if(!item.funcId) return;
     let set = Items.funcItemsByFuncId.get(item.funcId);
@@ -86,15 +77,38 @@ class Items {
     set.add(item);
     Items.itemsById.set(item.id, item);
   }
+
   getFuncSetByFuncId(funcId: string): Set<FuncItem>  | undefined {
     return Items.funcItemsByFuncId.get(funcId);
   }
+
+  deleteFolderById(id: string) {
+    const folderItem = Items.itemsById.get(id) as FolderItem;
+    if(folderItem) {
+      Items.itemsById.delete(id);
+      Items.fldrItemsByFspath.delete(folderItem.fsPath);
+    }
+  }
+
+  deleteFileById(id: string) {
+    const fileItem = Items.itemsById.get(id) as FileItem;
+    if(fileItem) {
+      Items.itemsById.delete(id);
+      Items.fldrItemsByFspath.delete(fileItem.document.uri.fsPath);
+    }
+  }
+
+  deleteFuncById(id: string) {
+    Items.itemsById.delete(id);
+  }
+
   delFuncSetByFuncId(funcId: string): Set<FuncItem> {
     const funcSet = itms.getFuncSetByFuncId(funcId) ?? new Set<FuncItem>();
     Items.funcItemsByFuncId.delete(funcId);
     return funcSet;
   }
 }
+
 export const itms = new Items();
 
 let nextItemId = 0;
@@ -166,6 +180,7 @@ export class WsAndFolderItem extends Item {
 
 async function getFolderChildren(parent: WsAndFolderItem,
                 foldersIn: Item[], filesIn: Item[], root = false) {
+  // log(`getFolderChildren, parent.fsPath ${parent.fsPath}`);
   const parentFsPath = parent.fsPath;
   if(root && settings.flattenFolders) {
     files.sortedFsPaths().forEach(fsPath => {
@@ -178,29 +193,36 @@ async function getFolderChildren(parent: WsAndFolderItem,
       foldersIn.push(folderItem);
     });
   }
-  const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
-  for (const entry of entries) {
-    const fsPath    = path.join(parentFsPath, entry.name);
-    const uri       = vscode.Uri.file(fsPath);
-    if(uri.scheme !== 'file') continue;
-    const isDir = entry.isDirectory();
-    if(!sett.includeFile(fsPath, isDir)) continue;
-    if(isDir) {
-      if(!files.hasIncludedFile(fsPath)) continue;
-      if(settings.flattenFolders) continue;
-      const folderItem = getOrMakeFolderItemByFsPath(fsPath);
-      if(!folderItem ||
-          folderItem.contextValue === 'wsFolder') continue;
-      folderItem.parent = parent;
-      foldersIn.push(folderItem);
-      continue;
+  try {
+    const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
+    // log('getFolderChildren readdir', entries);
+    for (const entry of entries) {
+      const fsPath    = path.join(parentFsPath, entry.name);
+      const uri       = vscode.Uri.file(fsPath);
+      if(uri.scheme !== 'file') continue;
+      const isDir = entry.isDirectory();
+      if(!sett.includeFile(fsPath, isDir)) continue;
+      if(isDir) {
+        if(!files.hasIncludedFile(fsPath)) continue;
+        if(settings.flattenFolders) continue;
+        const folderItem = getOrMakeFolderItemByFsPath(fsPath);
+        if(!folderItem ||
+            folderItem.contextValue === 'wsFolder') continue;
+        folderItem.parent = parent;
+        foldersIn.push(folderItem);
+        continue;
+      }
+      if(entry.isFile()) {
+        const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+        fileItem.parent = parent;
+        filesIn.push(fileItem);
+        continue;
+      }
     }
-    if(entry.isFile()) {
-      const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-      fileItem.parent = parent;
-      filesIn.push(fileItem);
-      continue;
-    }
+  } 
+  catch (error) { 
+    log('errmsg', error, 'getFolderChildren', parent.fsPath);
+    return; 
   }
 }
 
@@ -220,6 +242,8 @@ export class WsFolderItem extends WsAndFolderItem {
     return new WsFolderItem(wsFolder, root);
   }
 }
+
+export let itemDeleteCount = 0;
 
 /////////////////////// FolderItem //////////////////////
 
@@ -250,6 +274,7 @@ export class FolderItem extends WsAndFolderItem {
   create()  {}
   refresh() {}
   delete()  {
+    itemDeleteCount++;
     itms.deleteFolderById(this.id);
     files.deleteByFsPath(this.fsPath);
     if(this.children) {
@@ -263,6 +288,7 @@ export class FolderItem extends WsAndFolderItem {
       log('FolderItem deleted, parent:', this.parent.label);
       updateItemInTree(this.parent);
     }
+    itemDeleteCount--;
   }
 }
 
@@ -311,6 +337,7 @@ export class FileItem extends Item {
   refresh() {
   }
   delete() {
+    itemDeleteCount++;
     itms.deleteFileById(this.id);
     if(this.children) {
       for(const child of this.children) child.delete();
@@ -320,6 +347,7 @@ export class FileItem extends Item {
       log('FileItem deleted, parent:', this.parent.label);
       updateItemInTree(this.parent);
     }
+    itemDeleteCount--;
   }
 }
 
@@ -450,12 +478,15 @@ export class FuncItem extends Item {
     this.iconPath    = this.getIconPath();
   }
   delete() {
+    itemDeleteCount++;
+    itms.deleteFuncById(this.id);
     itms.delFuncSetByFuncId(this.funcId);
     if(this.parent) {
       this.parent.children = null;
       log('FuncItem deleted, parent:', this.parent.label);
       updateItemInTree(this.parent);
     }
+    itemDeleteCount--;
   }
 }
 
@@ -935,24 +966,31 @@ class Files {
     Files.includedfsPaths.clear();
   }
   async loadPaths(fsPath: string) {
+    // log('loadPaths start', fsPath);
     let pathCount = 0;
     async function findFuncFiles(fsPath: string) {
       let stat;
-      try { stat = await fs.stat(fsPath);
-      } catch { return; }
-      if (stat.isDirectory()) {
-        if(!sett.includeFile(fsPath, true)) return;
-        let entries: string[];
-        try { entries = await fs.readdir(fsPath); } 
-        catch { return; }
-        for (const entry of entries) {
-          const childPath = path.join(fsPath, entry);
-          await findFuncFiles(childPath);
+      try{
+        stat = await fs.stat(fsPath);
+        // log('loadPaths stat', fsPath);
+        if (stat.isDirectory()) {
+          if(!sett.includeFile(fsPath, true)) return;
+          let entries: string[];
+          entries = await fs.readdir(fsPath);
+          // log('loadPaths readdir entries', fsPath, entries);
+          for (const entry of entries) {
+            const childPath = path.join(fsPath, entry);
+            await findFuncFiles(childPath);
+          }
+        }
+        else if(sett.includeFile(fsPath)) {
+          Files.includedfsPaths.add(path.dirname(fsPath));
+          pathCount++;
         }
       }
-      else if(sett.includeFile(fsPath)) {
-        Files.includedfsPaths.add(path.dirname(fsPath));
-        pathCount++;
+      catch (err) { 
+        log('errmsg', err, 'loadPaths error', fsPath);
+        return; 
       }
     }
     await findFuncFiles(fsPath);

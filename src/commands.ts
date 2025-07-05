@@ -1,7 +1,7 @@
 import * as vscode      from 'vscode';
 import * as disp        from './display';
 import {Item, WsAndFolderItem, FolderItem, 
-        FileItem, FuncItem, itms} from './display';
+        FileItem, FuncItem, itms, itemDeleteCount} from './display';
 import * as sett        from './settings';
 import {settings}       from './settings';
 import * as utils       from './utils';
@@ -13,7 +13,6 @@ const NEXT_DEBUG = false;
 
 export async function activate() {
   await editorOrTextChg();
-  // setFileWatcher();
 }
 
 // export async function toggleCmd() {
@@ -231,16 +230,33 @@ export function fileCreated(uri: vscode.Uri) {
   // const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
   // fileItem.create();
 }
-export function fileChanged(uri: vscode.Uri) {
-  log(`File changed: ${uri.path}`);
-  // const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-  // fileItem.refresh();
+
+const fileDeletedQueue: vscode.Uri[] = [];
+let tryCount = 0;
+
+export function fileDeleted(uri: vscode.Uri, retry = false) {
+  if(++tryCount > 10) { // 1 sec
+    log('err', 'fileDeleted, too many tries:', fileDeletedQueue);
+    tryCount = 0;
+    fileDeletedQueue.length = 0;
+    return;
+  }
+  if(itemDeleteCount > 0) {
+    if(!retry) fileDeletedQueue.push(uri);
+    setTimeout(() => {
+      if(fileDeletedQueue.length > 0) 
+         fileDeleted(fileDeletedQueue.shift()!, true);
+    }, 100);
+  }
+  tryCount = 0;
+  log(`fileDeleted, deleting ${uri.path}`);   // 1
+  const fileItem = itms.getFldrFileByFsPath(uri.fsPath);
+  log(`fileDeleted, got fileItem`, fileItem?.label); // 2 
+  if (fileItem && (
+      fileItem instanceof FolderItem || 
+      fileItem instanceof FileItem)) {
+    log(`fileDeleted, fileItem.delete`, fileItem?.label);  // 3
+    fileItem.delete();
+  }
 }
-export function fileDeleted(uri: vscode.Uri) {
-  log(`File deleted: ${uri.path}`);
-  // const fileItem = itms.getFldrFileByFsPath(uri.fsPath);
-  // if (fileItem instanceof FolderItem || 
-  //     fileItem instanceof FileItem) 
-  //   fileItem.delete();
-}
-sett.setWatcherCallbacks( fileCreated, fileChanged, fileDeleted );
+sett.setWatcherCallbacks( fileCreated, fileDeleted );
