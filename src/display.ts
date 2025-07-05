@@ -18,9 +18,9 @@ let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
 let sidebarProvider: SidebarProvider;
 
-export async function activate(contextIn:         vscode.ExtensionContext,
-                         treeViewIn:        vscode.TreeView<Item>,
-                         sidebarProviderIn: SidebarProvider) {
+export async function activate(contextIn:  vscode.ExtensionContext,
+                               treeViewIn:        vscode.TreeView<Item>,
+                               sidebarProviderIn: SidebarProvider) {
   context         = contextIn;
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
@@ -259,13 +259,13 @@ export class FolderItem extends WsAndFolderItem {
     if(this.children) {
       for(const child of this.children) {
         if(child instanceof FolderItem || 
-           child instanceof FileItem) child.delete();
+           child instanceof FileItem) 
+          child.delete();
       }
     }
     if(this.parent) {
       this.parent.children = null;
       log('FolderItem deleted, parent:', this.parent.label);
-      updateItemInTree(this.parent);
     }
     itemDeleteCount--;
   }
@@ -317,10 +317,11 @@ export class FileItem extends Item {
     if(this.children) {
       for(const child of this.children) child.delete();
     }
-    if(this.parent) {
-      this.parent.children = null;
-      log('FileItem deleted, parent:', this.parent.label);
-      updateItemInTree(this.parent);
+    let parent = this.parent;
+    while(parent) {
+      parent.children = null;
+      log('FileItem set to null', parent.label);
+      parent = parent.parent as WsAndFolderItem | null;
     }
     itemDeleteCount--;
   }
@@ -461,11 +462,7 @@ export class FuncItem extends Item {
     itemDeleteCount++;
     itms.deleteFuncById(this.id);
     itms.delFuncSetByFuncId(this.funcId);
-    if(this.parent) {
-      this.parent.children = null;
-      log('FuncItem deleted, parent:', this.parent.label);
-      updateItemInTree(this.parent);
-    }
+    if(this.parent) this.parent.children = null;
     itemDeleteCount--;
   }
 }
@@ -501,18 +498,20 @@ export async function getTree() {
   if (!settings.hideRootFolders) {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) {
+      // await files.loadPaths(wsFolder.uri.fsPath);
       const wsFolderItem = await getOrMakeWsFolderItem(wsFolder);
       tree.push(wsFolderItem);
     }
     return tree;
   }
-  const folders: Item[] = [];
-  const files:   Item[] = [];
+  const foldersIn: Item[] = [];
+  const filesIn:   Item[] = [];
   for(const wsFolder of wsFolders){
+    // await files.loadPaths(wsFolder.uri.fsPath);
     const wsFolderItem = await getOrMakeWsFolderItem(wsFolder);
-    await getFolderChildren(wsFolderItem, folders, files, true);
+    await getFolderChildren(wsFolderItem, foldersIn, filesIn, true);
   }
-  return [...folders, ...files];
+  return [...foldersIn, ...filesIn];
 }
 
 ///////////////// updateFileChildrenFromAst //////////////////////
@@ -598,20 +597,20 @@ export class SidebarProvider {
       return;
     }
     for(const queueItem of refreshQueue) {
-      // log('refresh1', item?.label, item?.id);
+      log('refresh1', item?.label, item?.id);
       this._onDidChangeTreeData.fire(queueItem);
     }
     refreshQueue.length = 0;
-    // log('refresh2', item?.label, item?.id);
+    log('refresh2', item?.label, item?.id);
     this._onDidChangeTreeData.fire(item);
   }
 
   getTreeItem(itemIn: Item): Item {
-    // log('getTreeItem start', itemIn.label, itemIn.id);
     ignoreItemRefreshCalls = false;
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
     const item        = itms.getById(itemInId);
+    log('getTreeItem start', itemInLabel, item?.label);
     if(!item) {
       log('err', 'getTreeItem, item not found:', itemInLabel);
       return itemIn;
@@ -619,21 +618,21 @@ export class SidebarProvider {
     item.refresh();
     if(item !== itemIn || item.id !== itemInId) {
       log('err', 'getTreeItem, item return mismatch:', 
-                  itemInId, itemInLabel, item.id, item.label);
+                  itemInLabel, item.label);
       return itemIn;
     }
-    // log('getTreeItem end', itemIn.label, itemIn.id);
+    log('getTreeItem end', itemIn.label, item?.label);
     return item;
   }
 
   getParent(item: Item): Item | null {
-    // log('getParent', item.label, item.id);
+    log('getParent', item.label);
     if(item?.parent) return item.parent;
     return null;
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    // log('getChildren', item?.label, item?.id);
+    log('getChildren', item?.label);
     delayItemRefreshCalls = true;
     if(!item) {
       const tree = await getTree();
@@ -644,10 +643,10 @@ export class SidebarProvider {
       delayItemRefreshCalls = false;
       return [];
     }
-    const getChildren = 
+    const children = 
              await (item as WsAndFolderItem | FileItem).getChildren();
     delayItemRefreshCalls = false;
-    return getChildren;
+    return children;
   }
 }
 
@@ -830,6 +829,7 @@ export async function setMark(funcItem: FuncItem,
 let pointerItems = new Set<FuncItem>();
 
 export async function updatePointers() {
+  if(!treeView) debugger;
   if(!treeView.visible) return;
   const oldPointerItems = new Set(pointerItems);
   pointerItems.clear();

@@ -234,7 +234,7 @@ export function fileCreated(fsPath: string) {
     const fldrFilePath = itms.getFldrFileByFsPath(fsPath);
     if(fldrFilePath) {
       fldrFilePath.children = null; 
-      disp.updateItemInTree(fldrFilePath);
+      disp.updateItemInTree();
       return;
     }
     fsPathSegs.pop();
@@ -245,6 +245,7 @@ const fileDeletedQueue: vscode.Uri[] = [];
 let tryCount = 0;
 
 export function fileDeleted(uri: vscode.Uri, retry = false) {
+  start('fileDeleted');
   if(++tryCount > 10) { // 1 sec
     log('err', 'fileDeleted, too many tries:', fileDeletedQueue);
     tryCount = 0;
@@ -266,5 +267,6 @@ export function fileDeleted(uri: vscode.Uri, retry = false) {
     fldrFileItem.delete();
     disp.updateItemInTree();
   }
+  end('fileDeleted');
 }
 sett.setWatcherCallbacks( fileCreated, fileDeleted );

@@ -5,6 +5,8 @@ bugs ...
   delete file leaves folder
 
 todo ...
+  no iconpath on ws and folders (option?)
+  is loadPaths cleared?
   deleteFuncById should also remove func from set
   don't show syntax errors in info
   finish sidebar refresh command/menu

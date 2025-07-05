@@ -147,41 +147,24 @@ export function setWatcherCallbacks(
 
 let watchers: chokidar.FSWatcher[] = [];
 
-// Create a watcher for each workspace folder
 async function setFileWatcher(filesToExclude: string) {
   start('setFileWatcher');
-
   if (watchers.length > 0) {
     await Promise.all(watchers.map(watcher => watcher.close()))
       .then(() => log('Previous watchers closed.'));
   }
-
   const excludePatterns = filesToExclude.split(',').map(p => p.trim());
-
   const wsFolders = vscode.workspace.workspaceFolders || [];
   for (const wsFolder of wsFolders) {
     const wsPath = wsFolder.uri.fsPath;
-    const allowedGlobs: string[] = [];
+    const allowedPaths: string[] = [];
     const entries = await fs.readdir(wsPath, { withFileTypes: true });
     for (const entry of entries) {
       const entryPath = path.join(wsPath, entry.name);
-      if (includeFile(entryPath, entry.isDirectory())) {
-        if (entry.isDirectory()) {
-          allowedGlobs.push(entryPath + '/**');
-        } else {
-          allowedGlobs.push(entryPath);
-        }
-      }
+      if (includeFile(entryPath, entry.isDirectory())) 
+        allowedPaths.push(entryPath);
     }
-    let allowedGlob = '';
-    if (allowedGlobs.length === 1) {
-      allowedGlob = allowedGlobs[0];
-    } else if (allowedGlobs.length > 1) {
-      allowedGlob = '{' + allowedGlobs.join(',') + '}';
-    } else {
-      allowedGlob = '**/*'; // fallback
-    }
-    const watcherInstance = chokidar.watch(allowedGlob, {
+    const watcherInstance = chokidar.watch(allowedPaths, {
       cwd: wsPath,
       ignored: (filePath) => {
         const relPath = filePath.replace(/\\/g, '/');
@@ -193,6 +176,7 @@ async function setFileWatcher(filesToExclude: string) {
       interval: 100,
       ignoreInitial: true,
       persistent: true,
+      awaitWriteFinish: true,
     });
     watcherInstance.on('add', (filePath) => {
       log('addFile:', filePath);
