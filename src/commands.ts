@@ -249,14 +249,12 @@ export function fileDeleted(uri: vscode.Uri, retry = false) {
     }, 100);
   }
   tryCount = 0;
-  log(`fileDeleted, deleting ${uri.path}`);   // 1
-  const fileItem = itms.getFldrFileByFsPath(uri.fsPath);
-  log(`fileDeleted, got fileItem`, fileItem?.label); // 2 
-  if (fileItem && (
-      fileItem instanceof FolderItem || 
-      fileItem instanceof FileItem)) {
-    log(`fileDeleted, fileItem.delete`, fileItem?.label);  // 3
-    fileItem.delete();
+  const fldrFileItem = itms.getFldrFileByFsPath(uri.fsPath);
+  if (fldrFileItem && (
+      fldrFileItem instanceof FolderItem || 
+      fldrFileItem instanceof FileItem)) {
+    fldrFileItem.delete();
+    disp.updateItemInTree();
   }
 }
 sett.setWatcherCallbacks( fileCreated, fileDeleted );

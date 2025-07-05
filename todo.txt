@@ -4,7 +4,7 @@ bugs ...
   loading is slow
 
 todo ...
-  clnup includeFile, use minimatch
+  deleteFuncById should also remove func from set
   only first root folder watched
   don't show syntax errors in info
   handle fs changes
