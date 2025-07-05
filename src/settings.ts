@@ -134,11 +134,11 @@ export function includeFile(fsPath: string, folder?:boolean): boolean {
   return folder || minimatch(relPath, includeCfg, { dot: true });
 }
 
-let fileCreated: (uri: vscode.Uri) => void;
+let fileCreated: (fsPath: string) => void;
 let fileDeleted: (uri: vscode.Uri) => void;
 
 export function setWatcherCallbacks(
-       fileCreatedIn: (uri: vscode.Uri) => void,
+       fileCreatedIn: (fsPath: string) => void,
        fileDeletedIn: (uri: vscode.Uri) => void) {
   fileCreated = fileCreatedIn;
   fileDeleted = fileDeletedIn;
@@ -167,15 +167,13 @@ async function setFileWatcher(filesToExclude: string) {
 
   watcher.on('add', (filePath) => {
     log('addFile:', filePath);
-    const fullPath = path.join(cwd, filePath);
-    const uri = vscode.Uri.file(fullPath);
-    fileCreated?.(uri);
+    const fsPath = path.join(cwd, filePath);
+    fileCreated?.(fsPath);
   });
   watcher.on('addDir', (dirPath) => {
     log('addDir:', dirPath);
-    const fullPath = path.join(cwd, dirPath);
-    const uri = vscode.Uri.file(fullPath);
-    fileCreated?.(uri);
+    const fsPath = path.join(cwd, dirPath);
+    fileCreated?.(fsPath);
   });
   watcher.on('unlink', (filePath) => {
     log('unlinkFile:', filePath);

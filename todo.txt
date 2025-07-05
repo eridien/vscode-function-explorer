@@ -2,7 +2,8 @@ bugs ...
   many settings don't immediately change sidebar
   bounce on some func clicks
   loading is slow
-
+  delete file leaves folder
+  
 todo ...
   deleteFuncById should also remove func from set
   only first root folder watched

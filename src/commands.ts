@@ -1,4 +1,5 @@
 import * as vscode      from 'vscode';
+import * as path        from 'path';
 import * as disp        from './display';
 import {Item, WsAndFolderItem, FolderItem, 
         FileItem, FuncItem, itms, itemDeleteCount} from './display';
@@ -225,10 +226,19 @@ export async function openFile(item: Item) {
   await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
 }
 
-export function fileCreated(uri: vscode.Uri) {
-  log(`File created: ${uri.path}`);
-  // const fileItem = await disp.getOrMakeFileItemByFsPath(uri.fsPath);
-  // fileItem.create();
+export function fileCreated(fsPath: string) {
+  log(`File created: ${fsPath}`);
+  const fsPathSegs = fsPath.split(path.sep);
+  while(fsPathSegs.length > 1) {
+    const fsPath       = fsPathSegs.join(path.sep);
+    const fldrFilePath = itms.getFldrFileByFsPath(fsPath);
+    if(fldrFilePath) {
+      fldrFilePath.children = null; 
+      disp.updateItemInTree(fldrFilePath);
+      return;
+    }
+    fsPathSegs.pop();
+  }
 }
 
 const fileDeletedQueue: vscode.Uri[] = [];

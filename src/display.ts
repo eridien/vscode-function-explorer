@@ -121,11 +121,6 @@ export class Item extends vscode.TreeItem {
   parent?:      Item   | null = null;
   children?:    Item[] | null = null;
   refresh() {}
-  clear() {
-    if(this.children) {
-      for(const child of this.children) child.clear();
-    }
-  }
 }
 
 export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
@@ -257,8 +252,6 @@ export class FolderItem extends WsAndFolderItem {
     if (!files.hasIncludedFile(uri.fsPath)) return null;
     return new FolderItem(uri);
   }
-  create()  {}
-  refresh() {}
   delete()  {
     itemDeleteCount++;
     itms.deleteFolderById(this.id);
@@ -318,10 +311,6 @@ export class FileItem extends Item {
     if(structChg) updateItemInTree(this);
     return funcItems;
   };
-  create() {
-  }
-  refresh() {
-  }
   delete() {
     itemDeleteCount++;
     itms.deleteFileById(this.id);
@@ -408,7 +397,6 @@ export class FuncItem extends Item {
     this.id           = getItemId();
     this.contextValue = 'func';
     this.description  = this.getDescription();
-    this.refresh();
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',
@@ -464,8 +452,6 @@ export class FuncItem extends Item {
   getIconPath() {
      return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;
   }
-  create() {
-  }
   refresh(){
     this.label       = this.getLabel();
     this.description = this.getDescription();
@@ -516,7 +502,6 @@ export async function getTree() {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) {
       const wsFolderItem = await getOrMakeWsFolderItem(wsFolder);
-      wsFolderItem.clear();
       tree.push(wsFolderItem);
     }
     return tree;
@@ -525,7 +510,6 @@ export async function getTree() {
   const files:   Item[] = [];
   for(const wsFolder of wsFolders){
     const wsFolderItem = await getOrMakeWsFolderItem(wsFolder);
-    wsFolderItem.clear();
     await getFolderChildren(wsFolderItem, folders, files, true);
   }
   return [...folders, ...files];
@@ -960,9 +944,6 @@ export async function revealFuncInEditor(
 
 class Files {
   private static includedfsPaths = new Set<string>();
-  clear() {
-    Files.includedfsPaths.clear();
-  }
   async loadPaths(fsPath: string) {
     // log('loadPaths start', fsPath);
     let pathCount = 0;
