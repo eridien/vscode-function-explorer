@@ -145,66 +145,82 @@ export function setWatcherCallbacks(
   fileDeleted = fileDeletedIn;
 }
 
-let watcher: chokidar.FSWatcher | undefined;
+let watchers: chokidar.FSWatcher[] = [];
 
+// Create a watcher for each workspace folder
 async function setFileWatcher(filesToExclude: string) {
   start('setFileWatcher');
-  if (watcher) await watcher.close().then(
-                     () => log('Previous watcher closed.'));
-  const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+
+  if (watchers.length > 0) {
+    await Promise.all(watchers.map(watcher => watcher.close()))
+      .then(() => log('Previous watchers closed.'));
+  }
+
   const excludePatterns = filesToExclude.split(',').map(p => p.trim());
-  const allowedFolders: string[] = [];
-  for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
+
+  const wsFolders = vscode.workspace.workspaceFolders || [];
+  for (const wsFolder of wsFolders) {
     const wsPath = wsFolder.uri.fsPath;
-    const entries = await fs.readdir(wsPath, {withFileTypes: true});
+    const allowedGlobs: string[] = [];
+    const entries = await fs.readdir(wsPath, { withFileTypes: true });
     for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const fsPath = path.join(wsPath, entry.name);
-        if (includeFile(fsPath, true)) allowedFolders.push(fsPath);
+      const entryPath = path.join(wsPath, entry.name);
+      if (includeFile(entryPath, entry.isDirectory())) {
+        if (entry.isDirectory()) {
+          allowedGlobs.push(entryPath + '/**');
+        } else {
+          allowedGlobs.push(entryPath);
+        }
       }
     }
+    let allowedGlob = '';
+    if (allowedGlobs.length === 1) {
+      allowedGlob = allowedGlobs[0];
+    } else if (allowedGlobs.length > 1) {
+      allowedGlob = '{' + allowedGlobs.join(',') + '}';
+    } else {
+      allowedGlob = '**/*'; // fallback
+    }
+    const watcherInstance = chokidar.watch(allowedGlob, {
+      cwd: wsPath,
+      ignored: (filePath) => {
+        const relPath = filePath.replace(/\\/g, '/');
+        return excludePatterns.some(
+          pattern => minimatch(relPath, pattern, { dot: true })
+        );
+      },
+      usePolling: true,
+      interval: 100,
+      ignoreInitial: true,
+      persistent: true,
+    });
+    watcherInstance.on('add', (filePath) => {
+      log('addFile:', filePath);
+      const fsPath = path.join(wsPath, filePath);
+      fileCreated?.(fsPath);
+    });
+    watcherInstance.on('addDir', (dirPath) => {
+      log('addDir:', dirPath);
+      const fsPath = path.join(wsPath, dirPath);
+      fileCreated?.(fsPath);
+    });
+    watcherInstance.on('unlink', (filePath) => {
+      log('unlinkFile:', filePath);
+      const fullPath = path.join(wsPath, filePath);
+      const uri = vscode.Uri.file(fullPath);
+      fileDeleted?.(uri);
+    });
+    watcherInstance.on('unlinkDir', (dirPath) => {
+      log('unlinkDir:', dirPath);
+      const fullPath = path.join(wsPath, dirPath);
+      const uri = vscode.Uri.file(fullPath);
+      fileDeleted?.(uri);
+    });
+    watcherInstance.on('ready', () => {
+      end('setFileWatcher');
+    });
+    watchers.push(watcherInstance);
   }
-  const allowedGlob = allowedFolders.length === 1
-    ? allowedFolders[0] + '/**'
-    : '{' + allowedFolders.map(f => f + '/**').join(',') + '}';
-  watcher = chokidar.watch(allowedGlob, {
-    cwd,
-    ignored: (filePath) => {
-      const relPath = filePath.replace(/\\/g, '/');
-      return excludePatterns.some(
-                 pattern => minimatch(relPath, pattern, { dot: true }));
-    },
-    usePolling: true,
-    interval: 100,
-    ignoreInitial: true,
-    persistent: true,
-  });
-
-  watcher.on('add', (filePath) => {
-    log('addFile:', filePath);
-    const fsPath = path.join(cwd, filePath);
-    fileCreated?.(fsPath);
-  });
-  watcher.on('addDir', (dirPath) => {
-    log('addDir:', dirPath);
-    const fsPath = path.join(cwd, dirPath);
-    fileCreated?.(fsPath);
-  });
-  watcher.on('unlink', (filePath) => {
-    log('unlinkFile:', filePath);
-    const fullPath = path.join(cwd, filePath);
-    const uri = vscode.Uri.file(fullPath);
-    fileDeleted?.(uri);
-  });
-  watcher.on('unlinkDir', (dirPath) => {
-    log('unlinkDir:', dirPath);
-    const fullPath = path.join(cwd, dirPath);
-    const uri = vscode.Uri.file(fullPath);
-    fileDeleted?.(uri);
-  });
-  watcher.on('ready', () => {
-    end('setFileWatcher');
-  });
 }
 
 export async function loadSettings() {

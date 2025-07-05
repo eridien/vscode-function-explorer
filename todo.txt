@@ -6,7 +6,6 @@ bugs ...
 
 todo ...
   deleteFuncById should also remove func from set
-  only first root folder watched
   don't show syntax errors in info
   finish sidebar refresh command/menu
   more languages
