@@ -528,7 +528,7 @@ export function updateFileChildrenFromAst(fileItem: FileItem):
     const structChg = (!!fileItem.children && fileItem.children.length > 0);
     fileItem.children = null;
     log(`no funcs in ${path.basename(fsPath)}`);
-    end('updateFileChildrenFromAst');
+    end('updateFileChildrenFromAst', true);
     return {structChg, funcItems:[]};
   };
   const docText = document.getText();
@@ -569,7 +569,7 @@ export function updateFileChildrenFromAst(fileItem: FileItem):
   // log(`updated ${path.basename(fsPath)} funcs, `+
   //             `${structChg ? 'with structChg, ' : ''}`+
   //             `marks copied: ${matchCount} of ${funcItems.length}`);
-  // end('updateFileChildrenFromAst', false);
+  // end('updateFileChildrenFromAst', true);
   return {structChg, funcItems};
 }
 

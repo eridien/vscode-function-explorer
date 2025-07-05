@@ -171,7 +171,7 @@ let gestureTimeout:  NodeJS.Timeout | undefined;
 let gestureFuncItem: FuncItem       | undefined;
 
 function clrGesture() {
-  end('gesture', false, 'clrGesture');
+  end('gesture', true, 'clrGesture');
   clearTimeout(gestureTimeout);
   gestureTimeout  = undefined;
   gestureFuncItem = undefined;
@@ -188,7 +188,7 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
     const selStart  = document.offsetAt(selection.anchor);
     const selEnd    = document.offsetAt(selection.active);
     log('selectionChg', selStart, selEnd);
-    end('gesture', false);
+    end('gesture', true);
     if(gestureFuncItem && selection.isEmpty &&
           selStart >= gestureFuncItem.start && selEnd <= gestureFuncItem.end) {
       await disp.setMark(gestureFuncItem, true);

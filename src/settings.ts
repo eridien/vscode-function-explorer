@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import {minimatch} from 'minimatch';
+import * as fs     from 'fs/promises';
 import * as chokidar from 'chokidar';
 import path from 'path';
 import * as utils  from './utils';
-const {log} = utils.getLog('sett');
+const {log, start, end} = utils.getLog('sett');
 
 interface FunctionMarksSettings {
   hideRootFolders:     boolean;
@@ -147,12 +148,26 @@ export function setWatcherCallbacks(
 let watcher: chokidar.FSWatcher | undefined;
 
 async function setFileWatcher(filesToExclude: string) {
+  start('setFileWatcher');
   if (watcher) await watcher.close().then(
                      () => log('Previous watcher closed.'));
   const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
   const excludePatterns = filesToExclude.split(',').map(p => p.trim());
-
-  watcher = chokidar.watch('.', {
+  const allowedFolders: string[] = [];
+  for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
+    const wsPath = wsFolder.uri.fsPath;
+    const entries = await fs.readdir(wsPath, {withFileTypes: true});
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const fsPath = path.join(wsPath, entry.name);
+        if (includeFile(fsPath, true)) allowedFolders.push(fsPath);
+      }
+    }
+  }
+  const allowedGlob = allowedFolders.length === 1
+    ? allowedFolders[0] + '/**'
+    : '{' + allowedFolders.map(f => f + '/**').join(',') + '}';
+  watcher = chokidar.watch(allowedGlob, {
     cwd,
     ignored: (filePath) => {
       const relPath = filePath.replace(/\\/g, '/');
@@ -188,7 +203,7 @@ async function setFileWatcher(filesToExclude: string) {
     fileDeleted?.(uri);
   });
   watcher.on('ready', () => {
-    log('Watcher is ready.');
+    end('setFileWatcher');
   });
 }
 

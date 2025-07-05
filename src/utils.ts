@@ -54,7 +54,7 @@ export function getLog(module: string) : {
     console.log(line);
   };
 
-  const end = function (name: string, onlySlow: boolean = true, 
+  const end = function (name: string, onlySlow: boolean = false, 
                         msg: string = ''): void {
     if (!timers[name]) {
       const line = `${module}: ${name} ended`;
@@ -66,7 +66,7 @@ export function getLog(module: string) : {
     const duration = endTime - timers[name];
     if (onlySlow && duration < 100) return;
     // const line = `${module}: ${name} ended, ${timeInSecs(duration)}s,  ${msg}`;
-    const line = `${module}: ${name} ended, ${duration}  ${msg}`;
+    const line = `${module}: ${name} ended, ${duration}ms  ${msg}`;
     outputChannel.appendLine(line);
     console.log(line);
   };

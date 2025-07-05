@@ -174,7 +174,7 @@ export async function activate(context: vscode.ExtensionContext) {
     openFile, openFileMenu,
   );
 
-  end('extension');
+  end('extension', true);
 }
 
 export function deactivate() {

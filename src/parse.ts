@@ -185,6 +185,6 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
     i = j;
   }
   // log(`Parsed ${nodes.length} nodes`);
-  end('parseCode');
+  end('parseCode', true);
   return result;
 }
