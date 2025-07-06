@@ -1,11 +1,10 @@
 bugs ...
   many settings don't immediately change sidebar
   bounce on some func clicks
-  loading is slow
   delete file leaves folder
-
+  file with no marks shows empty in filtered mode and stuck, box.ts 
+  
 todo ...
-  no iconpath on ws and folders (option?)
   is loadPaths cleared?
   deleteFuncById should also remove func from set
   don't show syntax errors in info
@@ -18,7 +17,13 @@ unlikely ...
     solves multiple items in one line
     fixes priority behavior
 
-options ...
+options ... 
+  explorer compression
+    nested folders and files
+    no root folders
+    flattened folders
+    file list, no folders
+    function list, no files
   reveal item when marking
   open in preview mode
   default file wrap off

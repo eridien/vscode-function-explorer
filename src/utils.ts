@@ -11,14 +11,17 @@ export function createSortKey(fsPath: string, lineNumber: number): string {
 }
 
 export function flashRange(editor: vscode.TextEditor, 
-                           startPos: vscode.Position, 
-                           endPos: vscode.Position, red = false) {
+                           startLine: number, 
+                           endLine: number, red = false) {
+  const ranges: vscode.Range[] = [];
+  for (let line = startLine; line <= endLine; line++) 
+    ranges.push(new vscode.Range(line, 0, line, 1));
   const decorationType = vscode.window.createTextEditorDecorationType({
-    backgroundColor: red ? 'rgba(255,   0, 0, 0.15)' 
+    backgroundColor: red ? 'rgba(255,   0, 0, 0.20)' 
                          : 'rgba(255, 255, 0, 0.30)',
-    borderRadius: '2px'
   });
-  editor.setDecorations(decorationType, [new vscode.Range(startPos, endPos)]);
+
+  editor.setDecorations(decorationType, ranges);
   setTimeout(() => {
     decorationType.dispose();
   }, 750);

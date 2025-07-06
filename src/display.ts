@@ -21,6 +21,7 @@ let sidebarProvider: SidebarProvider;
 export async function activate(contextIn:  vscode.ExtensionContext,
                                treeViewIn:        vscode.TreeView<Item>,
                                sidebarProviderIn: SidebarProvider) {
+  log('display activate', treeViewIn);
   context         = contextIn;
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
@@ -215,7 +216,7 @@ export class WsFolderItem extends WsAndFolderItem {
     super(wsFolder.uri, root);
     this.wsFolder     = wsFolder;
     this.contextValue = 'wsFolder';
-    this.iconPath     = new vscode.ThemeIcon('root-folder');
+    // this.iconPath     = new vscode.ThemeIcon('root-folder');
   }
   static async create(wsFolder: vscode.WorkspaceFolder, root = false): 
                                 Promise<WsFolderItem> {
@@ -233,7 +234,7 @@ export class FolderItem extends WsAndFolderItem {
   constructor(uri: vscode.Uri) {
     super(uri);
     this.contextValue = 'folder';
-    this.iconPath     = new vscode.ThemeIcon('folder');
+    // this.iconPath     = new vscode.ThemeIcon('folder');
     if(settings.flattenFolders)  {
       const wsFolders = vscode.workspace.workspaceFolders;
       if (wsFolders && wsFolders.length > 0) {
@@ -922,7 +923,7 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
 export async function scrollAndFlash(editor: vscode.TextEditor, 
           startPos: vscode.Position, endPos: vscode.Position, red = false) {
   await sett.setScroll(  editor, startPos.line, endPos.line);
-  utils.flashRange(editor, startPos, endPos, red);
+  utils.flashRange(editor, startPos.line, endPos.line, red);
 }
 
 export async function revealFuncInEditor(

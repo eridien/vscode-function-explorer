@@ -108,6 +108,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const treeView = vscode.window.createTreeView('sidebarView', {
     treeDataProvider: sidebarProvider,
   });
+  log('createTreeView', treeView);
 
   const sidebarVisChg = treeView.onDidChangeVisibility(async (event) => {
     // log('sidebarVisChg');
@@ -162,6 +163,7 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  INIT  ////////////
 
   await sett.loadSettings();
+  log('disp.activate', treeView);
   await disp.activate(context, treeView, sidebarProvider);
   await cmds.activate();
 
