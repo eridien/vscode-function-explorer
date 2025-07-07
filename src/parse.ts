@@ -1,8 +1,10 @@
+import * as vscode           from 'vscode';
 import Parser                from 'tree-sitter';
 import type { SyntaxNode }   from 'tree-sitter';
 import JavaScript            from 'tree-sitter-javascript';
 const {typescript, tsx} = require('tree-sitter-typescript');
 import * as utils            from './utils';
+import path from 'path/win32';
 const {log, start, end} = utils.getLog('pars');
 
 // const langObj = JavaScript;
@@ -77,8 +79,10 @@ function parseDebug(rootNode: SyntaxNode) {
   });
 }
 
+let lastParseErrFsPath = '';
 
-export function parseCode(code: string, fsPath: string): NodeData[] {
+export function parseCode(code: string, fsPath: string, retrying = false):
+                                                    NodeData[] | null {
 
   function getAllParents(node: SyntaxNode): SyntaxNode[] {
     const parents: SyntaxNode[] = [];
@@ -135,8 +139,26 @@ export function parseCode(code: string, fsPath: string): NodeData[] {
   try {
     tree = parser.parse(code);
   } catch (e) {
-    log('infoerrmsg', e, 'Function Explorer: Parse failed. Usually parsing works even with bad syntax.');
-    return [];
+    if(retrying) {
+      log('err', 'parser.parse failed again, giving up:', (e as any).message);
+      return null;
+    }
+    const middle    = utils.findMiddleOfText(code);
+    if(lastParseErrFsPath !== fsPath)
+      log('err', 'parse exception, retrying in two halves split at', middle,
+                                 (e as any).message, path.basename(fsPath));
+    lastParseErrFsPath = fsPath;
+    const firstHalf = code.slice(0, middle);
+    const res1      = parseCode(firstHalf, fsPath, true);
+    if(!res1) return null;
+    const secondHalf = code.slice(middle);
+    const res2       = parseCode(secondHalf, fsPath, true);
+    if (!res2) return null;
+    for (const node of res2) {
+      node.start += middle;
+      node.end   += middle;
+    }
+    return res1.concat(res2);
   }
   if(PARSE_DEBUG_NAME !== '' || 
      PARSE_DEBUG_TYPE !== '')   

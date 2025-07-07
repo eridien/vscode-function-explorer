@@ -11,8 +11,8 @@ const {log, start, end} = utils.getLog('disp');
 // const CLEAR_MARKS_ON_STARTUP = false; 
 const CLEAR_MARKS_ON_STARTUP = true; 
 
-// const DEBUG_FUNC_TYPE = false;
-const DEBUG_FUNC_TYPE = true;
+const DEBUG_FUNC_TYPE = false;
+// const DEBUG_FUNC_TYPE = true;
 
 let context:         vscode.ExtensionContext;
 let treeView:        vscode.TreeView<Item>;
@@ -21,7 +21,6 @@ let sidebarProvider: SidebarProvider;
 export async function activate(contextIn:  vscode.ExtensionContext,
                                treeViewIn:        vscode.TreeView<Item>,
                                sidebarProviderIn: SidebarProvider) {
-  log('display activate', treeViewIn);
   context         = contextIn;
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
@@ -534,7 +533,7 @@ export function updateFileChildrenFromAst(fileItem: FileItem):
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
   const nodeData = parse.parseCode(docText, fsPath);
-  if(nodeData.length === 0) return empty();
+  if(!nodeData || nodeData.length === 0) return empty();
   let matchCount              = 0;
   let structChg               = false;
   const children              = fileItem.children as FuncItem[] | undefined;
@@ -598,11 +597,11 @@ export class SidebarProvider {
       return;
     }
     for(const queueItem of refreshQueue) {
-      log('refresh1', item?.label, item?.id);
+      // log('refresh1', item?.label, item?.id);
       this._onDidChangeTreeData.fire(queueItem);
     }
     refreshQueue.length = 0;
-    log('refresh2', item?.label, item?.id);
+    // log('refresh2', item?.label, item?.id);
     this._onDidChangeTreeData.fire(item);
   }
 
@@ -611,7 +610,7 @@ export class SidebarProvider {
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
     const item        = itms.getById(itemInId);
-    log('getTreeItem start', itemInLabel, item?.label);
+    // log('getTreeItem start', itemInLabel, item?.label);
     if(!item) {
       log('err', 'getTreeItem, item not found:', itemInLabel);
       return itemIn;
@@ -622,18 +621,18 @@ export class SidebarProvider {
                   itemInLabel, item.label);
       return itemIn;
     }
-    log('getTreeItem end', itemIn.label, item?.label);
+    // log('getTreeItem end', itemIn.label, item?.label);
     return item;
   }
 
   getParent(item: Item): Item | null {
-    log('getParent', item.label);
+    // log('getParent', item.label);
     if(item?.parent) return item.parent;
     return null;
   }
 
   async getChildren(item: Item): Promise<Item[]> {
-    log('getChildren', item?.label);
+    // log('getChildren', item?.label);
     delayItemRefreshCalls = true;
     if(!item) {
       const tree = await getTree();

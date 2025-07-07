@@ -1,15 +1,18 @@
 bugs ...
   many settings don't immediately change sidebar
-  bounce on some func clicks
-  delete file leaves folder
   file with no marks shows empty in filtered mode and stuck, box.ts 
   
 todo ...
+  refactor display.ts
   is loadPaths cleared?
   deleteFuncById should also remove func from set
-  don't show syntax errors in info
   finish sidebar refresh command/menu
   more languages
+
+low priority ...
+  bounce on some func clicks
+  delete file leaves folder
+
 
 unlikely ...
   incremental parsing
