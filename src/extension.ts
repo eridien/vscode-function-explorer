@@ -1,8 +1,9 @@
 import * as vscode       from 'vscode';
 import * as cmds         from './commands';
 import * as disp         from './display';
-import {Item, WsAndFolderItem, FileItem, FuncItem, SidebarProvider} 
-                         from './display';
+import * as dbs          from './dbs';
+import {Item, WsAndFolderItem, FileItem, FuncItem} 
+                         from './item-classes';
 import * as sett         from './settings';
 import * as utils        from './utils';
 const {log, start, end} = utils.getLog('extn');
@@ -163,6 +164,7 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  INIT  ////////////
 
   await sett.loadSettings();
+         dbs.activate(context);
   await disp.activate(context, treeView, sidebarProvider);
   await cmds.activate();
 

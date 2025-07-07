@@ -23,8 +23,7 @@
     "commands": [
       {
         "command": "vscode-function-explorer.toggle",
-        "title": "Toggle Function Mark(s)",
-        "when": "editorTextFocus"
+        "title": "Toggle Function Mark(s)"
       },
       {
         "command": "vscode-function-explorer.prev",

@@ -1,9 +1,7 @@
 bugs ...
   many settings don't immediately change sidebar
-  no pointer on cold mark
 
 todo ...
-  mark when editor not focused
   explorer compression
   refactor display.ts
   is loadPaths cleared?
