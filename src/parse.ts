@@ -1,10 +1,10 @@
 import * as vscode           from 'vscode';
+import path                  from 'path';
 import Parser                from 'tree-sitter';
 import type { SyntaxNode }   from 'tree-sitter';
 import JavaScript            from 'tree-sitter-javascript';
 const {typescript, tsx} = require('tree-sitter-typescript');
 import * as utils            from './utils';
-import path from 'path/win32';
 const {log, start, end} = utils.getLog('pars');
 
 // const langObj = JavaScript;

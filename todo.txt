@@ -8,6 +8,7 @@ todo ...
   deleteFuncById should also remove func from set
   finish sidebar refresh command/menu
   more languages
+  find item in sidebar from editor name
 
 low priority ...
   bounce on some func clicks

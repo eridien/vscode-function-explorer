@@ -1,7 +1,9 @@
 import * as vscode       from 'vscode';
 import * as cmds         from './commands';
 import * as disp         from './display';
+import * as sbar         from './sidebar';
 import * as dbs          from './dbs';
+import * as itmc         from './item-classes';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
                          from './item-classes';
 import * as sett         from './settings';
@@ -35,25 +37,25 @@ export async function activate(context: vscode.ExtensionContext) {
 	const toggleMarkedFilter = vscode.commands.registerCommand(
        'vscode-function-explorer.toggleMarkedFilter', (fileItem: FileItem) => {
       //  log('toggleMarkedFilter');
-		disp.toggleMarkedFilter(fileItem);
+		itmc.toggleMarkedFilter(fileItem);
 	});
 
 	const toggleMarkedFilterMenu = vscode.commands.registerCommand(
    'vscode-function-explorer.toggleMarkedFilterMenu', (fileItem: FileItem) => {
 		// log('toggleMarkedFilterMenu');
-		disp.toggleMarkedFilter(fileItem);
+		itmc.toggleMarkedFilter(fileItem);
 	});
 
 	const toggleAlphaSort = vscode.commands.registerCommand(
           'vscode-function-explorer.toggleAlphaSort', (fileItem: FileItem) => {
           // log('toggleAlphaSort');
-		disp.toggleAlphaSort(fileItem);
+		itmc.toggleAlphaSort(fileItem);
 	});
 
 	const toggleAlphaSortMenu = vscode.commands.registerCommand(
       'vscode-function-explorer.toggleAlphaSortMenu', (fileItem: FileItem) => {
 		// log('toggleAlphaSortMenu');
-		disp.toggleAlphaSort(fileItem);
+		itmc.toggleAlphaSort(fileItem);
 	});
 
 	const removeMarks = vscode.commands.registerCommand(
@@ -105,7 +107,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 ////////////  SIDEBAR  ////////////
 
-  const sidebarProvider = new SidebarProvider();
+  const sidebarProvider = new sbar.SidebarProvider();
   const treeView = vscode.window.createTreeView('sidebarView', {
     treeDataProvider: sidebarProvider,
   });
@@ -164,8 +166,9 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  INIT  ////////////
 
   await sett.loadSettings();
-         dbs.activate(context);
-  await disp.activate(context, treeView, sidebarProvider);
+  await  dbs.activate(context);
+        disp.activate(context);
+        sbar.activate(treeView, sidebarProvider);
   await cmds.activate();
 
 	context.subscriptions.push(

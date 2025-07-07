@@ -1,66 +1,31 @@
 import * as vscode     from 'vscode';
 import * as path       from 'path';
 import * as fs         from 'fs/promises';
+import * as itmc       from './item-classes';
+import {WsAndFolderItem, FileItem, FuncItem} from './item-classes';
 import * as parse      from './parse';
-import type {NodeData} from './parse';
+import * as sbar       from './sidebar';
 import * as sett       from './settings';
 import {settings}      from './settings';
 import * as utils      from './utils';
+import {itms, mrks, fils} from './dbs';
 const {log, start, end} = utils.getLog('disp');
 
 // const CLEAR_MARKS_ON_STARTUP = false; 
 const CLEAR_MARKS_ON_STARTUP = true; 
 
-const DEBUG_FUNC_TYPE = false;
-// const DEBUG_FUNC_TYPE = true;
+let context: vscode.ExtensionContext;
 
-let context:         vscode.ExtensionContext;
-let treeView:        vscode.TreeView<Item>;
-let sidebarProvider: SidebarProvider;
-
-export async function activate(contextIn:  vscode.ExtensionContext,
-                               treeViewIn:        vscode.TreeView<Item>,
-                               sidebarProviderIn: SidebarProvider) {
-  context         = contextIn;
-  treeView        = treeViewIn;
-  sidebarProvider = sidebarProviderIn;
-  loadMarks();
+export function activate(contextIn:  vscode.ExtensionContext) {
+  context = contextIn;
   initGutter();
-  await mrks.loadAllFilesWithFuncIds();
-}
-
-
-////////////////////// getTree //////////////////////
-
-export async function getTree() {
-  const wsFolders = vscode.workspace.workspaceFolders;
-  if (!wsFolders || wsFolders.length === 0) {
-    log('err', 'getTree, No folders in workspace');
-    return [];
-  }
-  if (!settings.hideRootFolders) {
-    const tree: Item[] = [];
-    for(const wsFolder of wsFolders) {
-      // await fils.loadPaths(wsFolder.uri.fsPath);
-      const wsFolderItem = await getOrMakeWsFolderItem(wsFolder);
-      tree.push(wsFolderItem);
-    }
-    return tree;
-  }
-  const foldersIn: Item[] = [];
-  const filesIn:   Item[] = [];
-  for(const wsFolder of wsFolders){
-    // await fils.loadPaths(wsFolder.uri.fsPath);
-    const wsFolderItem = await getOrMakeWsFolderItem(wsFolder);
-    await getFolderChildren(wsFolderItem, foldersIn, filesIn, true);
-  }
-  return [...foldersIn, ...filesIn];
-}
+  itmc.setDisp(updateFileChildrenFromAst, pointerItems);
+}             
 
 ///////////////// updateFileChildrenFromAst //////////////////////
 
 export function updateFileChildrenFromAst(fileItem: FileItem): 
-                         { structChg: boolean, funcItems: FuncItem[] } | null {
+                 { structChg: boolean, funcItems: FuncItem[] } | null {
   start('updateFileChildrenFromAst', true);
   const document = fileItem.document;
   const uri      = document.uri;
@@ -115,99 +80,10 @@ export function updateFileChildrenFromAst(fileItem: FileItem):
   return {structChg, funcItems};
 }
 
-///////////////////////////// sidebarProvider /////////////////////////////
-
-let ignoreItemRefreshCalls = true;
-let delayItemRefreshCalls  = false;
-const refreshQueue: Item[] = [];
-let refreshTimeout: NodeJS.Timeout | undefined;
-
-export class SidebarProvider {
-  onDidChangeTreeData:               vscode.Event<Item        | undefined>;
-  private _onDidChangeTreeData = new vscode.EventEmitter<Item | undefined>();
-
-  constructor() {
-    this._onDidChangeTreeData = new vscode.EventEmitter();
-    this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
-  }
-
-  refresh(item:Item | undefined, tryAgain = false): void {
-    if(ignoreItemRefreshCalls) return;
-    if(delayItemRefreshCalls) {
-      if(!tryAgain) refreshQueue.push(item!);
-      clearTimeout(refreshTimeout);
-      refreshTimeout = setTimeout(() => {this.refresh(item, true);}, 10);
-      return;
-    }
-    for(const queueItem of refreshQueue) {
-      // log('refresh1', item?.label, item?.id);
-      this._onDidChangeTreeData.fire(queueItem);
-    }
-    refreshQueue.length = 0;
-    // log('refresh2', item?.label, item?.id);
-    this._onDidChangeTreeData.fire(item);
-  }
-
-  getTreeItem(itemIn: Item): Item {
-    ignoreItemRefreshCalls = false;
-    const itemInId    = itemIn.id;
-    const itemInLabel = itemIn.label;
-    const item        = itms.getById(itemInId);
-    // log('getTreeItem start', itemInLabel, item?.label);
-    if(!item) {
-      log('err', 'getTreeItem, item not found:', itemInLabel);
-      return itemIn;
-    }
-    item.refresh();
-    if(item !== itemIn || item.id !== itemInId) {
-      log('err', 'getTreeItem, item return mismatch:', 
-                  itemInLabel, item.label);
-      return itemIn;
-    }
-    // log('getTreeItem end', itemIn.label, item?.label);
-    return item;
-  }
-
-  getParent(item: Item): Item | null {
-    // log('getParent', item.label);
-    if(item?.parent) return item.parent;
-    return null;
-  }
-
-  async getChildren(item: Item): Promise<Item[]> {
-    // log('getChildren', item?.label);
-    delayItemRefreshCalls = true;
-    if(!item) {
-      const tree = await getTree();
-      delayItemRefreshCalls = false;
-      return tree;
-    }
-    if(item instanceof FuncItem) {
-      delayItemRefreshCalls = false;
-      return [];
-    }
-    const children = 
-             await (item as WsAndFolderItem | FileItem).getChildren();
-    delayItemRefreshCalls = false;
-    return children;
-  }
-}
-
-export function updateItemInTree(item: Item | undefined = undefined) {
-  sidebarProvider.refresh(item);
-}
-
-export async function revealItemByFunc(func: FuncItem) {
-  if(!treeView.visible) return;
-  const item = await getOrMakeFileItemByFsPath(func.getFsPath());
-  if(!item.parent) return;
-  treeView.reveal(item, {expand: true, select: true, focus: false});
-}
-
 export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
                                     expanded: boolean) {
   if(!expanded) {
-    const funcItems = await getFuncItemsUnderNode(item);
+    const funcItems = await itmc.getFuncItemsUnderNode(item);
     let filesChanged = new Set<FileItem>();
     let haveMark = false;
     for(const funcItem of funcItems) {
@@ -225,7 +101,8 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
       if(settings.openFileWhenExpanded)
         await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);    
     }
-    for(const fileItem of filesChanged) updateItemInTree(fileItem);
+    for(const fileItem of filesChanged)
+         sbar.updateItemInTree(fileItem);
   }
   item.expanded = expanded;
 }
@@ -288,8 +165,8 @@ export async function setMark(funcItem: FuncItem,
   if(marked === wasMarked)  return;
   if(marked) mrks.addMark(fsPath, funcId);
   else       mrks.delMark(funcItem);
-  updateItemInTree(funcItem.parent);
-  if(marked) await revealItemByFunc(funcItem);
+  sbar.updateItemInTree(funcItem.parent);
+  if(marked) await sbar.revealItemByFunc(funcItem);
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
   updateGutter(activeEditor, funcItem.parent);
@@ -299,14 +176,14 @@ export async function setMark(funcItem: FuncItem,
 let pointerItems = new Set<FuncItem>();
 
 export async function updatePointers() {
-  if(!treeView) debugger;
-  if(!treeView.visible) return;
+  // if(!treeView) debugger;
+  // if(!treeView.visible) return;
   const oldPointerItems = new Set(pointerItems);
   pointerItems.clear();
   const newPointerItems = await getFuncsOverlappingSelections();
   for(const funcItem of newPointerItems) pointerItems.add(funcItem);
-  for(const funcItem of oldPointerItems) updateItemInTree(funcItem);
-  for(const funcItem of newPointerItems) updateItemInTree(funcItem);
+  for(const funcItem of oldPointerItems)sbar.updateItemInTree(funcItem);
+  for(const funcItem of newPointerItems)sbar.updateItemInTree(funcItem);
 }
 
 ///////////////////// editor text //////////////////////
@@ -318,7 +195,7 @@ export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
   const fsPath = document.uri.fsPath;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return null;
-  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+  const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   const children = fileItem.getChildren(true) as FuncItem[] | undefined;
   if (!children || children.length === 0) return null;
   const funcsInSelection:     FuncItem[] = [];
@@ -370,7 +247,7 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
   const fsPath   = document.uri.fsPath;
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return [];
-  const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+  const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   const children = fileItem.getChildren() as FuncItem[] | undefined;
   if (!children || children.length === 0) return [];
   const overlapping: FuncItem[] = [];

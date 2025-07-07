@@ -1,12 +1,15 @@
 import * as vscode      from 'vscode';
 import * as path        from 'path';
 import * as disp        from './display';
+import * as dbs         from './dbs';
+import  {itms}          from './dbs';
+import * as sbar        from './sidebar';
+import * as itmc        from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
-        FileItem, FuncItem, itms, itemDeleteCount} from './display';
+        FileItem, FuncItem, itemDeleteCount} from './item-classes';
 import * as sett        from './settings';
 import {settings}       from './settings';
 import * as utils       from './utils';
-import { clear } from 'console';
 const {log, start, end} = utils.getLog('cmds');
 
 const NEXT_DEBUG = false;
@@ -36,7 +39,7 @@ export async function toggleCmd() {
   const activeEditor = vscode.window.activeTextEditor;
   if (!activeEditor) return;
   const selFsPath = activeEditor.document.uri.fsPath;
-  const funcItems = await disp.getSortedFuncs(selFsPath, false, false);
+  const funcItems = await itmc.getSortedFuncs(selFsPath, false, false);
   if(funcItems.length == 0) return;
   const selLine = activeEditor.selection.active.line;
   const nextFuncItem = funcItems.find(item => item.getStartLine() > selLine);
@@ -76,7 +79,7 @@ async function prevNext(next: boolean, fromToggle = false) {
     const fsPath   = activeEditor.document.uri.fsPath;
     const fileWrap = settings.fileWrap && !fromToggle;
     const filtered = !fromToggle && !NEXT_DEBUG;
-    const funcs = await disp.getSortedFuncs(fsPath, fileWrap, filtered);
+    const funcs = await itmc.getSortedFuncs(fsPath, fileWrap, filtered);
     if(funcs.length == 0) return;
     const selFsPath = (fileWrap ? fsPath : '');
     const selKey = utils.createSortKey(
@@ -142,7 +145,7 @@ export async function removeMarks(item: Item) {
     vscode.window.showInformationMessage('No item was selected. No function marks were removed.');
     return;
   }
-  const funcs = await disp.getFuncItemsUnderNode(item);
+  const funcs = await itmc.getFuncItemsUnderNode(item);
   for (const func of funcs) await disp.setMark(func);
 }
 
@@ -155,7 +158,7 @@ export async function editorOrTextChg(
   const fsPath = editor.document.uri.fsPath;
   if(editor.document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return;
-  const fileItem = await disp.getOrMakeFileItemByFsPath(fsPath);
+  const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   // log('editorOrTextChg start', fileItem.label, fileItem.id, 
   //                              fileItem?.children?.length);
   disp.updateFileChildrenFromAst(fileItem);
@@ -196,7 +199,7 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
       clrGesture();
     }
     if(selStart != selEnd) {
-      const funcs = await disp.getSortedFuncs(fsPath, false, false);
+      const funcs = await itmc.getSortedFuncs(fsPath, false, false);
       for(const func of [...funcs]) {
         if(!gestureTimeout && selEnd > func.endName && 
               selStart >= func.startName && selStart <= func.endName ) {
@@ -208,7 +211,7 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
         if(sideBarVisible && selStart === func.startName && 
                              selEnd   === func.endName) {
           func.stayVisible = true;
-          await disp.revealItemByFunc(func);
+          await sbar.revealItemByFunc(func);
           await disp.updatePointers();
           return;
         }
@@ -234,7 +237,7 @@ export function fileCreated(fsPath: string) {
     const fldrFilePath = itms.getFldrFileByFsPath(fsPath);
     if(fldrFilePath) {
       fldrFilePath.children = null; 
-      disp.updateItemInTree();
+      sbar.updateItemInTree();
       return;
     }
     fsPathSegs.pop();
@@ -265,7 +268,7 @@ export function fileDeleted(uri: vscode.Uri, retry = false) {
       fldrFileItem instanceof FolderItem || 
       fldrFileItem instanceof FileItem)) {
     fldrFileItem.delete();
-    disp.updateItemInTree();
+    sbar.updateItemInTree();
   }
   end('fileDeleted');
 }

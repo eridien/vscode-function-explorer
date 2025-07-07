@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
-import {minimatch} from 'minimatch';
-import * as fs     from 'fs/promises';
+import * as vscode   from 'vscode';
+import {minimatch}   from 'minimatch';
+import * as fs       from 'fs/promises';
 import * as chokidar from 'chokidar';
-import path from 'path';
-import * as utils  from './utils';
+import path          from 'path';
+import * as utils    from './utils';
 const {log, start, end} = utils.getLog('sett');
 
 interface FunctionMarksSettings {

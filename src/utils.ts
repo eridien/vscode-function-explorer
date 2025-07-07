@@ -1,10 +1,5 @@
 import vscode from 'vscode';
-import path   from 'path';
 const { log, start, end } = getLog('util');
-
-function timeInSecs(ms: number): string {
-  return (ms / 1000).toFixed(2);
-}
 
 export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
