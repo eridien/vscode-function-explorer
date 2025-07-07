@@ -171,7 +171,7 @@ let gestureTimeout:  NodeJS.Timeout | undefined;
 let gestureFuncItem: FuncItem       | undefined;
 
 function clrGesture() {
-  end('gesture', true, 'clrGesture');
+  // end('gesture', true, 'clrGesture');
   clearTimeout(gestureTimeout);
   gestureTimeout  = undefined;
   gestureFuncItem = undefined;
@@ -187,12 +187,12 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
     const fsPath    = document.uri.fsPath;
     const selStart  = document.offsetAt(selection.anchor);
     const selEnd    = document.offsetAt(selection.active);
-    log('selectionChg', selStart, selEnd);
-    end('gesture', true);
+    // log('selectionChg', selStart, selEnd);
+    // end('gesture', true);
     if(gestureFuncItem && selection.isEmpty &&
           selStart >= gestureFuncItem.start && selEnd <= gestureFuncItem.end) {
       await disp.setMark(gestureFuncItem, true);
-      end('gesture', false, 'ended setMark');
+      // end('gesture', false, 'ended setMark');
       clrGesture();
     }
     if(selStart != selEnd) {
@@ -202,7 +202,7 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
               selStart >= func.startName && selStart <= func.endName ) {
           gestureTimeout  = setTimeout(clrGesture, 5000);
           gestureFuncItem = func;
-          start('gesture', false);
+          // start('gesture', false);
           return;
         }
         if(sideBarVisible && selStart === func.startName && 

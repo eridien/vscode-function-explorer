@@ -298,14 +298,18 @@ export class FileItem extends Item {
     if(!this.children) return [];
     let hasMark = false;
     const funcItems = [...this.children as FuncItem[]].filter( func => {
+      if(noFilter) return true;
       const marked = mrks.hasMark(func);
       hasMark          ||= marked;
       func.stayVisible ||= marked;
       func.stayVisible &&= !this.filtered;
-      return noFilter || marked || func.stayVisible ||
-            (func.isFunction() && !this.filtered);
+      return marked || func.stayVisible ||
+                      (func.isFunction() && !this.filtered);
     });
-    if(!hasMark) this.filtered = false;
+    if(this.filtered && !hasMark) {
+      this.filtered = false;
+      structChg = true;
+    }
     if(this.alphaSorted) 
       funcItems.sort((a, b) => a.name.localeCompare(b.name));
     if(structChg) updateItemInTree(this);
@@ -468,7 +472,7 @@ export class FuncItem extends Item {
 }
 
 export async function getSortedFuncs(fsPath: string, fileWrap = true, 
-         filtered = true) : Promise<FuncItem[]> {
+                                     filtered = true) : Promise<FuncItem[]> {
   let funcs: FuncItem[] = [];
   if(!fileWrap) {
     const fileItem = await getOrMakeFileItemByFsPath(fsPath);
@@ -518,7 +522,7 @@ export async function getTree() {
 
 export function updateFileChildrenFromAst(fileItem: FileItem): 
                          { structChg: boolean, funcItems: FuncItem[] } | null {
-  // start('updateFileChildrenFromAst');
+  start('updateFileChildrenFromAst', true);
   const document = fileItem.document;
   const uri      = document.uri;
   const fsPath   = uri.fsPath;
@@ -568,7 +572,7 @@ export function updateFileChildrenFromAst(fileItem: FileItem):
   // log(`updated ${path.basename(fsPath)} funcs, `+
   //             `${structChg ? 'with structChg, ' : ''}`+
   //             `marks copied: ${matchCount} of ${funcItems.length}`);
-  // end('updateFileChildrenFromAst', true);
+  end('updateFileChildrenFromAst', true);
   return {structChg, funcItems};
 }
 

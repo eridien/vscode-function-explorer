@@ -1,8 +1,10 @@
 bugs ...
   many settings don't immediately change sidebar
-  file with no marks shows empty in filtered mode and stuck, box.ts 
-  
+  no pointer on cold mark
+
 todo ...
+  mark when editor not focused
+  explorer compression
   refactor display.ts
   is loadPaths cleared?
   deleteFuncById should also remove func from set
