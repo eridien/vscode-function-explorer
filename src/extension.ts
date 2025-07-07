@@ -166,8 +166,8 @@ export async function activate(context: vscode.ExtensionContext) {
 ////////////  INIT  ////////////
 
   await sett.loadSettings();
-  await  dbs.activate(context);
         disp.activate(context);
+  await  dbs.activate(context);
         sbar.activate(treeView, sidebarProvider);
   await cmds.activate();
 

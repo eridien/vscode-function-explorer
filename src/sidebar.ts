@@ -14,6 +14,7 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
                         sidebarProviderIn: SidebarProvider) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
+  itmc.setSbar(updateItemInTree);
 }
 
 ////////////////////// getTree //////////////////////

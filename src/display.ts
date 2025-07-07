@@ -186,6 +186,7 @@ export async function updatePointers() {
   for(const funcItem of newPointerItems)sbar.updateItemInTree(funcItem);
 }
 
+
 ///////////////////// editor text //////////////////////
 
 export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
