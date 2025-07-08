@@ -18,19 +18,21 @@ export function setDbs(newItms:any, newFiles:any, newMarks:any) {
   mrks = newMarks;
 }
 
-let pointerItems: Set<FuncItem>;
+let pointerItems:             Set<FuncItem>;
+let updateItemInTree:        (item: Item | undefined) => void = (item) => {};
 let updateFileChildrenFromAst: 
-     (fileItem: FileItem) => { structChg: boolean; funcItems: FuncItem[]; } | null;
-export function setDisp(updateFileChildrenFromAstIn: 
-     (fileItem: FileItem) => { structChg: boolean; funcItems: FuncItem[]; } | null, 
-                        pointerItemsIn: Set<FuncItem>) {
-  updateFileChildrenFromAst = updateFileChildrenFromAstIn;
+     (fileItem: FileItem) => {structChg: boolean; funcItems: FuncItem[];} | null;
+
+export function setDisp(pointerItemsIn: Set<FuncItem>) {
   pointerItems = pointerItemsIn;
 }
 
-let updateItemInTree: (item: Item | undefined) => void = (item) => {};
-export function setSbar(updateItemInTreeIn: (item: Item | undefined) => void) {
-  updateItemInTree = updateItemInTreeIn;
+export function setSbar(
+    updateItemInTreeIn:          (item: Item | undefined) => void,
+    updateFileChildrenFromAstIn: (fileItem: FileItem) => 
+             {structChg: boolean; funcItems: FuncItem[];} | null) {
+  updateItemInTree          = updateItemInTreeIn;
+  updateFileChildrenFromAst = updateFileChildrenFromAstIn;
 }
 
 let nextItemId = 0;

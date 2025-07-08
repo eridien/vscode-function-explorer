@@ -172,7 +172,7 @@ export async function editorOrTextChg(
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   // log('editorOrTextChg start', fileItem.label, fileItem.id, 
   //                              fileItem?.children?.length);
-  disp.updateFileChildrenFromAst(fileItem);
+  sbar.updateFileChildrenFromAst(fileItem);
   disp.updateGutter(editor, fileItem);
   sbar.updateItemInTree(fileItem);
 }

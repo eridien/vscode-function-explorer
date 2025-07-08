@@ -1,9 +1,7 @@
 import * as vscode     from 'vscode';
 import * as path       from 'path';
-import * as fs         from 'fs/promises';
 import * as itmc       from './item-classes';
 import {WsAndFolderItem, FileItem, FuncItem} from './item-classes';
-import * as parse      from './parse';
 import * as sbar       from './sidebar';
 import * as sett       from './settings';
 import {settings}      from './settings';
@@ -19,66 +17,8 @@ let context: vscode.ExtensionContext;
 export function activate(contextIn:  vscode.ExtensionContext) {
   context = contextIn;
   initGutter();
-  itmc.setDisp(updateFileChildrenFromAst, pointerItems);
+  itmc.setDisp(pointerItems);
 }             
-
-///////////////// updateFileChildrenFromAst //////////////////////
-
-export function updateFileChildrenFromAst(fileItem: FileItem): 
-                 { structChg: boolean, funcItems: FuncItem[] } | null {
-  start('updateFileChildrenFromAst', true);
-  const document = fileItem.document;
-  const uri      = document.uri;
-  const fsPath   = uri.fsPath;
-  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return null;
-  function empty(): {structChg: boolean, funcItems: FuncItem[]} {
-    const structChg = (!!fileItem.children && fileItem.children.length > 0);
-    fileItem.children = null;
-    log(`no funcs in ${path.basename(fsPath)}`);
-    end('updateFileChildrenFromAst', true);
-    return {structChg, funcItems:[]};
-  };
-  const docText = document.getText();
-  if (!docText || docText.length === 0) return empty();
-  const nodeData = parse.parseCode(docText, fsPath);
-  if(!nodeData || nodeData.length === 0) return empty();
-  let matchCount              = 0;
-  let structChg               = false;
-  const children              = fileItem.children as FuncItem[] | undefined;
-  let   childIdx              = 0;
-  const funcItemsInList       = new Set<FuncItem>();
-  const funcItems: FuncItem[] = [];
-  for(const node of nodeData) {
-    let funcItem: FuncItem | undefined = undefined;
-    if(!structChg) funcItem = children?.[childIdx++];
-    if(funcItem?.funcId !== node.funcId) {
-      structChg = true;
-      const funcSet = itms.getFuncSetByFuncId(node.funcId);
-      if(funcSet) {
-        for(const funcFromSet of funcSet.values()) {
-          if(!funcItemsInList.has(funcFromSet)) {
-            funcItem = funcFromSet;
-            funcSet.delete(funcItem);
-            break;
-          }
-        }
-      }
-      funcItem ??= new FuncItem({...node, parent:fileItem});
-    }
-    else matchCount++;
-    Object.assign(funcItem, node);
-    funcItem.clear();
-    funcItems.push(funcItem);
-    funcItemsInList.add(funcItem);
-  }
-  for(const funcItem of funcItems) itms.setFunc(funcItem);
-  fileItem.children = funcItems;
-  // log(`updated ${path.basename(fsPath)} funcs, `+
-  //             `${structChg ? 'with structChg, ' : ''}`+
-  //             `marks copied: ${matchCount} of ${funcItems.length}`);
-  end('updateFileChildrenFromAst', true);
-  return {structChg, funcItems};
-}
 
 export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
                                     expanded: boolean) {

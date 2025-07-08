@@ -5,7 +5,7 @@ import * as sett       from './settings';
 import {settings}      from './settings';
 import * as itmc       from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
-        FileItem, FuncItem, setDbs} from './item-classes';
+        FileItem, FuncItem} from './item-classes';
 import * as utils      from './utils';
 const {log, start, end} = utils.getLog('dbss');
 
@@ -15,7 +15,7 @@ const CLEAR_MARKS_ON_STARTUP = false;
 
 export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
-  setDbs(itms, fils, mrks);
+  itmc.setDbs(itms, fils, mrks);
   loadMarks();
   // await mrks.loadAllFilesWithFuncIds();
 }

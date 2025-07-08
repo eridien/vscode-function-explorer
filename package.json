@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.2.9",
+  "version": "0.3.0",
   "engines": {
     "vscode": "^1.100.0"
   },
