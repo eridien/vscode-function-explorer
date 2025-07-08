@@ -48,9 +48,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.next();
 	});
 
+	const removeAllMarksMenu = vscode.commands.registerCommand(
+       'vscode-function-explorer.removeAllMarksMenu', async () => {
+      //  log('removeAllMarksMenu');
+		await cmds.removeAllMarksMenu();
+	});
+
 	const settingsMenu = vscode.commands.registerCommand(
        'vscode-function-explorer.settingsMenu', async () => {
-      //  log('toggleMarkedFilter');
+      //  log('settingsMenu');
 		await cmds.settingsMenu();
 	});
 
@@ -185,7 +191,7 @@ export async function activate(context: vscode.ExtensionContext) {
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
-    openFile, openFileMenu, settingsMenu, 
+    openFile, openFileMenu, settingsMenu, removeAllMarksMenu
   );
 
   end('activate');

@@ -40,16 +40,16 @@
       },
       {
 
-     "​​​‍‌‌​‍‌":"======================",
-     "​​​‍‌‍​​‌":" Sidebar title menu   ",
-     "​​​‍‌⁠​⁠‌":"......................",
+     "​​‌‌‍​​‍‌":"======================",
+     "​​‌‌‍‌​​‌":" Sidebar title menu   ",
+     "​​‌‌‍‍​⁠‌":"......................",
 
-        "command": "vscode-function-explorer.settingsMenu",
-        "title": "Open Settings"
-      },
-      {
         "command": "vscode-function-explorer.removeAllMarksMenu",
         "title": "Remove All Marks"
+      },
+      {
+        "command": "vscode-function-explorer.settingsMenu",
+        "title": "Open Settings"
       },
       {
 
@@ -74,9 +74,9 @@
       },
       {
 
-     "​​​‌⁠​​‍‌":"=================================",
-     "​​​‌⁠‌​​‌":" Sidebar file item icon buttons  ",
-     "​​​‌⁠‍​⁠‌":".................................",
+     "​​​⁠⁠‌​‍‌":"=================================",
+     "​​​⁠⁠‍​​‌":" Sidebar file item icon buttons  ",
+     "​​​⁠⁠⁠​⁠‌":".................................",
 
         "command": "vscode-function-explorer.toggleMarkedFilter",
         "title": " ✔ ",
@@ -173,25 +173,46 @@
       ],
       "view/title": [
         {
-          "command": "vscode-function-explorer.settingsMenu",
-          "when": "view == sidebarView",
-          "group": "c"
-        },
-        {
           "command": "vscode-function-explorer.removeAllMarksMenu",
           "when": "view == sidebarView",
           "group": "a"
+        },
+        {
+          "command": "vscode-function-explorer.settingsMenu",
+          "when": "view == sidebarView",
+          "group": "b"
         }
       ],
       "view/item/context": [
         {
-          "command": "vscode-function-explorer.toggleMarkedFilter",
-          "when": "view == sidebarView && viewItem == file",
+
+     "​​‌​​⁠​‍‌":"=====================================",
+     "​​‌​‌​​​‌":" Sidebar wsfolder item icon buttons  ",
+     "​​‌​‌‌​⁠‌":".....................................",
+
+        "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == wsFolder",
           "group": "inline@1"
         },
         {
-          "command": "vscode-function-explorer.toggleMarkedFilterMenu",
-          "when": "view == sidebarView && viewItem == file"
+
+     "​​‌​‌‍​‍‌":"===================================",
+     "​​‌​‌⁠​​‌":" Sidebar folder item icon buttons  ",
+     "​​‌​‍​​⁠‌":"...................................",
+
+        "command": "vscode-function-explorer.removeMarks",
+          "when": "view == sidebarView && viewItem == folder",
+          "group": "inline@1"
+        },
+        {
+
+     "​​‌​​​​‍‌":"=================================",
+     "​​‌​​‌​​‌":" Sidebar file item icon buttons  ",
+     "​​‌​​‍​⁠‌":".................................",
+
+       "command": "vscode-function-explorer.toggleMarkedFilter",
+          "when": "view == sidebarView && viewItem == file",
+          "group": "inline@1"
         },
         {
           "command": "vscode-function-explorer.toggleAlphaSort",
@@ -199,53 +220,72 @@
           "group": "inline@2"
         },
         {
-          "command": "vscode-function-explorer.toggleAlphaSortMenu",
-          "when": "view == sidebarView && viewItem == file"
-        },
-        {
-          "command": "vscode-function-explorer.toggleItemMark",
-          "when": "view == sidebarView && viewItem == func",
-          "group": "inline@2"
-        },
-        {
-          "command": "vscode-function-explorer.toggleItemMarkMenu",
-          "when": "view == sidebarView && viewItem == func"
-        },
-        {
-          "command": "vscode-function-explorer.removeMarks",
-          "when": "view == sidebarView && viewItem == wsFolder",
-          "group": "inline@3"
-        },
-        {
-          "command": "vscode-function-explorer.removeMarksMenu",
-          "when": "view == sidebarView && viewItem == wsFolder"
-        },
-        {
-          "command": "vscode-function-explorer.removeMarks",
-          "when": "view == sidebarView && viewItem == folder",
-          "group": "inline@3"
-        },
-        {
-          "command": "vscode-function-explorer.removeMarksMenu",
-          "when": "view == sidebarView && viewItem == folder"
-        },
-        {
           "command": "vscode-function-explorer.removeMarks",
           "when": "view == sidebarView && viewItem == file",
-          "group": "inline@4"
-        },
-        {
-          "command": "vscode-function-explorer.removeMarksMenu",
-          "when": "view == sidebarView && viewItem == file"
+          "group": "inline@3"
         },
         {
           "command": "vscode-function-explorer.openFile",
           "when": "view == sidebarView && viewItem == file",
-          "group": "inline@5"
+          "group": "inline@4"
+        },
+        {
+
+     "​​‌​‍‌​‍‌":"=====================================",
+     "​​‌​‍‍​​‌":" Sidebar function item icon buttons  ",
+     "​​‌​‍⁠​⁠‌":".....................................",
+
+          "command": "vscode-function-explorer.toggleItemMark",
+          "when": "view == sidebarView && viewItem == func",
+          "group": "inline@1"
+        },
+        {
+
+     "​​‌​⁠​​‍‌":"==============================",
+     "​​‌​⁠‌​​‌":" Sidebar wsfolder menu items  ",
+     "​​‌​⁠‍​⁠‌":"..............................",
+
+          "command": "vscode-function-explorer.removeMarksMenu",
+          "when": "view == sidebarView && viewItem == wsFolder"
+        },
+        {
+
+     "​​‌​⁠⁠​‍‌":"============================",
+     "​​‌‌​​​​‌":" Sidebar folder menu items  ",
+     "​​‌‌​‌​⁠‌":"............................",
+
+          "command": "vscode-function-explorer.removeMarksMenu",
+          "when": "view == sidebarView && viewItem == folder"
+        },
+        {
+
+     "​​‌‌​‍​‍‌":"==========================",
+     "​​‌‌​⁠​​‌":" Sidebar file menu items  ",
+     "​​‌‌‌​​⁠‌":"..........................",
+
+          "command": "vscode-function-explorer.toggleMarkedFilterMenu",
+          "when": "view == sidebarView && viewItem == file"
+        },
+        {
+        "command": "vscode-function-explorer.toggleAlphaSortMenu",
+          "when": "view == sidebarView && viewItem == file"
+        },
+        {
+          "command": "vscode-function-explorer.removeMarksMenu",
+          "when": "view == sidebarView && viewItem == file"
         },
         {
           "command": "vscode-function-explorer.openFileMenu",
           "when": "view == sidebarView && viewItem == file"
+        },
+        {
+
+     "​​‌‌‌‌​‍‌":"==============================",
+     "​​‌‌‌‍​​‌":" Sidebar function menu items  ",
+     "​​‌‌‌⁠​⁠‌":"..............................",
+
+          "command": "vscode-function-explorer.toggleItemMarkMenu",
+          "when": "view == sidebarView && viewItem == func"
         }
       ]
     },

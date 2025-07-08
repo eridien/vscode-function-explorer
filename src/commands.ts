@@ -2,7 +2,7 @@ import * as vscode      from 'vscode';
 import * as path        from 'path';
 import * as disp        from './display';
 import * as dbs         from './dbs';
-import  {itms}          from './dbs';
+import  {itms, fils}    from './dbs';
 import * as sbar        from './sidebar';
 import * as itmc        from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
@@ -133,8 +133,15 @@ export async function prev() { await prevNext(false); }
 
 export async function next() { await prevNext(true); }
 
+export async function removeAllMarksMenu() {
+  const funcItems = itms.getAllFuncItems();
+  for(const funcItem of funcItems) 
+    await disp.setMark(funcItem);
+}
+
 export async function settingsMenu() {
-  await vscode.commands.executeCommand('workbench.action.openSettings', 'function-explorer');
+  await vscode.commands.executeCommand('workbench.action.openSettings',
+                                       'function-explorer');
 }
 
 export async function funcClickCmd(funcItem: FuncItem) { 
