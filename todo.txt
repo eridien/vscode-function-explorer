@@ -12,6 +12,13 @@ low priority ...
   bounce on some func clicks
   delete file leaves folder
 
+sidebar buttons/menu ...
+  refresh
+  filter all
+  close all
+  remove all marks
+  item compression
+  settings
 
 unlikely ...
   incremental parsing

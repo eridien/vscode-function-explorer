@@ -151,7 +151,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const selectionChg = vscode.window.onDidChangeTextEditorSelection(
     async event => {
       if (event.textEditor?.document.uri.scheme !== 'file') return;
-      log('selectionChg');
+      // log('selectionChg');
       await cmds.selectionChg(event);
   });
 
@@ -159,13 +159,13 @@ export async function activate(context: vscode.ExtensionContext) {
     async editor => {
       if(editor) { 
         await cmds.editorOrTextChg(editor);
-        log('editorChg');
+        // log('editorChg');
       }
     });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(
     async event => {
-      log('textChg');
+      // log('textChg');
       const {document} = event;
     for(const editor of vscode.window.visibleTextEditors
                     .filter(editor => editor.document === document)) {

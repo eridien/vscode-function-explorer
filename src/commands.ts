@@ -163,6 +163,7 @@ export async function editorOrTextChg(
   //                              fileItem?.children?.length);
   disp.updateFileChildrenFromAst(fileItem);
   disp.updateGutter(editor, fileItem);
+  sbar.updateItemInTree(fileItem);
 }
 
 let sideBarVisible = false;
