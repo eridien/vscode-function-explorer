@@ -2,6 +2,7 @@ import * as vscode     from 'vscode';
 import * as path       from 'path';
 import * as fs         from 'fs/promises';
 import * as sett       from './settings';
+import {settings}      from './settings';
 import * as itmc       from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
         FileItem, FuncItem, setDbs} from './item-classes';
@@ -12,11 +13,11 @@ let context: vscode.ExtensionContext;
 
 const CLEAR_MARKS_ON_STARTUP = false;
 
-export async function activate(contextIn: vscode.ExtensionContext) {
+export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
   setDbs(itms, fils, mrks);
   loadMarks();
-  await mrks.loadAllFilesWithFuncIds();
+  // await mrks.loadAllFilesWithFuncIds();
 }
 
 ////////////////////// items data //////////////////////
@@ -106,8 +107,6 @@ export const itms = new Items();
 class FilePaths {
   private static includedfsPaths = new Set<string>();
   async loadPaths(fsPath: string) {
-    // log('loadPaths start', fsPath);
-    let pathCount = 0;
     async function findFuncFiles(fsPath: string) {
       let stat;
       try{
@@ -124,8 +123,10 @@ class FilePaths {
           }
         }
         else if(sett.includeFile(fsPath)) {
-          FilePaths.includedfsPaths.add(path.dirname(fsPath));
-          pathCount++;
+          if(settings.hideFolders)
+            FilePaths.includedfsPaths.add(fsPath);
+          else
+            FilePaths.includedfsPaths.add(path.dirname(fsPath));
         }
       }
       catch (err) { 
@@ -134,7 +135,6 @@ class FilePaths {
       }
     }
     await findFuncFiles(fsPath);
-    // log(`loadPaths, found ${pathCount} funcFiles`);
   }
   hasIncludedFile(fsPath: string): boolean {
     for(const includedPath of FilePaths.includedfsPaths) {
@@ -195,9 +195,8 @@ class Marks {
   }
   async loadAllFilesWithFuncIds() {
     const fsPaths = Marks.markIdSetByFspath.keys();
-    for (const fsPath of fsPaths) {
+    for (const fsPath of fsPaths) 
       (await itmc.getOrMakeFileItemByFsPath(fsPath)).getChildren();
-    }
   }
 }
 export const mrks = new Marks();

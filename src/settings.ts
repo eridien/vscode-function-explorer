@@ -6,8 +6,9 @@ import path          from 'path';
 import * as utils    from './utils';
 const {log, start, end} = utils.getLog('sett');
 
-interface FunctionMarksSettings {
-  hideRootFolders:     boolean;
+interface FunctionExplorerSettings {
+  hideRootFolders:    boolean;
+  hideFolders:        boolean;
   flattenFolders:     boolean;
   scrollPosition:    "Function Top At Top"           | 
                      "Function Center At Center"     |
@@ -20,8 +21,9 @@ interface FunctionMarksSettings {
   openFileWhenExpanded: boolean;
 }
 
-export let settings:  FunctionMarksSettings = {
+export let settings:  FunctionExplorerSettings = {
   hideRootFolders:      true,
+  hideFolders:          true,
   flattenFolders:       true,
   scrollPosition:       "Function Center At Center If Needed",
   fileWrap:             false,
@@ -148,7 +150,7 @@ export function setWatcherCallbacks(
 let watchers: chokidar.FSWatcher[] = [];
 
 async function setFileWatcher(filesToExclude: string) {
-  start('setFileWatcher');
+  start('setFileWatcher', true);
   if (watchers.length > 0) {
     await Promise.all(watchers.map(watcher => watcher.close()))
       .then(() => log('Previous watchers closed.'));
@@ -213,6 +215,7 @@ export async function loadSettings() {
     scrollPosition:       config.get('scrollPosition', 
                             "Function Center At Center If Needed"),
     hideRootFolders:      config.get('hideRootFolders',      true),
+    hideFolders:          config.get('hideFolders',          true),
     flattenFolders:       config.get('flattenFolders',       true),
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
     fileWrap:             config.get('fileWrap',             false),

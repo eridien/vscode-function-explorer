@@ -2,8 +2,6 @@ bugs ...
   many settings don't immediately change sidebar
 
 todo ...
-  explorer compression
-  refactor display.ts
   is loadPaths cleared?
   deleteFuncById should also remove func from set
   finish sidebar refresh command/menu

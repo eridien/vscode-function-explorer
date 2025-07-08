@@ -58,6 +58,64 @@ export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
   return funcItems;
 }
 
+export async function getFolderChildren(parent: WsAndFolderItem,
+                foldersIn: Item[], filesIn: Item[], root = false) {
+  if(root && settings.hideFolders) {
+    for(const fsPath of fils.sortedFsPaths()) {
+      const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+      if(!fileItem || fileItem.contextValue !== 'file' ||
+         !fileItem.document.uri.fsPath.startsWith(parent.fsPath)) {
+        return;
+      }
+      fileItem.parent = parent;
+      filesIn.push(fileItem);
+    };
+    return;
+  }
+  else if(root && settings.flattenFolders) {
+    (fils.sortedFsPaths() as string[]).forEach(fsPath => {
+      const folderItem = getOrMakeFolderItemByFsPath(fsPath);
+      if(!folderItem || parent === folderItem    ||
+          folderItem.contextValue === 'wsFolder' ||
+         !folderItem.fsPath.startsWith(parent.fsPath)) 
+        return;
+      folderItem.parent = parent;
+      foldersIn.push(folderItem);
+    });
+  }
+  try {
+    const parentFsPath = parent.fsPath;
+    const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
+    for (const entry of entries) {
+      const fsPath    = path.join(parentFsPath, entry.name);
+      const uri       = vscode.Uri.file(fsPath);
+      if(uri.scheme !== 'file') continue;
+      const isDir = entry.isDirectory();
+      if(!sett.includeFile(fsPath, isDir)) continue;
+      if(isDir) {
+        if(settings.flattenFolders || settings.hideFolders || 
+              !fils.hasIncludedFile(fsPath)) continue;
+        const folderItem = getOrMakeFolderItemByFsPath(fsPath);
+        if(!folderItem ||
+            folderItem.contextValue === 'wsFolder') continue;
+        folderItem.parent = parent;
+        foldersIn.push(folderItem);
+        continue;
+      }
+      if(entry.isFile()) {
+        const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+        fileItem.parent = parent;
+        filesIn.push(fileItem);
+        continue;
+      }
+    }
+  }
+  catch (error) { 
+    log('err', 'getFolderChildren readdir parent:', parent.fsPath);
+    return; 
+  }
+}
+
 ////////////////////// WsAndFolderItem //////////////////////
 
 export class WsAndFolderItem extends Item {
@@ -82,53 +140,6 @@ export class WsAndFolderItem extends Item {
   }
 }
 
-export async function getFolderChildren(parent: WsAndFolderItem,
-                foldersIn: Item[], filesIn: Item[], root = false) {
-  // log(`getFolderChildren, parent.fsPath ${parent.fsPath}`);
-  const parentFsPath = parent.fsPath;
-  if(root && settings.flattenFolders) {
-    (fils.sortedFsPaths() as string[]).forEach(fsPath => {
-      const folderItem = getOrMakeFolderItemByFsPath(fsPath);
-      if(!folderItem || parent === folderItem    ||
-          folderItem.contextValue === 'wsFolder' ||
-         !folderItem.fsPath.startsWith(parent.fsPath)) 
-        return;
-      folderItem.parent = parent;
-      foldersIn.push(folderItem);
-    });
-  }
-  try {
-    const entries = await fs.readdir(parentFsPath, {withFileTypes: true});
-    // log('getFolderChildren readdir', entries);
-    for (const entry of entries) {
-      const fsPath    = path.join(parentFsPath, entry.name);
-      const uri       = vscode.Uri.file(fsPath);
-      if(uri.scheme !== 'file') continue;
-      const isDir = entry.isDirectory();
-      if(!sett.includeFile(fsPath, isDir)) continue;
-      if(isDir) {
-        if(settings.flattenFolders || !fils.hasIncludedFile(fsPath)) continue;
-        const folderItem = getOrMakeFolderItemByFsPath(fsPath);
-        if(!folderItem ||
-            folderItem.contextValue === 'wsFolder') continue;
-        folderItem.parent = parent;
-        foldersIn.push(folderItem);
-        continue;
-      }
-      if(entry.isFile()) {
-        const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-        fileItem.parent = parent;
-        filesIn.push(fileItem);
-        continue;
-      }
-    }
-  }
-  catch (error) { 
-    log('err', 'getFolderChildren readdir parent:', parent.fsPath);
-    return; 
-  }
-}
-
 /////////////////////// WsFolderItem //////////////////////
 
 export class WsFolderItem extends WsAndFolderItem {
@@ -139,9 +150,7 @@ export class WsFolderItem extends WsAndFolderItem {
     this.contextValue = 'wsFolder';
     // this.iconPath     = new vscode.ThemeIcon('root-folder');
   }
-  static async create(wsFolder: vscode.WorkspaceFolder, root = false): 
-                                Promise<WsFolderItem> {
-    await fils.loadPaths(wsFolder.uri.fsPath);
+  static create(wsFolder: vscode.WorkspaceFolder, root = false): WsFolderItem {
     return new WsFolderItem(wsFolder, root);
   }
 }
@@ -253,11 +262,11 @@ export class FileItem extends Item {
   }
 }
 
-export async function getOrMakeWsFolderItem(wsFolder: vscode.WorkspaceFolder):
-                                                       Promise<WsFolderItem> {
+export function getOrMakeWsFolderItem(wsFolder: vscode.WorkspaceFolder):
+                                                       WsFolderItem {
   let wsFolderItem = 
     itms.getFldrFileByFsPath(wsFolder.uri.fsPath) as WsFolderItem | undefined;
-  if (!wsFolderItem) wsFolderItem = await WsFolderItem.create(wsFolder, true);
+  if (!wsFolderItem) wsFolderItem = WsFolderItem.create(wsFolder, true);
   return wsFolderItem;
 }
 
@@ -269,10 +278,13 @@ export function getOrMakeFolderItemByFsPath(fsPath: string): FolderItem {
 
 export async function getOrMakeFileItemByFsPath(
                                          fsPath: string): Promise<FileItem> {
+  // log('getOrMakeFileItemByFsPath', path.basename(fsPath));
   let fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem | undefined;
   if (!fileItem) {
     const uri      = vscode.Uri.file(fsPath);
+
     const document = await vscode.workspace.openTextDocument(uri);
+
     fileItem       = new FileItem(document);
   }
   return fileItem;

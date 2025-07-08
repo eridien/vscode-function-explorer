@@ -12,7 +12,21 @@ const {log, start, end} = utils.getLog('extn');
 
 
 export async function activate(context: vscode.ExtensionContext) {
-  start('extension');
+  start('activate', true);
+
+////////////  INIT  ////////////
+
+  const sidebarProvider = new sbar.SidebarProvider();
+  const treeView = vscode.window.createTreeView('sidebarView', {
+    treeDataProvider: sidebarProvider,
+  });
+
+  await sett.loadSettings();
+        disp.activate(context);
+    dbs.activate(context);
+        sbar.activate(treeView, sidebarProvider);
+  // await cmds.activate();
+
 
 ////////////  COMMANDS  ////////////
   
@@ -107,10 +121,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 ////////////  SIDEBAR  ////////////
 
-  const sidebarProvider = new sbar.SidebarProvider();
-  const treeView = vscode.window.createTreeView('sidebarView', {
-    treeDataProvider: sidebarProvider,
-  });
   // log('createTreeView', treeView);
 
   const sidebarVisChg = treeView.onDidChangeVisibility(async (event) => {
@@ -141,7 +151,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const selectionChg = vscode.window.onDidChangeTextEditorSelection(
     async event => {
       if (event.textEditor?.document.uri.scheme !== 'file') return;
-      // log('selectionChg');
+      log('selectionChg');
       await cmds.selectionChg(event);
   });
 
@@ -149,27 +159,19 @@ export async function activate(context: vscode.ExtensionContext) {
     async editor => {
       if(editor) { 
         await cmds.editorOrTextChg(editor);
-        // log('editorChg');
+        log('editorChg');
       }
     });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(
     async event => {
-      // log('textChg');
+      log('textChg');
       const {document} = event;
     for(const editor of vscode.window.visibleTextEditors
                     .filter(editor => editor.document === document)) {
       await cmds.editorOrTextChg(editor);
     }
   });
-
-////////////  INIT  ////////////
-
-  await sett.loadSettings();
-        disp.activate(context);
-  await  dbs.activate(context);
-        sbar.activate(treeView, sidebarProvider);
-  await cmds.activate();
 
 	context.subscriptions.push(
     toggleCmd, prev, next, funcClickCmd, loadSettings,
@@ -180,7 +182,7 @@ export async function activate(context: vscode.ExtensionContext) {
     openFile, openFileMenu,
   );
 
-  end('extension', true);
+  end('activate', true);
 }
 
 export function deactivate() {

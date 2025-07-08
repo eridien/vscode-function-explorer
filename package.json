@@ -230,30 +230,37 @@
           "title": "Hide Root Folders",
           "description": "Hide root folders from the tree. Useful to reduce indentation and save space."
         },
-        "function-explorer.flattenFolders": {
+        "function-explorer.hideFolders": {
           "type": "boolean",
           "default": true,
           "order": 1,
+          "title": "Hide Folders",
+          "description": "Hide all folders from the tree. Useful to reduce indentation and save space."
+        },
+        "function-explorer.flattenFolders": {
+          "type": "boolean",
+          "default": true,
+          "order": 2,
           "title": "Flatten Folders",
           "description": "Flatten folders in the function explorer. If disabled, all folders will be shown with their children which will increase the indentation and width of the explorer."
         },
         "function-explorer.openFileWhenExpanded": {
           "type": "boolean",
           "default": false,
-          "order": 2,
+          "order": 3,
           "title": "Open File When Expanded",
           "description": "When expanding a file item in the explorer, open that file in an editor. Files can also be opened by selecting 'Open File' in the file menu or clicking on ▶."
         },
         "function-explorer.fileWrap": {
           "type": "boolean",
           "default": false,
-          "order": 3,
+          "order": 4,
           "title": "File Wrap",
           "description": "Next and previous navigation will wrap around all files instead of just the active file."
         },
         "function-explorer.scrollPosition": {
           "type": "string",
-          "order": 4,
+          "order": 5,
           "default": "Function Center At Center If Needed",
           "enum": [
             "Function Top At Top",
@@ -277,28 +284,28 @@
           "default": 3,
           "minimum": 0,
           "maximum": 30,
-          "order": 5,
+          "order": 6,
           "title": "Top Margin",
           "description": "Number of margin lines above function when scrolling with \"Function Top At Top\"."
         },
         "function-explorer.alphaSortFunctions": {
           "type": "boolean",
           "default": false,
-          "order": 6,
+          "order": 7,
           "title": "Alpha Sort Functions",
           "description": "Sort functions in the file alphabetically instead of by position. This can be overidden in the sidebar file \"A\" button."
         },
         "function-explorer.filesToInclude": {
           "type": "string",
           "default": "**/*.js, **/*.ts",
-          "order": 7,
+          "order": 8,
           "title": "Files/Folders To Include",
           "description": "Files/Folders to include in the function explorer. Separate glob patterns with commas. If a file/folder matches an include pattern and an exclude pattern, it will not be included."
         },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/",
-          "order": 8,
+          "order": 9,
           "title": "Files/Folders To Exclude",
           "description": "Files/Folders to exclude in the function explorer. Separate glob patterns with commas. To exclude a directory you must end the glob pattern with a slash (/), not /**/."
         }

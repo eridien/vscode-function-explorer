@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as itmc   from './item-classes';
 import {Item, WsAndFolderItem,
         FileItem, FuncItem} from './item-classes';
-import {itms, mrks}         from './dbs';
+import {fils, itms, mrks}   from './dbs';
 import {settings}           from './settings';
 import * as utils           from './utils';
 const {log, start, end} = utils.getLog('sbar');
@@ -25,11 +25,11 @@ export async function getTree() {
     log('err', 'getTree, No folders in workspace');
     return [];
   }
-  if (!settings.hideRootFolders) {
+  if (!settings.hideFolders && !settings.hideRootFolders) {
     const tree: Item[] = [];
     for(const wsFolder of wsFolders) {
-      // await fils.loadPaths(wsFolder.uri.fsPath);
-      const wsFolderItem = await itmc.getOrMakeWsFolderItem(wsFolder);
+      await fils.loadPaths(wsFolder.uri.fsPath);
+      const wsFolderItem = itmc.getOrMakeWsFolderItem(wsFolder);
       tree.push(wsFolderItem);
     }
     return tree;
@@ -37,8 +37,8 @@ export async function getTree() {
   const foldersIn: Item[] = [];
   const filesIn:   Item[] = [];
   for(const wsFolder of wsFolders){
-    // await fils.loadPaths(wsFolder.uri.fsPath);
-    const wsFolderItem = await itmc.getOrMakeWsFolderItem(wsFolder);
+    await fils.loadPaths(wsFolder.uri.fsPath);
+    const wsFolderItem = itmc.getOrMakeWsFolderItem(wsFolder);
     await itmc.getFolderChildren(wsFolderItem, foldersIn, filesIn, true);
   }
   return [...foldersIn, ...filesIn];
@@ -82,7 +82,7 @@ export class SidebarProvider {
     const itemInId    = itemIn.id;
     const itemInLabel = itemIn.label;
     const item        = itms.getById(itemInId);
-    // log('getTreeItem start', itemInLabel, item?.label);
+    // log('getTreeItem start', item?.contextValue, itemIn.label, item?.label);
     if(!item) {
       log('err', 'getTreeItem, item not found:', itemInLabel);
       return itemIn;
@@ -93,7 +93,7 @@ export class SidebarProvider {
                   itemInLabel, item.label);
       return itemIn;
     }
-    // log('getTreeItem end', itemIn.label, item?.label);
+    // log('getTreeItem end', item?.contextValue, itemIn.label, item?.label);
     return item;
   }
 
@@ -108,6 +108,7 @@ export class SidebarProvider {
     delayItemRefreshCalls = true;
     if(!item) {
       const tree = await getTree();
+      // log('getChildren root', tree.length);
       delayItemRefreshCalls = false;
       return tree;
     }
@@ -123,6 +124,7 @@ export class SidebarProvider {
 }
 
 export function updateItemInTree(item: Item | undefined = undefined) {
+  if(!sidebarProvider) debugger;
   sidebarProvider.refresh(item);
 }
 
