@@ -133,6 +133,10 @@ export async function prev() { await prevNext(false); }
 
 export async function next() { await prevNext(true); }
 
+export async function settingsMenu() {
+  await vscode.commands.executeCommand('workbench.action.openSettings', 'function-explorer');
+}
+
 export async function funcClickCmd(funcItem: FuncItem) { 
   if (funcItem) {
     // utils.startDelaying('selChg');

@@ -12,7 +12,7 @@ const {log, start, end} = utils.getLog('extn');
 
 
 export async function activate(context: vscode.ExtensionContext) {
-  start('activate', true);
+  start('activate');
 
 ////////////  INIT  ////////////
 
@@ -46,6 +46,12 @@ export async function activate(context: vscode.ExtensionContext) {
                    'vscode-function-explorer.next', async () => {
 		// log('next');
 		await cmds.next();
+	});
+
+	const settingsMenu = vscode.commands.registerCommand(
+       'vscode-function-explorer.settingsMenu', async () => {
+      //  log('toggleMarkedFilter');
+		await cmds.settingsMenu();
 	});
 
 	const toggleMarkedFilter = vscode.commands.registerCommand(
@@ -179,10 +185,10 @@ export async function activate(context: vscode.ExtensionContext) {
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
-    openFile, openFileMenu,
+    openFile, openFileMenu, settingsMenu, 
   );
 
-  end('activate', true);
+  end('activate');
 }
 
 export function deactivate() {

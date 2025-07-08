@@ -34,19 +34,13 @@
         "title": "Jump to next Function Mark"
       },
       {
-        "command": "vscode-function-explorer.refreshAll",
-        "title": "   ↻ Refresh",
-        "category": "Function Explorer: Refresh All"
-      },
-      {
-        "command": "vscode-function-explorer.collapseAll",
-        "title": "   ↑ Close All",
-        "category": "Function Explorer: Toggle Mark Filter"
-      },
-      {
         "command": "vscode-function-explorer.toggleMarkedFilter",
         "title": " ✔ ",
         "category": "Function Explorer: Toggle Mark Filter"
+      },
+      {
+        "command": "vscode-function-explorer.settingsMenu",
+        "title": "Open Settings"
       },
       {
         "command": "vscode-function-explorer.toggleMarkedFilterMenu",
@@ -87,6 +81,10 @@
       {
         "command": "vscode-function-explorer.removeMarksMenu",
         "title": "Remove Marks"
+      },
+      {
+        "command": "vscode-function-explorer.removeAllMarksMenu",
+        "title": "Remove All Marks"
       },
       {
         "command": "vscode-function-explorer.funcClickCmd",
@@ -140,19 +138,19 @@
       ],
       "view/title": [
         {
-          "command": "vscode-function-explorer.refreshAll",
+          "command": "vscode-function-explorer.settingsMenu",
           "when": "view == sidebarView",
-          "group": "navigation@1"
+          "group": "c"
         },
         {
-          "command": "vscode-function-explorer.collapseAll",
+          "command": "vscode-function-explorer.toggleAlphaSortMenu",
           "when": "view == sidebarView",
-          "group": "navigation@2"
+          "group": "b"
         },
         {
-          "command": "vscode-function-explorer.removeMarks",
+          "command": "vscode-function-explorer.removeAllMarksMenu",
           "when": "view == sidebarView",
-          "group": "navigation@3"
+          "group": "a"
         }
       ],
       "view/item/context": [
