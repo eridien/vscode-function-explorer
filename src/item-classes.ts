@@ -28,8 +28,8 @@ export function setDisp(updateFileChildrenFromAstIn:
   pointerItems = pointerItemsIn;
 }
 
-let updateItemInTree: any;
-export function setSbar(updateItemInTreeIn:any) {
+let updateItemInTree: (item: Item | undefined) => void = (item) => {};
+export function setSbar(updateItemInTreeIn: (item: Item | undefined) => void) {
   updateItemInTree = updateItemInTreeIn;
 }
 
