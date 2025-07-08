@@ -20,7 +20,12 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
+
+     "​​​​​‌​‍‌":"======================",
+     "​​​​​‍​​‌":" keys                 ",
+     "​​​​​⁠​⁠‌":"......................",
+
+     "commands": [
       {
         "command": "vscode-function-explorer.toggle",
         "title": "Toggle Function Mark(s)"
@@ -34,26 +39,44 @@
         "title": "Jump to next Function Mark"
       },
       {
-        "command": "vscode-function-explorer.toggleMarkedFilter",
-        "title": " ✔ ",
-        "category": "Function Explorer: Toggle Mark Filter"
-      },
-      {
+
+     "​​​​‌​​‍‌":"======================",
+     "​​​​‌‌​​‌":" Sidebar title menu   ",
+     "​​​​‌‍​⁠‌":"......................",
+
         "command": "vscode-function-explorer.settingsMenu",
         "title": "Open Settings"
       },
       {
+
+     "​​​‌​⁠​‍‌":"=========================",
+     "​​​‌‌​​​‌":" Sidebar file item menu  ",
+     "​​​‌‌‌​⁠‌":".........................",
+
         "command": "vscode-function-explorer.toggleMarkedFilterMenu",
-        "title": " Toggle Mark Filter"
+        "title": "Toggle Mark Filter"
       },
       {
-        "command": "vscode-function-explorer.openFile",
-        "title": " ▶ ",
-        "category": "Function Explorer: Open File"
+        "command": "vscode-function-explorer.toggleAlphaSortMenu",
+        "title": "Toggle Alpha Sort"
+      },
+      {
+        "command": "vscode-function-explorer.removeMarksMenu",
+        "title": "Remove Marks"
       },
       {
         "command": "vscode-function-explorer.openFileMenu",
         "title": "Open File"
+      },
+      {
+
+     "​​​‌⁠​​‍‌":"=================================",
+     "​​​‌⁠‌​​‌":" Sidebar file item icon buttons  ",
+     "​​​‌⁠‍​⁠‌":".................................",
+
+        "command": "vscode-function-explorer.toggleMarkedFilter",
+        "title": " ✔ ",
+        "category": "Function Explorer: Toggle Mark Filter"
       },
       {
         "command": "vscode-function-explorer.toggleAlphaSort",
@@ -61,26 +84,33 @@
         "category": "Function Explorer: Toggle Alpha Sort"
       },
       {
-        "command": "vscode-function-explorer.toggleAlphaSortMenu",
-        "title": "Toggle Alpha Sort"
-      },
-      {
-        "command": "vscode-function-explorer.toggleItemMark",
-        "title": "M",
-        "category": "Function Explorer: Toggle Function Mark"
-      },
-      {
-        "command": "vscode-function-explorer.toggleItemMarkMenu",
-        "title": "Toggle Function Mark"
-      },
-      {
         "command": "vscode-function-explorer.removeMarks",
         "title": " ⨉ ",
         "category": "Function Explorer: Remove Marks"
       },
       {
-        "command": "vscode-function-explorer.removeMarksMenu",
-        "title": "Remove Marks"
+        "command": "vscode-function-explorer.openFile",
+        "title": " ▶ ",
+        "category": "Function Explorer: Open File"
+      },
+      {
+
+     "​​​‌⁠⁠​‍‌":"=====================================",
+     "​​​‍​​​​‌":" Sidebar function item icon buttons  ",
+     "​​​‍​‌​⁠‌":".....................................",
+
+        "command": "vscode-function-explorer.toggleItemMark",
+        "title": " M ",
+        "category": "Function Explorer: Toggle Function Mark"
+      },
+      {
+
+     "​​​‍​‍​‍‌":"======================",
+     "​​​‍​⁠​​‌":" Click here.          ",
+     "​​​‍‌​​⁠‌":"......................",
+
+        "command": "vscode-function-explorer.toggleItemMarkMenu",
+        "title": "zToggle Function Mark"
       },
       {
         "command": "vscode-function-explorer.removeAllMarksMenu",
