@@ -40,12 +40,16 @@
       },
       {
 
-     "​​​​‌​​‍‌":"======================",
-     "​​​​‌‌​​‌":" Sidebar title menu   ",
-     "​​​​‌‍​⁠‌":"......................",
+     "​​​‍‌‌​‍‌":"======================",
+     "​​​‍‌‍​​‌":" Sidebar title menu   ",
+     "​​​‍‌⁠​⁠‌":"......................",
 
         "command": "vscode-function-explorer.settingsMenu",
         "title": "Open Settings"
+      },
+      {
+        "command": "vscode-function-explorer.removeAllMarksMenu",
+        "title": "Remove All Marks"
       },
       {
 
@@ -95,9 +99,9 @@
       },
       {
 
-     "​​​‌⁠⁠​‍‌":"=====================================",
-     "​​​‍​​​​‌":" Sidebar function item icon buttons  ",
-     "​​​‍​‌​⁠‌":".....................................",
+     "​​​‍‍⁠​‍‌":"=====================================",
+     "​​​‍⁠​​​‌":" Sidebar function item icon buttons  ",
+     "​​​‍⁠‌​⁠‌":".....................................",
 
         "command": "vscode-function-explorer.toggleItemMark",
         "title": " M ",
@@ -105,18 +109,19 @@
       },
       {
 
-     "​​​‍​‍​‍‌":"======================",
-     "​​​‍​⁠​​‌":" Click here.          ",
-     "​​​‍‌​​⁠‌":"......................",
+     "​​​⁠‍‍​‍‌":"=============================",
+     "​​​⁠‍⁠​​‌":" Sidebar function item menu  ",
+     "​​​⁠⁠​​⁠‌":".............................",
 
         "command": "vscode-function-explorer.toggleItemMarkMenu",
-        "title": "zToggle Function Mark"
+        "title": "Toggle Function Mark"
       },
       {
-        "command": "vscode-function-explorer.removeAllMarksMenu",
-        "title": "Remove All Marks"
-      },
-      {
+
+     "​​​⁠‌⁠​‍‌":"==============================",
+     "​​​⁠‍​​​‌":" Sidebar function item click  ",
+     "​​​⁠‍‌​⁠‌":"..............................",
+
         "command": "vscode-function-explorer.funcClickCmd",
         "title": "Show the function in an editor.",
         "category": "Vscode-function-explorer"
@@ -171,11 +176,6 @@
           "command": "vscode-function-explorer.settingsMenu",
           "when": "view == sidebarView",
           "group": "c"
-        },
-        {
-          "command": "vscode-function-explorer.toggleAlphaSortMenu",
-          "when": "view == sidebarView",
-          "group": "b"
         },
         {
           "command": "vscode-function-explorer.removeAllMarksMenu",
