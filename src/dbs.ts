@@ -29,6 +29,10 @@ class Items {
   private static fldrItemsByFspath: Map<string, AllButFuncItem> = new Map();
   private static funcItemsByFuncId: Map<string, Set<FuncItem>>  = new Map();
 
+  getAllFolderFileItems(): AllButFuncItem[] {
+    return Array.from(Items.fldrItemsByFspath.values()); 
+  }
+
   getAllFuncItems(): FuncItem[] {
     const allFuncSets = Items.funcItemsByFuncId.values();
     const result: FuncItem[] = [];

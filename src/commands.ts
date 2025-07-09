@@ -15,8 +15,10 @@ const {log, start, end} = utils.getLog('cmds');
 const NEXT_DEBUG = false;
 // const NEXT_DEBUG = true;
 
-export async function activate() {
-  await editorOrTextChg();
+let treeView:  vscode.TreeView<Item>;
+
+export function activate(treeViewIn: vscode.TreeView<Item>) {
+  treeView = treeViewIn;
 }
 
 // export async function toggleCmd() {
@@ -137,6 +139,11 @@ export async function removeAllMarksMenu() {
   const funcItems = itms.getAllFuncItems();
   for(const funcItem of funcItems) 
     await disp.setMark(funcItem);
+}
+
+export function collapseAllMenu() {
+  vscode.commands.executeCommand(
+        'workbench.actions.treeView.sidebarView.collapseAll');
 }
 
 export async function showFolders() {

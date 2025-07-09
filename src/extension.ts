@@ -23,9 +23,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   await sett.loadSettings();
         disp.activate(context);
-    dbs.activate(context);
+         dbs.activate(context);
         sbar.activate(treeView, sidebarProvider);
-  // await cmds.activate();
+        cmds.activate(treeView);
 
 
 ////////////  COMMANDS  ////////////
@@ -52,6 +52,12 @@ export async function activate(context: vscode.ExtensionContext) {
        'vscode-function-explorer.removeAllMarksMenu', async () => {
       //  log('removeAllMarksMenu');
 		await cmds.removeAllMarksMenu();
+	});
+
+	const collapseAllMenu = vscode.commands.registerCommand(
+       'vscode-function-explorer.collapseAllMenu', () => {
+      //  log('collapseAllMenu');
+		cmds.collapseAllMenu();
 	});
 
 	const showFolders = vscode.commands.registerCommand(
@@ -204,7 +210,7 @@ export async function activate(context: vscode.ExtensionContext) {
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 
-    showFolders, hideFolders
+    collapseAllMenu, showFolders, hideFolders
   );
 
   end('activate');

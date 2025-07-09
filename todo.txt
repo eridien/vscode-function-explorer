@@ -15,15 +15,7 @@ low priority ...
 
 sidebar buttons/menu ...
   refresh
-  filter all
   close all
-  remove all marks
-  item compression
-    nested folders and files
-    no root folders
-    flattened folders
-    file list, no folders
-  settings
 
 unlikely ...
   incremental parsing

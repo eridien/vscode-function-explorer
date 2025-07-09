@@ -48,6 +48,10 @@
         "title": "Remove All Marks"
       },
       {
+        "command": "vscode-function-explorer.collapseAllMenu",
+        "title": "Collapse All Folders And Files"
+      },
+      {
         "command": "vscode-function-explorer.showFolders",
         "title": "Show Folders"
       },
@@ -184,6 +188,11 @@
           "command": "vscode-function-explorer.removeAllMarksMenu",
           "when": "view == sidebarView",
           "group": "a"
+        },
+        {
+          "command": "vscode-function-explorer.collapseAllMenu",
+          "when": "view == sidebarView",
+          "group": "b"
         },
         {
           "command": "vscode-function-explorer.showFolders",
