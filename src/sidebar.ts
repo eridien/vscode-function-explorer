@@ -127,8 +127,19 @@ export class SidebarProvider {
 }
 
 export function updateItemInTree(item: Item | undefined = undefined) {
-  if(!sidebarProvider) debugger;
-  sidebarProvider.refresh(item);
+  if(sidebarProvider) sidebarProvider.refresh(item);
+}
+
+export async function refreshTree() {
+  const wsFolders = vscode.workspace.workspaceFolders;
+  if (!wsFolders || wsFolders.length === 0) {
+    log('err', 'refreshTree, No folders in workspace');
+    return;
+  }
+  for(const wsFolder of wsFolders)
+    await fils.loadPaths(wsFolder.uri.fsPath);
+  itms.getAllFolderFileItems().forEach(item => item.clear());
+  if(sidebarProvider) sidebarProvider.refresh(undefined);
 }
 
 export async function revealItemByFunc(func: FuncItem) {

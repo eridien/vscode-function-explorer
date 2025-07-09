@@ -4,6 +4,7 @@ import * as fs       from 'fs/promises';
 import * as chokidar from 'chokidar';
 import path          from 'path';
 import * as utils    from './utils';
+import { updateItemInTree } from './sidebar';
 const {log, start, end} = utils.getLog('sett');
 
 interface FunctionExplorerSettings {
@@ -234,6 +235,7 @@ export async function loadSettings() {
 }
 
 export async function setHideFolders(value: boolean) {
+  settings.hideFolders = value;
   vscode.commands.executeCommand('setContext', 'foldersHidden', value);
   await vscode.workspace.getConfiguration('function-explorer')
     .update('hideFolders', value, vscode.ConfigurationTarget.Workspace);

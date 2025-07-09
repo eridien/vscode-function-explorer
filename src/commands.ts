@@ -148,10 +148,12 @@ export function collapseAllMenu() {
 
 export async function showFolders() {
   await sett.setHideFolders(false);
+  await sbar.refreshTree();
 }
 
 export async function hideFolders() {
   await sett.setHideFolders(true);
+  await sbar.refreshTree();
 }
 
 export async function settingsMenu() {

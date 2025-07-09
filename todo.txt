@@ -2,20 +2,17 @@ bugs ...
   many settings don't immediately change sidebar
 
 todo ...
-  add title menu item to change compression
-  is loadPaths cleared?
-  deleteFuncById should also remove func from set
   more languages
+  is loadPaths cleared?
   find item in sidebar from editor name
+  deleteFuncById should also remove func from set
 
 low priority ...
-  func items only?
   bounce on some func clicks
   delete file leaves folder
 
 sidebar buttons/menu ...
   refresh
-  close all
 
 unlikely ...
   incremental parsing

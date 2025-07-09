@@ -45,6 +45,7 @@ export class Item extends vscode.TreeItem {
   parent?:      Item   | null = null;
   children?:    Item[] | null = null;
   refresh() {}
+  clear()   {}
 }
 
 export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
@@ -130,6 +131,10 @@ export class WsAndFolderItem extends Item {
     const files:   Item[] = [];
     await getFolderChildren(this, folders, files, this.root);
     return [...folders, ...files];
+  }
+  clear() {
+    this.children = null;
+    this.root     = false;
   }
 }
 
@@ -249,6 +254,9 @@ export class FileItem extends Item {
       parent = parent.parent as WsAndFolderItem | null;
     }
     itemDeleteCount--;
+  }
+  clear() {
+    this.children = null;
   }
 }
 
