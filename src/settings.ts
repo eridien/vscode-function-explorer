@@ -9,7 +9,6 @@ const {log, start, end} = utils.getLog('sett');
 interface FunctionExplorerSettings {
   hideRootFolders:    boolean;
   hideFolders:        boolean;
-  flattenFolders:     boolean;
   scrollPosition:    "Function Top At Top"           | 
                      "Function Center At Center"     |
                      "Function Bottom At Bottom"     | 
@@ -24,7 +23,6 @@ interface FunctionExplorerSettings {
 export let settings:  FunctionExplorerSettings = {
   hideRootFolders:      true,
   hideFolders:          true,
-  flattenFolders:       true,
   scrollPosition:       "Function Center At Center If Needed",
   fileWrap:             false,
   alphaSortFunctions:   false,
@@ -216,13 +214,12 @@ export async function loadSettings() {
                             "Function Center At Center If Needed"),
     hideRootFolders:      config.get('hideRootFolders',      true),
     hideFolders:          config.get('hideFolders',          true),
-    flattenFolders:       config.get('flattenFolders',       true),
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
     fileWrap:             config.get('fileWrap',             false),
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
     topMargin:            config.get('topMargin',                3),
   };
-  await setHideFolders(settings.hideFolders);
+  vscode.commands.executeCommand('setContext', 'foldersHidden', settings.hideFolders);
   const includeFilesPattern = 
             config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                   .split(",").map(p => p.trim());
@@ -237,6 +234,7 @@ export async function loadSettings() {
 }
 
 export async function setHideFolders(value: boolean) {
+  vscode.commands.executeCommand('setContext', 'foldersHidden', value);
   await vscode.workspace.getConfiguration('function-explorer')
     .update('hideFolders', value, vscode.ConfigurationTarget.Workspace);
 }

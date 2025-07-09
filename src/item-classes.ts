@@ -74,7 +74,7 @@ export async function getFolderChildren(parent: WsAndFolderItem,
     };
     return;
   }
-  else if(root && settings.flattenFolders) {
+  else if(root) {
     (fils.sortedFsPaths() as string[]).forEach(fsPath => {
       const folderItem = getOrMakeFolderItemByFsPath(fsPath);
       if(!folderItem || parent === folderItem    ||
@@ -94,16 +94,7 @@ export async function getFolderChildren(parent: WsAndFolderItem,
       if(uri.scheme !== 'file') continue;
       const isDir = entry.isDirectory();
       if(!sett.includeFile(fsPath, isDir)) continue;
-      if(isDir) {
-        if(settings.flattenFolders || settings.hideFolders || 
-              !fils.hasIncludedFile(fsPath)) continue;
-        const folderItem = getOrMakeFolderItemByFsPath(fsPath);
-        if(!folderItem ||
-            folderItem.contextValue === 'wsFolder') continue;
-        folderItem.parent = parent;
-        foldersIn.push(folderItem);
-        continue;
-      }
+      if(isDir) continue;
       if(entry.isFile()) {
         const fileItem = await getOrMakeFileItemByFsPath(fsPath);
         fileItem.parent = parent;
@@ -166,18 +157,15 @@ export class FolderItem extends WsAndFolderItem {
   constructor(uri: vscode.Uri) {
     super(uri);
     this.contextValue = 'folder';
-    // this.iconPath     = new vscode.ThemeIcon('folder');
-    if(settings.flattenFolders)  {
-      const wsFolders = vscode.workspace.workspaceFolders;
-      if (wsFolders && wsFolders.length > 0) {
-        const wsFolder = wsFolders.find(
-              wsFolder => uri.fsPath.startsWith(wsFolder.uri.fsPath));
-        if (wsFolder) {
-          let rel = uri.path.substring(wsFolder.uri.path.length);
-          if (rel.startsWith("/")) rel = rel.slice(1);
-          if(rel.indexOf("/") !== -1) this.description = ' ' + 
-                         rel.split('/').slice(0,-1).join('/') + '/';
-        }
+    const wsFolders = vscode.workspace.workspaceFolders;
+    if (wsFolders && wsFolders.length > 0) {
+      const wsFolder = wsFolders.find(
+            wsFolder => uri.fsPath.startsWith(wsFolder.uri.fsPath));
+      if (wsFolder) {
+        let rel = uri.path.substring(wsFolder.uri.path.length);
+        if (rel.startsWith("/")) rel = rel.slice(1);
+        if(rel.indexOf("/") !== -1) this.description = ' ' + 
+                        rel.split('/').slice(0,-1).join('/') + '/';
       }
     }
   }

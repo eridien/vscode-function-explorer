@@ -314,14 +314,14 @@
           "default": true,
           "order": 0,
           "title": "Hide Root Folders",
-          "description": "Hide root folders from the tree. Useful to reduce indentation and save space."
+          "description": "Hide root folders from the tree. Useful to reduce indentation and save space. This only applies when Hide Folders setting is off."
         },
         "function-explorer.hideFolders": {
           "type": "boolean",
           "default": true,
           "order": 1,
           "title": "Hide Folders",
-          "description": "Hide all folders from the tree. Useful to reduce indentation and save space."
+          "description": "Hide all folders from the tree and show only files and functions. Useful to reduce indentation and save space."
         },
         "function-explorer.openFileWhenExpanded": {
           "type": "boolean",

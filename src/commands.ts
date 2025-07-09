@@ -140,12 +140,10 @@ export async function removeAllMarksMenu() {
 }
 
 export async function showFolders() {
-  vscode.commands.executeCommand('setContext', 'foldersHidden', false);
   await sett.setHideFolders(false);
 }
 
 export async function hideFolders() {
-  vscode.commands.executeCommand('setContext', 'foldersHidden', true);
   await sett.setHideFolders(true);
 }
 
