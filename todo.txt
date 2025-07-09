@@ -19,6 +19,10 @@ sidebar buttons/menu ...
   close all
   remove all marks
   item compression
+    nested folders and files
+    no root folders
+    flattened folders
+    file list, no folders
   settings
 
 unlikely ...
@@ -28,15 +32,8 @@ unlikely ...
     fixes priority behavior
 
 options ... 
-  explorer compression
-    nested folders and files
-    no root folders
-    flattened folders
-    file list, no folders
-    function list, no files
   reveal item when marking
   open in preview mode
-  default file wrap off
   when adding mark then always scroll
 
 testing ...

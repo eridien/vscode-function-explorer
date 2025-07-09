@@ -54,6 +54,18 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.removeAllMarksMenu();
 	});
 
+	const showFolders = vscode.commands.registerCommand(
+       'vscode-function-explorer.showFolders', async () => {
+      //  log('showFolders');
+		await cmds.showFolders();
+	});
+
+	const hideFolders = vscode.commands.registerCommand(
+       'vscode-function-explorer.hideFolders', async () => {
+      //  log('hideFolders');
+		await cmds.hideFolders();
+	});
+
 	const settingsMenu = vscode.commands.registerCommand(
        'vscode-function-explorer.settingsMenu', async () => {
       //  log('settingsMenu');
@@ -191,7 +203,8 @@ export async function activate(context: vscode.ExtensionContext) {
     sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
-    openFile, openFileMenu, settingsMenu, removeAllMarksMenu
+    openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 
+    showFolders, hideFolders
   );
 
   end('activate');

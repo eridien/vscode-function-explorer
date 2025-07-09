@@ -222,6 +222,7 @@ export async function loadSettings() {
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
     topMargin:            config.get('topMargin',                3),
   };
+  await setHideFolders(settings.hideFolders);
   const includeFilesPattern = 
             config.get<string>("filesToInclude", "**/*.js, **/*.ts")
                   .split(",").map(p => p.trim());
@@ -233,4 +234,9 @@ export async function loadSettings() {
   if(excParts.length < 2) excludeCfg = excParts[0];
   else                    excludeCfg = '{'+excParts.join(",")+'}';
   await setFileWatcher(excludeFoldersPattern);
+}
+
+export async function setHideFolders(value: boolean) {
+  await vscode.workspace.getConfiguration('function-explorer')
+    .update('hideFolders', value, vscode.ConfigurationTarget.Workspace);
 }

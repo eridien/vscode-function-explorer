@@ -48,6 +48,14 @@
         "title": "Remove All Marks"
       },
       {
+        "command": "vscode-function-explorer.showFolders",
+        "title": "Show Folders"
+      },
+      {
+        "command": "vscode-function-explorer.hideFolders",
+        "title": "Hide Folders"
+      },
+      {
         "command": "vscode-function-explorer.settingsMenu",
         "title": "Open Settings"
       },
@@ -178,9 +186,19 @@
           "group": "a"
         },
         {
+          "command": "vscode-function-explorer.showFolders",
+          "when": "view == sidebarView && foldersHidden",
+          "group": "b"
+        },
+        {
+          "command": "vscode-function-explorer.hideFolders",
+          "when": "view == sidebarView && !foldersHidden",
+          "group": "b"
+        },
+        {
           "command": "vscode-function-explorer.settingsMenu",
           "when": "view == sidebarView",
-          "group": "b"
+          "group": "c"
         }
       ],
       "view/item/context": [
@@ -304,13 +322,6 @@
           "order": 1,
           "title": "Hide Folders",
           "description": "Hide all folders from the tree. Useful to reduce indentation and save space."
-        },
-        "function-explorer.flattenFolders": {
-          "type": "boolean",
-          "default": true,
-          "order": 2,
-          "title": "Flatten Folders",
-          "description": "Flatten folders in the function explorer. If disabled, all folders will be shown with their children which will increase the indentation and width of the explorer."
         },
         "function-explorer.openFileWhenExpanded": {
           "type": "boolean",

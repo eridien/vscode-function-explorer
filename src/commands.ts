@@ -139,9 +139,19 @@ export async function removeAllMarksMenu() {
     await disp.setMark(funcItem);
 }
 
+export async function showFolders() {
+  vscode.commands.executeCommand('setContext', 'foldersHidden', false);
+  await sett.setHideFolders(false);
+}
+
+export async function hideFolders() {
+  vscode.commands.executeCommand('setContext', 'foldersHidden', true);
+  await sett.setHideFolders(true);
+}
+
 export async function settingsMenu() {
-  await vscode.commands.executeCommand('workbench.action.openSettings',
-                                       'function-explorer');
+  await vscode.commands.executeCommand(
+       'workbench.action.openSettings', 'function-explorer');
 }
 
 export async function funcClickCmd(funcItem: FuncItem) { 
