@@ -49,7 +49,11 @@
       },
       {
         "command": "vscode-function-explorer.collapseAllMenu",
-        "title": "Collapse All Folders And Files"
+        "title": "Collapse Folders/Files"
+      },
+      {
+        "command": "vscode-function-explorer.refresh",
+        "title": "Refresh"
       },
       {
         "command": "vscode-function-explorer.showFolders",
@@ -195,19 +199,24 @@
           "group": "b"
         },
         {
+          "command": "vscode-function-explorer.refresh",
+          "when": "view == sidebarView",
+          "group": "c"
+        },
+        {
           "command": "vscode-function-explorer.showFolders",
           "when": "view == sidebarView && foldersHidden",
-          "group": "b"
+          "group": "d"
         },
         {
           "command": "vscode-function-explorer.hideFolders",
           "when": "view == sidebarView && !foldersHidden",
-          "group": "b"
+          "group": "e"
         },
         {
           "command": "vscode-function-explorer.settingsMenu",
           "when": "view == sidebarView",
-          "group": "c"
+          "group": "f"
         }
       ],
       "view/item/context": [

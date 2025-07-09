@@ -146,6 +146,10 @@ export function collapseAllMenu() {
         'workbench.actions.treeView.sidebarView.collapseAll');
 }
 
+export async function refresh() {
+  await sbar.refreshTree(true);
+}
+
 export async function showFolders() {
   await sett.setHideFolders(false);
   await sbar.refreshTree();

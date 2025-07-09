@@ -60,6 +60,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		cmds.collapseAllMenu();
 	});
 
+	const refresh = vscode.commands.registerCommand(
+       'vscode-function-explorer.refresh', () => {
+      //  log('refresh');
+		cmds.refresh();
+	});
+
 	const showFolders = vscode.commands.registerCommand(
        'vscode-function-explorer.showFolders', async () => {
       //  log('showFolders');

@@ -130,7 +130,7 @@ export function updateItemInTree(item: Item | undefined = undefined) {
   if(sidebarProvider) sidebarProvider.refresh(item);
 }
 
-export async function refreshTree() {
+export async function refreshTree(updateFuncs = false) {
   const wsFolders = vscode.workspace.workspaceFolders;
   if (!wsFolders || wsFolders.length === 0) {
     log('err', 'refreshTree, No folders in workspace');
@@ -138,7 +138,13 @@ export async function refreshTree() {
   }
   for(const wsFolder of wsFolders)
     await fils.loadPaths(wsFolder.uri.fsPath);
-  itms.getAllFolderFileItems().forEach(item => item.clear());
+  itms.getAllFolderFileItems().forEach(item => {
+    item.clear();
+    if(updateFuncs && item instanceof FileItem) {
+      updateFileChildrenFromAst(item);
+      updateItemInTree(item);
+    }
+  });
   if(sidebarProvider) sidebarProvider.refresh(undefined);
 }
 

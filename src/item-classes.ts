@@ -68,7 +68,7 @@ export async function getFolderChildren(parent: WsAndFolderItem,
       const fileItem = await getOrMakeFileItemByFsPath(fsPath);
       if(!fileItem || fileItem.contextValue !== 'file' ||
          !fileItem.document.uri.fsPath.startsWith(parent.fsPath)) {
-        return;
+        continue;
       }
       fileItem.parent = parent;
       filesIn.push(fileItem);
