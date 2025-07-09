@@ -80,7 +80,7 @@ export async function getFolderChildren(parent: WsAndFolderItem,
       const folderItem = getOrMakeFolderItemByFsPath(fsPath);
       if(!folderItem || parent === folderItem    ||
           folderItem.contextValue === 'wsFolder' ||
-         !folderItem.fsPath.startsWith(parent.fsPath)) 
+         !folderItem.fsPath?.startsWith(parent.fsPath)) 
         return;
       folderItem.parent = parent;
       foldersIn.push(folderItem);
@@ -265,6 +265,7 @@ export function getOrMakeWsFolderItem(wsFolder: vscode.WorkspaceFolder):
   let wsFolderItem = 
     itms.getFldrFileByFsPath(wsFolder.uri.fsPath) as WsFolderItem | undefined;
   if (!wsFolderItem) wsFolderItem = WsFolderItem.create(wsFolder, true);
+  wsFolderItem.root = true;
   return wsFolderItem;
 }
 
