@@ -150,8 +150,7 @@ export async function activate(context: vscode.ExtensionContext) {
                              .onDidChangeConfiguration(async event => {
     if (event.affectsConfiguration('function-explorer')) {
       await sett.loadSettings();
-      // disp.setFileWatcher();
-      // cmds.updateSide();
+      await sbar.refreshTree();
     }
   });
 
