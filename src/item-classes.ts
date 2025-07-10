@@ -353,7 +353,9 @@ export class FuncItem extends Item {
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
   isFunction(type: string = this.type): boolean {
-    return pars.funcTypes.includes(type);
+
+    return new Set(["function_definition"]).has(type);
+
   }
   clear() {
     this.startLine = undefined;
