@@ -3,6 +3,7 @@ import * as cmds         from './commands';
 import * as disp         from './display';
 import * as sbar         from './sidebar';
 import * as dbs          from './dbs';
+import {fils}            from './dbs';
 import * as itmc         from './item-classes';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
                          from './item-classes';
