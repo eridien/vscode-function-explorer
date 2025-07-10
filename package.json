@@ -360,7 +360,7 @@
           "default": false,
           "order": 7,
           "title": "Alpha Sort Functions",
-          "description": "Sort functions in the file alphabetically instead of by position. This only applies when activating the extension. Then it can be toggled in the sidebar file \"A\" button separately for each file."
+          "description": "Sort functions in all files alphabetically instead of by position. This only applies when activating the extension. Then it can be toggled in the sidebar file \"A\" button separately for each file."
         },
         "function-explorer.filesToInclude": {
           "type": "string",

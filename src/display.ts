@@ -22,6 +22,7 @@ export function activate(contextIn:  vscode.ExtensionContext) {
 
 export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
                                     expanded: boolean) {
+  if(!(item instanceof FileItem)) return;
   if(!expanded) {
     const funcItems = await itmc.getFuncItemsUnderNode(item);
     let filesChanged = new Set<FileItem>();
@@ -33,16 +34,16 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
         funcItem.clrStayVisible();
       }
     }
-    if(item.contextValue === 'file') {
-      if(!haveMark &&(item as FileItem).filtered) {
-        filesChanged.add(item as FileItem);
-        (item as FileItem).filtered = false;
-      }
-      if(settings.openFileWhenExpanded)
-        await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);    
+    if(!haveMark && item.filtered) {
+      filesChanged.add(item);
+      item.filtered = false;
     }
     for(const fileItem of filesChanged)
          sbar.updateItemInTree(fileItem);
+  }
+  else {
+    if(settings.openFileWhenExpanded)
+      await utils.revealEditorByFspath(item.document.uri.fsPath);    
   }
   item.expanded = expanded;
 }

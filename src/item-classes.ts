@@ -113,14 +113,12 @@ export async function getFolderChildren(parent: WsAndFolderItem,
 ////////////////////// WsAndFolderItem //////////////////////
 
 export class WsAndFolderItem extends Item {
-  expanded:  boolean;
   fsPath:    string;
   root:      boolean;
   constructor(uri: vscode.Uri, root = false) {
     super(path.basename(uri.fsPath),
           vscode.TreeItemCollapsibleState.Expanded);
     this.id       = getItemId();
-    this.expanded = true;
     this.fsPath   = uri.fsPath;
     this.root     = root;
     itms.setFolderItem(this);
@@ -203,15 +201,16 @@ export class FileItem extends Item {
   declare parent:   WsAndFolderItem | null;
   declare children: FuncItem[]      | null;
   document:         vscode.TextDocument;
-  expanded:         boolean = false;;
+  expanded:         boolean = false;
   filtered:         boolean = false;
-  alphaSorted:      boolean = false;
+  alphaSorted:      boolean;
   constructor(document: vscode.TextDocument) {
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
     this.document     = document;
     this.id           = getItemId();
     this.contextValue = 'file';
     this.iconPath     = new vscode.ThemeIcon('file');
+    this.alphaSorted  = settings.alphaSortFunctions;
     itms.setFileItem(this);
   }
   getChildren(noFilter = false): FuncItem[] {
