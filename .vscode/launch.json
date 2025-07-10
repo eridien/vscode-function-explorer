@@ -11,7 +11,7 @@
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-        "--folder-uri=file:///C:/Users/mark/apps/test-app"
+        "--folder-uri=file:///C:/Users/mark/apps/test-py"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"

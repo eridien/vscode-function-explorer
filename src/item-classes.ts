@@ -1,9 +1,11 @@
 import * as vscode     from 'vscode';
 import * as path       from 'path';
 import * as fs         from 'fs/promises';
+import * as pars       from './parse';
 import * as sett       from './settings';
 import {settings}      from './settings';
 import * as utils      from './utils';
+import { parse } from '@babel/parser';
 const {log, start, end} = utils.getLog('itms');
 
 const DEBUG_FUNC_TYPE = false;
@@ -351,8 +353,7 @@ export class FuncItem extends Item {
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
   isFunction(type: string = this.type): boolean {
-    return ["function_declaration", "function_expression", 
-            "method_definition", "arrow_function"].includes(type);
+    return pars.funcTypes.includes(type);
   }
   clear() {
     this.startLine = undefined;

@@ -2,48 +2,62 @@ import * as vscode           from 'vscode';
 import path                  from 'path';
 import Parser                from 'tree-sitter';
 import type { SyntaxNode }   from 'tree-sitter';
-import JavaScript            from 'tree-sitter-javascript';
-const {typescript, tsx} = require('tree-sitter-typescript');
+// import JavaScript            from 'tree-sitter-javascript';
+// const {typescript, tsx} = require('tree-sitter-typescript');
+import python                from 'tree-sitter-python';
+
 import * as utils            from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 // const langObj = JavaScript;
-const langObj = typescript;
+// const langObj = typescript;
 // const langObj = tsx;
+const langObj = python;
 
 const PARSE_DEBUG_TYPE: string = '';
 const PARSE_DEBUG_NAME: string = '';
-// const PARSE_DEBUG_TYPE: string = 'call_expression';
+// const PARSE_DEBUG_TYPE: string = 'function_definition';
 // const PARSE_DEBUG_NAME: string = 'Item';
+
+// const sExpr = `
+//   [
+//     ((function_declaration
+//         name: (identifier) @funcDeclName) @funcDecl)
+//     ((variable_declarator
+//         name: (identifier) @funcExprDeclName
+//         value: (function_expression) @funcExprDecl) @funcExprDeclBody)
+//     ((variable_declarator
+//         name: (identifier) @arrowFuncDeclName
+//         value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
+//     ((class_declaration
+//         name: (type_identifier) @classDeclName) @classDecl)
+//     ((method_definition
+//         name: (property_identifier) @methodDefName) @methodDef)
+//     ((pair
+//         key: (property_identifier) @propertyName) @property) @propertyBody
+//     ((assignment_expression
+//         left: [(identifier) (member_expression) (subscript_expression)]
+//                                                   @assExprName) @assExpr)
+//     ((variable_declarator
+//         name: (identifier) @varDeclName) @varDecl)
+//   ]
+// `;
+// const capNames = ['funcDecl',  'funcExprDecl', 'arrowFuncDecl', 
+//                   'classDecl', 'methodDef', 
+//                   'property',  'assExpr', 'varDecl'];
+// export const funcTypes = ["function_declaration", "function_expression", 
+//                           "method_definition", "arrow_function"];
+// const lowPriority = new Set(['variable_declarator']);
 
 const sExpr = `
   [
-    ((function_declaration
-        name: (identifier) @funcDeclName) @funcDecl)
-    ((variable_declarator
-        name: (identifier) @funcExprDeclName
-        value: (function_expression) @funcExprDecl) @funcExprDeclBody)
-    ((variable_declarator
-        name: (identifier) @arrowFuncDeclName
-        value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
-    ((class_declaration
-        name: (type_identifier) @classDeclName) @classDecl)
-    ((method_definition
-        name: (property_identifier) @methodDefName) @methodDef)
-    ((pair
-        key: (property_identifier) @propertyName) @property) @propertyBody
-    ((assignment_expression
-        left: [(identifier) (member_expression) (subscript_expression)]
-                                                  @assExprName) @assExpr)
-    ((variable_declarator
-        name: (identifier) @varDeclName) @varDecl)
+    ((function_definition
+      name: (identifier) @funcDefName) @funcDef)
   ]
 `;
-const funcDecls =  ['funcDecl',  'funcExprDecl', 'arrowFuncDecl', 
-                    'classDecl', 'methodDef', 
-                    'property',  'assExpr', 'varDecl'];
-
-const lowPriority = new Set(['variable_declarator']);
+const  capNames                =  ['funcDef'];
+export const funcTypes         =  ["function_definition"];
+const lowPriority: Set<string> = new Set();
 
 export interface NodeData {
   funcId:       string;
@@ -170,7 +184,7 @@ export function parseCode(code: string, fsPath: string, retrying = false):
     const matches = query.matches(tree.rootNode);
     for (const match of matches) {
       const funcCapture = match.captures.find(
-                             capture => funcDecls.includes(capture.name));
+                             capture =>   capNames.includes(capture.name));
       if(!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
       if(!nameCapture || !nameCapture.node.isNamed) continue;
