@@ -4,7 +4,6 @@ bugs ...
 
 todo ...
   more languages
-  is loadPaths cleared?
   find item in sidebar from editor name
   deleteFuncById should also remove func from set
 

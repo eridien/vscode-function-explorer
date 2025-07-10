@@ -111,6 +111,7 @@ export const itms = new Items();
 class FilePaths {
   private static includedfsPaths = new Set<string>();
   async loadPaths(fsPath: string) {
+    FilePaths.includedfsPaths.clear();
     async function findFuncFiles(fsPath: string) {
       log('findFuncFiles', fsPath);
       let stat;
@@ -128,10 +129,12 @@ class FilePaths {
           }
         }
         else if(sett.includeFile(fsPath)) {
-          if(settings.hideFolders)
+          if(settings.hideFolders) {
+            log('includedfsPaths.add fsPath', path.basename(fsPath));
             FilePaths.includedfsPaths.add(fsPath);
+          }
           else {
-            log('includeFile', fsPath);
+            log('includedfsPaths.add dirname', path.basename(fsPath));
             FilePaths.includedfsPaths.add(path.dirname(fsPath));
           }
         }
