@@ -1,6 +1,4 @@
 bugs ...
-  many settings don't immediately change sidebar
-  glob cannot immediately remove folder foo  , **/foo/
 
 todo ...
   more languages
