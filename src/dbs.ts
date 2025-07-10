@@ -17,7 +17,6 @@ export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
   itmc.setDbs(itms, fils, mrks);
   loadMarks();
-  // await mrks.loadAllFilesWithFuncIds();
 }
 
 ////////////////////// items data //////////////////////
@@ -203,11 +202,6 @@ class Marks {
     if(!funcIdSet) return;
     funcIdSet.delete(funcItem.funcId);
     saveMarks();
-  }
-  async loadAllFilesWithFuncIds() {
-    const fsPaths = Marks.markIdSetByFspath.keys();
-    for (const fsPath of fsPaths) 
-      (await itmc.getOrMakeFileItemByFsPath(fsPath)).getChildren();
   }
 }
 export const mrks = new Marks();

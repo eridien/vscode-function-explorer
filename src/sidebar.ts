@@ -150,9 +150,9 @@ export async function refreshTree(updateFuncs = false) {
 
 export async function revealItemByFunc(func: FuncItem) {
   if(!treeView.visible) return;
-  const item = await itmc.getOrMakeFileItemByFsPath(func.getFsPath());
-  if(!item.parent) return;
-  treeView.reveal(item, {expand: true, select: true, focus: false});
+  const fileItem = await itmc.getOrMakeFileItemByFsPath(func.getFsPath());
+  if(!fileItem || !fileItem.parent) return;
+  treeView.reveal(fileItem, {expand: true, select: true, focus: false});
 }
 
 ///////////////// updateFileChildrenFromAst //////////////////////
@@ -173,7 +173,7 @@ export function updateFileChildrenFromAst(fileItem: FileItem):
   };
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
-  const nodeData = parse.parseCode(docText, fsPath);
+  const nodeData = parse.parseCode(fileItem.lang, docText, fsPath);
   if(!nodeData || nodeData.length === 0) return empty();
   let matchCount              = 0;
   let structChg               = false;

@@ -138,6 +138,7 @@ export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return null;
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
+  if(!fileItem) return null;
   const children = fileItem.getChildren(true) as FuncItem[] | undefined;
   if (!children || children.length === 0) return null;
   const funcsInSelection:     FuncItem[] = [];
@@ -190,6 +191,7 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
   if (document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return [];
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
+  if(!fileItem) return [];
   const children = fileItem.getChildren() as FuncItem[] | undefined;
   if (!children || children.length === 0) return [];
   const overlapping: FuncItem[] = [];

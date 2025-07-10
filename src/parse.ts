@@ -3,19 +3,19 @@ import path                  from 'path';
 import Parser                from 'tree-sitter';
 import type { SyntaxNode }   from 'tree-sitter';
 import {langs}               from './languages';
-// import JavaScript            from 'tree-sitter-javascript';
-// const {typescript, tsx} = require('tree-sitter-typescript');
+import JavaScript            from 'tree-sitter-javascript';
+const {typescript, tsx} = require('tree-sitter-typescript');
 import python                from 'tree-sitter-python';
 
 import * as utils            from './utils';
 const {log, start, end} = utils.getLog('pars');
 
-// const langObj = JavaScript;
-// const langObj = typescript;
-// const langObj = tsx;
-const langObj : any = python;
-
-const {sExpr, capNames, funcTypes, lowPriority} = langs[langObj.name];
+const langObjs = new Map<string, any>([
+  ['javascript', JavaScript],
+  ['typescript', typescript],
+  ['tsx', tsx],
+  ['python', python]
+]);
 
 const PARSE_DEBUG_TYPE: string = '';
 const PARSE_DEBUG_NAME: string = '';
@@ -31,6 +31,7 @@ export interface NodeData {
   startName:    number;
   endName:      number;
   end:          number;
+  lang:         string;
 }
 
 function parseDebug(rootNode: SyntaxNode) {
@@ -56,11 +57,33 @@ function parseDebug(rootNode: SyntaxNode) {
   });
 }
 
+export function getFuncTypes(lang: string): Set<string> {
+  return langs[lang].funcTypes;
+}
+
+export function getSymbol(lang: string, type: string): string {
+  return langs[lang].symbols.get(type);
+}
+
+export function getLangByFsPath(fsPath: string): string | null {
+  const ext = path.extname(fsPath);
+  for (const [lang, {suffixes}] of Object.entries(langs) as any) {
+    if(suffixes.has(ext)) return lang;
+  }
+  log('infoerr', `Function Explorer: Language for ${ext} not supported.`);
+  return null;
+}
+
 let lastParseErrFsPath = '';
 
-export function parseCode(code: string, fsPath: string, retrying = false):
-                                                    NodeData[] | null {
-
+export function parseCode(lang: string, code: string, fsPath: string,
+                          retrying = false): NodeData[] | null {
+  const {sExpr, capTypes, symbols, lowPriority} = langs[lang];
+  const langObj  = langObjs.get(lang);
+  if (!langObj) {
+    log('infoerr', `Function Explorer: Language ${lang} not supported.`);
+    return null;
+  }
   function getAllParents(node: SyntaxNode): SyntaxNode[] {
     const parents: SyntaxNode[] = [];
     let parent = node.parent;
@@ -77,7 +100,8 @@ export function parseCode(code: string, fsPath: string, retrying = false):
     return nameNode.text + "\x00" + node.type + "\x00";
   }
 
-  function capsToNodeData(nameCapture: Parser.QueryCapture, 
+  function capsToNodeData(lang: string,
+                          nameCapture: Parser.QueryCapture,
                           funcCapture: Parser.QueryCapture,
                           bodyCapture: Parser.QueryCapture | undefined)
                                       :NodeData | null {
@@ -106,7 +130,7 @@ export function parseCode(code: string, fsPath: string, retrying = false):
       if (name) funcParents.push([name, parent.type]);
     }
     funcId += fsPath;
-    return { name, funcParents, funcId, 
+    return { lang, name, funcParents, funcId, 
              start, startName, endName, end, type };
   }
   start('parseCode', true);
@@ -126,10 +150,10 @@ export function parseCode(code: string, fsPath: string, retrying = false):
                                  (e as any).message, path.basename(fsPath));
     lastParseErrFsPath = fsPath;
     const firstHalf = code.slice(0, middle);
-    const res1      = parseCode(firstHalf, fsPath, true);
+    const res1      = parseCode(lang, firstHalf, fsPath, true);
     if(!res1) return null;
     const secondHalf = code.slice(middle);
-    const res2       = parseCode(secondHalf, fsPath, true);
+    const res2       = parseCode(lang, secondHalf, fsPath, true);
     if (!res2) return null;
     for (const node of res2) {
       node.start += middle;
@@ -147,12 +171,13 @@ export function parseCode(code: string, fsPath: string, retrying = false):
     const matches = query.matches(tree.rootNode);
     for (const match of matches) {
       const funcCapture = match.captures.find(
-                             capture =>   capNames.has(capture.name));
+                             capture =>   capTypes.has(capture.name));
       if(!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
       if(!nameCapture || !nameCapture.node.isNamed) continue;
       const bodyCapture = match.captures.find(c => c.name.endsWith('Body'));
-      const nodeData = capsToNodeData(nameCapture, funcCapture, bodyCapture);
+      const nodeData = 
+            capsToNodeData(lang, nameCapture, funcCapture, bodyCapture);
       if(!nodeData) continue;
       nodes.push(nodeData);
     }

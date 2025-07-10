@@ -1,3 +1,4 @@
+import { types } from "util";
 
 export const langs: any = {
 
@@ -25,14 +26,33 @@ export const langs: any = {
             name: (identifier) @varDeclName) @varDecl)
       ]
     `,
-    capNames: new Set(['funcDecl',  'funcExprDecl', 'arrowFuncDecl', 
-               'classDecl', 'methodDef', 
-               'property',  'assExpr', 'varDecl']),
-
+    capTypes: new Map([
+      ['funcDecl',          'function_declaration'],
+      ['funcExprDeclBody',  'function_expression'],
+      ['arrowFuncDeclBody', 'arrow_function'],
+      ['classDecl',         'class_declaration'],
+      ['methodDef',         'method_definition'],
+      ['propertyBody',      'pair'],
+      ['assExpr',           'assignment_expression'],
+      ['varDecl',           'variable_declarator'],
+    ]),
+    symbols: new Map([
+      ['function_declaration',  'ƒ'],
+      ['function_expression',   'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['class_declaration',     'ƒ'],
+      ['method_definition',     '©'],
+      ['pair',                  ':'],
+      ['assExpr',               ':'],
+      ['assignment_expression', '='],
+      ['variable_declarator',   '='],
+    ]),
     funcTypes: new Set(["function_declaration", "function_expression", 
-                "method_definition", "arrow_function"]),
+                        "method_definition", "arrow_function"]),
 
-    lowPriority: new Set(['variable_declarator'])
+    lowPriority: new Set(['variable_declarator']),
+
+    suffixes:    new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
 
   python: {
@@ -44,9 +64,17 @@ export const langs: any = {
           name: (identifier) @classDefName) @classDef)
       ]
     `,
-    capNames:    new Set(['funcDef', 'classDef']),
+    capTypes: new Map([
+      ['funcDef',  'function_definition'],
+      ['classDef', 'class_definition'],
+    ]),
+    symbols: new Map([
+      ['function_definition', 'ƒ'],
+      ['class_definition',    '©'],
+    ]),
     funcTypes:   new Set(["function_definition"]),
-    lowPriority: new Set()
+    lowPriority: new Set(),
+    suffixes:    new Set(['.py'])
   },
 
-}
+};

@@ -191,6 +191,7 @@ export async function editorOrTextChg(
   if(editor.document.uri.scheme !== 'file' ||
      !sett.includeFile(fsPath)) return;
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
+  if(!fileItem) return;
   // log('editorOrTextChg start', fileItem.label, fileItem.id, 
   //                              fileItem?.children?.length);
   sbar.updateFileChildrenFromAst(fileItem);

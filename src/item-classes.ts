@@ -100,6 +100,7 @@ export async function getFolderChildren(parent: WsAndFolderItem,
       if(isDir) continue;
       if(entry.isFile()) {
         const fileItem = await getOrMakeFileItemByFsPath(fsPath);
+        if(!fileItem) continue;
         fileItem.parent = parent;
         filesIn.push(fileItem);
         continue;
@@ -203,11 +204,13 @@ export class FileItem extends Item {
   declare parent:   WsAndFolderItem | null;
   declare children: FuncItem[]      | null;
   document:         vscode.TextDocument;
+  lang:             string = '';
   expanded:         boolean = false;
   filtered:         boolean = false;
   alphaSorted:      boolean;
-  constructor(document: vscode.TextDocument) {
+  constructor(lang: string, document: vscode.TextDocument) {
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
+    this.lang         = lang;
     this.document     = document;
     this.id           = getItemId();
     this.contextValue = 'file';
@@ -277,15 +280,16 @@ export function getOrMakeFolderItemByFsPath(fsPath: string): FolderItem {
 }
 
 export async function getOrMakeFileItemByFsPath(
-                                         fsPath: string): Promise<FileItem> {
+                            fsPath: string): Promise<FileItem | null> {
   // log('getOrMakeFileItemByFsPath', path.basename(fsPath));
   let fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem | undefined;
   if (!fileItem) {
+    const lang = pars.getLangByFsPath(fsPath);
+    if(!lang) 
+      return null;
     const uri      = vscode.Uri.file(fsPath);
-
     const document = await vscode.workspace.openTextDocument(uri);
-
-    fileItem       = new FileItem(document);
+    fileItem = new FileItem(lang, document);
   }
   return fileItem;
 }
@@ -311,10 +315,12 @@ interface FuncData {
   startName: number;
   endName:   number;
   end:       number;
+  lang:      string;
 }
 
 export class FuncItem extends Item {
   declare parent:     FileItem;
+  lang!:              string;
   name!:              string;
   decoration!:        string;
   type!:              string;
@@ -330,9 +336,9 @@ export class FuncItem extends Item {
   private startKey:  string | undefined;
   private endKey:    string | undefined;
 
-  constructor(params: FuncData) {
+  constructor(funcData: FuncData) {
     super('', vscode.TreeItemCollapsibleState.None);
-    Object.assign(this, params);
+    Object.assign(this, funcData);
     this.id           = getItemId();
     this.contextValue = 'func';
     this.description  = this.getDescription();
@@ -353,9 +359,7 @@ export class FuncItem extends Item {
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
   isFunction(type: string = this.type): boolean {
-
-    return new Set(["function_definition"]).has(type);
-
+    return pars.getFuncTypes(this.lang).has(type);
   }
   clear() {
     this.startLine = undefined;
@@ -366,13 +370,7 @@ export class FuncItem extends Item {
   getFuncItemStr(nameType: [string, string]): string {
     const [name, type] = nameType;
     if(this.isFunction(type)) return ` ƒ ${name}`;
-    let pfx: string;
-    switch (type) {
-      case 'object':            pfx = ':'; break;
-      case 'class_declaration': pfx = '©'; break;
-      default:                  pfx = '='; break;
-    }
-    return ` ${pfx} ${name}`;
+    return ` ${pars.getSymbol(this.lang, type)} ${name}`;
   }
   getLabel() {
     // log('getLabel', this.name, this.type, pointerItems.has(this));
@@ -411,7 +409,8 @@ export async function getSortedFuncs(fsPath: string, fileWrap = true,
   let funcs: FuncItem[] = [];
   if(!fileWrap) {
     const fileItem = await getOrMakeFileItemByFsPath(fsPath);
-    funcs          = fileItem.getChildren(!filtered);
+    if(!fileItem) return [];
+    funcs = fileItem.getChildren(!filtered);
   }
   else funcs = itms.getAllFuncItems();
   if(funcs.length === 0) return [];
