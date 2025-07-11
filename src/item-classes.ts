@@ -154,6 +154,22 @@ export class WsFolderItem extends WsAndFolderItem {
   }
 }
 
+export function getPathCrumbs(fsPath: string): string {
+  let crumbs = '';
+  const wsFolders = vscode.workspace.workspaceFolders;
+  if (wsFolders && wsFolders.length > 0) {
+    const wsFolder = wsFolders.find(
+          wsFolder => fsPath.startsWith(wsFolder.uri.fsPath));
+    if (wsFolder) {
+      let rel = fsPath.substring(wsFolder.uri.fsPath.length);
+      if (rel.startsWith(path.sep)) rel = rel.slice(1);
+      if(rel.indexOf(path.sep) !== -1) crumbs = ' ' + 
+                      rel.split(path.sep).slice(0,-1).join('/') + '/';
+    }
+  }
+  return crumbs;
+}
+
 export let itemDeleteCount = 0;
 
 /////////////////////// FolderItem //////////////////////
@@ -163,17 +179,7 @@ export class FolderItem extends WsAndFolderItem {
   constructor(uri: vscode.Uri) {
     super(uri);
     this.contextValue = 'folder';
-    const wsFolders = vscode.workspace.workspaceFolders;
-    if (wsFolders && wsFolders.length > 0) {
-      const wsFolder = wsFolders.find(
-            wsFolder => uri.fsPath.startsWith(wsFolder.uri.fsPath));
-      if (wsFolder) {
-        let rel = uri.path.substring(wsFolder.uri.path.length);
-        if (rel.startsWith("/")) rel = rel.slice(1);
-        if(rel.indexOf("/") !== -1) this.description = ' ' + 
-                        rel.split('/').slice(0,-1).join('/') + '/';
-      }
-    }
+    this.description  = getPathCrumbs(uri.fsPath);
   }
   static create(uri: vscode.Uri): FolderItem | null {
     if (!fils.hasIncludedFile(uri.fsPath)) return null;
@@ -210,12 +216,14 @@ export class FileItem extends Item {
   alphaSorted:      boolean;
   constructor(lang: string, document: vscode.TextDocument) {
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
-    this.lang         = lang;
-    this.document     = document;
-    this.id           = getItemId();
-    this.contextValue = 'file';
-    this.iconPath     = new vscode.ThemeIcon('file');
-    this.alphaSorted  = settings.alphaSortFunctions;
+    this.lang     = lang;
+    this.document = document;
+    if(settings.hideFolders) 
+      this.description = getPathCrumbs(document.uri.fsPath);
+    this.id            = getItemId();
+    this.contextValue  = 'file';
+    this.iconPath      = new vscode.ThemeIcon('file');
+    this.alphaSorted   = settings.alphaSortFunctions;
     itms.setFileItem(this);
   }
   getChildren(noFilter = false): FuncItem[] {

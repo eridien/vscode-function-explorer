@@ -1,7 +1,8 @@
 bugs ...
-  no file crumbs
+  change show-folders doesn't update file crumbs
 
 todo ...
+  setting to show crumbs on files when folders are hidden
   filter chkmark -> open file
   find item in sidebar from editor name
   deleteFuncById should also remove func from set
