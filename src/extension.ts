@@ -162,7 +162,10 @@ export async function activate(context: vscode.ExtensionContext) {
   const sidebarVisChg = treeView.onDidChangeVisibility(async (event) => {
     // log('sidebarVisChg');
     cmds.setSideBarVisibility(event.visible);
-    if(event.visible) await disp.updatePointers();
+    if(event.visible) {
+      await cmds.editorOrTextChg();
+      await disp.updatePointers();
+    }
   });
 
   const treeSelChg = treeView.onDidChangeSelection(() => {
