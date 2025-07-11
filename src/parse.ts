@@ -3,12 +3,19 @@ import path                  from 'path';
 import Parser                from 'tree-sitter';
 import type { SyntaxNode }   from 'tree-sitter';
 import {langs}               from './languages';
-import JavaScript            from 'tree-sitter-javascript';
-const {typescript, tsx} = require('tree-sitter-typescript');
-import python                from 'tree-sitter-python';
 
 import * as utils            from './utils';
 const {log, start, end} = utils.getLog('pars');
+
+const WebTreeSitter = require('web-tree-sitter');
+let parser: any; // You can give this a more precise type if desired
+
+export async function activate(context: vscode.ExtensionContext) {
+  const wasmPath = context.asAbsolutePath('grammars/tree-sitter-javascript.wasm');
+  const language = await loadLanguage(wasmPath);
+  parser = new WebTreeSitter();
+  parser.setLanguage(language);
+}
 
 const langObjs = new Map<string, any>([
   ['javascript', JavaScript],

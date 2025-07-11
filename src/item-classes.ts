@@ -308,7 +308,7 @@ export async function getOrMakeFileItemByFsPath(
 
 export function toggleMarkedFilter(fileItem: FileItem) {
   fileItem.filtered = !fileItem.filtered;
- updateItemInTree(fileItem);
+  updateItemInTree(fileItem);
 }
 
 export function toggleAlphaSort(fileItem: FileItem) {

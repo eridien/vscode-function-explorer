@@ -1,8 +1,8 @@
 bugs ...
-  change show-folders doesn't update file crumbs
+
+'grammars/tree-sitter-javascript.wasm'
 
 todo ...
-  setting to show crumbs on files when folders are hidden
   filter chkmark -> open file
   find item in sidebar from editor name
   deleteFuncById should also remove func from set
