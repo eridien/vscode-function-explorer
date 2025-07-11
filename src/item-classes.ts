@@ -218,8 +218,7 @@ export class FileItem extends Item {
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
     this.lang     = lang;
     this.document = document;
-    if(settings.hideFolders) 
-      this.description = getPathCrumbs(document.uri.fsPath);
+    this.refresh();
     this.id            = getItemId();
     this.contextValue  = 'file';
     this.iconPath      = new vscode.ThemeIcon('file');
@@ -266,6 +265,11 @@ export class FileItem extends Item {
       parent = parent.parent as WsAndFolderItem | null;
     }
     itemDeleteCount--;
+  }
+  refresh() {
+    if(settings.hideFolders && settings.showFilePaths) 
+      this.description = getPathCrumbs(this.document.uri.fsPath);
+    else this.description = '';
   }
   clear() {
     this.children = null;
