@@ -17,7 +17,7 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
                         sidebarProviderIn: SidebarProvider) {
   treeView        = treeViewIn;
   sidebarProvider = sidebarProviderIn;
-  itmc.setSbar(updateItemInTree, updateFileChildrenFromAst);
+  itmc.setSbar(updateItemInTree, updateFileChildrenFromAst as any);
 }
 
 ////////////////////// getTree //////////////////////
@@ -138,10 +138,10 @@ export async function refreshTree(updateFuncs = false) {
   }
   for(const wsFolder of wsFolders)
     await fils.loadPaths(wsFolder.uri.fsPath);
-  itms.getAllFolderFileItems().forEach(item => {
+  itms.getAllFolderFileItems().forEach(async item => {
     item.clear();
     if(updateFuncs && item instanceof FileItem) {
-      updateFileChildrenFromAst(item);
+      await updateFileChildrenFromAst(item);
       updateItemInTree(item);
     }
   });

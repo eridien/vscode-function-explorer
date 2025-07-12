@@ -1,9 +1,9 @@
-import * as vscode           from 'vscode';
-import path                  from 'path';
-import {langs}               from './languages';
+import * as vscode                         from 'vscode';
+import path                                from 'path';
+import {langs}                             from './languages';
 import { Tree, SyntaxNode, QueryCapture }  from 'tree-sitter';
-import { Parser, Language, Query }  from 'web-tree-sitter';
-import * as utils            from './utils';
+import { Parser, Language, Query }         from 'web-tree-sitter';
+import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DEBUG_TYPE: string = '';
@@ -161,7 +161,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   } catch (e) {
     if(retrying) {
       log('err', 'parser.parse failed again, giving up:', (e as any).message);
-      return null;
+      return [];
     }
     const middle    = utils.findMiddleOfText(code);
     if(lastParseErrFsPath !== fsPath)
@@ -170,10 +170,10 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     lastParseErrFsPath = fsPath;
     const firstHalf = code.slice(0, middle);
     const res1      = await parseCode(lang, firstHalf, fsPath, true);
-    if(!res1) return null;
+    if(!res1) return [];
     const secondHalf = code.slice(middle);
     const res2       = await parseCode(lang, secondHalf, fsPath, true);
-    if (!res2) return null;
+    if (!res2) return [];
     for (const node of res2) {
       node.start += middle;
       node.end   += middle;
@@ -197,9 +197,9 @@ export async function parseCode(lang: string, code: string, fsPath: string,
       if (!bodyCapture || !bodyCapture.node.isNamed) continue;
       const nodeData = capsToNodeData(
         lang,
-        nameCapture as QueryCapture,
-        funcCapture,
-        bodyCapture
+        nameCapture as any,
+        funcCapture as any,
+        bodyCapture as any
       );
       if(!nodeData) continue;
       nodes.push(nodeData);
