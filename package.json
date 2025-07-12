@@ -414,6 +414,7 @@
   "dependencies": {
     "chokidar": "^4.0.3",
     "minimatch": "^10.0.3",
+    "simple-git": "^3.28.0",
     "web-tree-sitter": "^0.20.1"
   }
 }
