@@ -10,7 +10,7 @@ import JavaScript            from 'tree-sitter-javascript';
 const {typescript, tsx} = require('tree-sitter-typescript');
 import python                from 'tree-sitter-python';
 
-import * as utils            from './utils';
+import * as utils           from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 const langObjs = new Map<string, any>([
