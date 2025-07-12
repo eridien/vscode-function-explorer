@@ -1,3 +1,4 @@
+// REM ✅ Activate Emscripten environment
 // node get-grammars/fetch-and-build-grammars.js >> get-grammars/fetch-and-build-out.txt 2>&1
 
 const FETCH = false;
