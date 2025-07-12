@@ -13,8 +13,10 @@ const PARSE_DEBUG_NAME: string = '';
 
 let context: vscode.ExtensionContext;
 
-export function activate(contextIn: vscode.ExtensionContext) {
+export async function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
+  await Parser.init();
+
 }
 
 const languageCache: Map<string, Language> = new Map();
@@ -90,7 +92,6 @@ export async function parseCode(lang: string, code: string, fsPath: string,
                           retrying = false): Promise<NodeData[] | null> {
   const language = await getLangFromWasm(lang);
   if (!language) return [];
-  await Parser.init();
 
   const { sExpr, capTypes, symbols, lowPriority }: {
     sExpr: string;
@@ -158,7 +159,8 @@ export async function parseCode(lang: string, code: string, fsPath: string,
       log('err', 'parser.parse returned null tree for', path.basename(fsPath));
       return [];
     }
-  } catch (e) {
+  } 
+  catch (e) {
     if(retrying) {
       log('err', 'parser.parse failed again, giving up:', (e as any).message);
       return [];
@@ -194,7 +196,6 @@ export async function parseCode(lang: string, code: string, fsPath: string,
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
       if (!nameCapture || !nameCapture.node.isNamed) continue;
       const bodyCapture = match.captures.find(c => c.name.endsWith('Body'));
-      if (!bodyCapture || !bodyCapture.node.isNamed) continue;
       const nodeData = capsToNodeData(
         lang,
         nameCapture as any,
@@ -235,20 +236,3 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   end('parseCode', true);
   return result;
 }
-/*
-
-const Parser = require('web-tree-sitter');
-
-(async () => {
-import Parser from 'web-tree-sitter';
-
-await Parser.init();
-const parser = new Parser();
-const Lang = await Parser.Language.load(context.asAbsolutePath('media/tree-sitter-javascript.wasm'));
-parser.setLanguage(Lang);
-})();
-
-const tree = parser.parse(document.getText());
-const root = tree.rootNode;
-
-*/
