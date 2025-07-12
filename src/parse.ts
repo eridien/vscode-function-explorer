@@ -1,24 +1,12 @@
-// WebTreeSitter.Language.load('grammars/typescript/tree-sitter-typescript.wasm')
-
-
 import * as vscode           from 'vscode';
 import path                  from 'path';
 import Parser                from 'tree-sitter';
 import type { SyntaxNode }   from 'tree-sitter';
 import {langs}               from './languages';
 import JavaScript            from 'tree-sitter-javascript';
-const {typescript, tsx} = require('tree-sitter-typescript');
-import python                from 'tree-sitter-python';
-
+const Parser = require('web-tree-sitter');
 import * as utils           from './utils';
 const {log, start, end} = utils.getLog('pars');
-
-const langObjs = new Map<string, any>([
-  ['javascript', JavaScript],
-  ['typescript', typescript],
-  ['tsx', tsx],
-  ['python', python]
-]);
 
 const PARSE_DEBUG_TYPE: string = '';
 const PARSE_DEBUG_NAME: string = '';
@@ -215,3 +203,20 @@ export function parseCode(lang: string, code: string, fsPath: string,
   end('parseCode', true);
   return result;
 }
+/*
+
+const Parser = require('web-tree-sitter');
+
+(async () => {
+import Parser from 'web-tree-sitter';
+
+await Parser.init();
+const parser = new Parser();
+const Lang = await Parser.Language.load(context.asAbsolutePath('media/tree-sitter-javascript.wasm'));
+parser.setLanguage(Lang);
+})();
+
+const tree = parser.parse(document.getText());
+const root = tree.rootNode;
+
+*/

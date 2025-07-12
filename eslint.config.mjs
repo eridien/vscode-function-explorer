@@ -12,6 +12,8 @@ export default [{
         "**/out/**",
         "**/test-app/**",
         "**/notes/**",
+        "**/grammars/**",
+        "**/get-grammars/**",
         "!**/src/*.ts"
     ],
     plugins: {

@@ -6,3 +6,5 @@ node_modules
 .vscode/bookmarks.json
 package-lock.json
 notes
+get-grammars
+grammars
