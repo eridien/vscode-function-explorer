@@ -26,7 +26,7 @@ export const langs: any = {
             name: (identifier) @varDeclName) @varDecl)
       ]
     `,
-    capTypes: new Map([
+    capTypes: new Map<string, string>([
       ['funcDecl',          'function_declaration'],
       ['funcExprDeclBody',  'function_expression'],
       ['arrowFuncDeclBody', 'arrow_function'],
@@ -36,7 +36,7 @@ export const langs: any = {
       ['assExpr',           'assignment_expression'],
       ['varDecl',           'variable_declarator'],
     ]),
-    symbols: new Map([
+    symbols: new Map<string, string>([
       ['function_declaration',  'ƒ'],
       ['function_expression',   'ƒ'],
       ['arrow_function',        'ƒ'],

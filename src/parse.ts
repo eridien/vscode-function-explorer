@@ -1,17 +1,36 @@
 import * as vscode           from 'vscode';
 import path                  from 'path';
-import Parser                from 'tree-sitter';
-import type { SyntaxNode }   from 'tree-sitter';
 import {langs}               from './languages';
-import JavaScript            from 'tree-sitter-javascript';
-const Parser = require('web-tree-sitter');
-import * as utils           from './utils';
+import { Tree, SyntaxNode, QueryCapture }  from 'tree-sitter';
+import { Parser, Language, Query }  from 'web-tree-sitter';
+import * as utils            from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DEBUG_TYPE: string = '';
 const PARSE_DEBUG_NAME: string = '';
 // const PARSE_DEBUG_TYPE: string = 'function_definition';
 // const PARSE_DEBUG_NAME: string = 'Item';
+
+let context: vscode.ExtensionContext;
+
+export function activate(contextIn: vscode.ExtensionContext) {
+  context = contextIn;
+}
+
+const languageCache: Map<string, Language> = new Map();
+
+async function getLangFromWasm(lang:string) {
+  if(languageCache.has(lang)) return languageCache.get(lang);
+  const absPath = context?.asAbsolutePath(`wasm/tree-sitter-${lang}.wasm`);
+  if(!absPath) {
+    log('infoerr', `Function Explorer: Language ${lang} not supported.`);
+    return null;
+  }
+  const wasmUri  = vscode.Uri.file(absPath);
+  const language = await Language.load(wasmUri.fsPath);
+  languageCache.set(lang, language);
+  return language;
+}
 
 export interface NodeData {
   funcId:       string;
@@ -67,14 +86,19 @@ export function getLangByFsPath(fsPath: string): string | null {
 
 let lastParseErrFsPath = '';
 
-export function parseCode(lang: string, code: string, fsPath: string,
-                          retrying = false): NodeData[] | null {
-  const {sExpr, capTypes, symbols, lowPriority} = langs[lang];
-  const langObj  = langObjs.get(lang);
-  if (!langObj) {
-    log('infoerr', `Function Explorer: Language ${lang} not supported.`);
-    return null;
-  }
+export async function parseCode(lang: string, code: string, fsPath: string,
+                          retrying = false): Promise<NodeData[] | null> {
+  const language = await getLangFromWasm(lang);
+  if (!language) return [];
+  await Parser.init();
+
+  const { sExpr, capTypes, symbols, lowPriority }: {
+    sExpr: string;
+    capTypes: Map<string, string>;
+    symbols: Map<string, string>;
+    lowPriority: Set<string>;
+  } = langs[lang];
+
   function getAllParents(node: SyntaxNode): SyntaxNode[] {
     const parents: SyntaxNode[] = [];
     let parent = node.parent;
@@ -92,9 +116,9 @@ export function parseCode(lang: string, code: string, fsPath: string,
   }
 
   function capsToNodeData(lang: string,
-                          nameCapture: Parser.QueryCapture,
-                          funcCapture: Parser.QueryCapture,
-                          bodyCapture: Parser.QueryCapture | undefined)
+                          nameCapture: QueryCapture,
+                          funcCapture: QueryCapture,
+                          bodyCapture: QueryCapture | undefined)
                                       :NodeData | null {
     const nameNode  = nameCapture.node;
     const startName = nameNode.startIndex;
@@ -126,10 +150,14 @@ export function parseCode(lang: string, code: string, fsPath: string,
   }
   start('parseCode', true);
   const parser = new Parser();
-  parser.setLanguage(langObj as any);
-  let tree: Parser.Tree;
+  parser.setLanguage(language);
+  let tree: Tree | null;
   try {
-    tree = parser.parse(code);
+    tree = parser.parse(code) as Tree | null;
+    if(!tree) {
+      log('err', 'parser.parse returned null tree for', path.basename(fsPath));
+      return [];
+    }
   } catch (e) {
     if(retrying) {
       log('err', 'parser.parse failed again, giving up:', (e as any).message);
@@ -141,10 +169,10 @@ export function parseCode(lang: string, code: string, fsPath: string,
                                  (e as any).message, path.basename(fsPath));
     lastParseErrFsPath = fsPath;
     const firstHalf = code.slice(0, middle);
-    const res1      = parseCode(lang, firstHalf, fsPath, true);
+    const res1      = await parseCode(lang, firstHalf, fsPath, true);
     if(!res1) return null;
     const secondHalf = code.slice(middle);
-    const res2       = parseCode(lang, secondHalf, fsPath, true);
+    const res2       = await parseCode(lang, secondHalf, fsPath, true);
     if (!res2) return null;
     for (const node of res2) {
       node.start += middle;
@@ -157,18 +185,22 @@ export function parseCode(lang: string, code: string, fsPath: string,
     parseDebug(tree.rootNode);
   const nodes: NodeData[] = [];
   try {
-    const Query   = Parser!.Query!;
-    const query   = new Query(langObj as any, sExpr);
-    const matches = query.matches(tree.rootNode);
+    const query   = new Query(language as any, sExpr);
+    const matches = query.matches(tree.rootNode as any);
     for (const match of matches) {
       const funcCapture = match.captures.find(
-                             capture =>   capTypes.has(capture.name));
-      if(!funcCapture || !funcCapture.node.isNamed) continue;
+                             capture => capTypes.has(capture.name));
+      if (!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
-      if(!nameCapture || !nameCapture.node.isNamed) continue;
+      if (!nameCapture || !nameCapture.node.isNamed) continue;
       const bodyCapture = match.captures.find(c => c.name.endsWith('Body'));
-      const nodeData = 
-            capsToNodeData(lang, nameCapture, funcCapture, bodyCapture);
+      if (!bodyCapture || !bodyCapture.node.isNamed) continue;
+      const nodeData = capsToNodeData(
+        lang,
+        nameCapture as QueryCapture,
+        funcCapture,
+        bodyCapture
+      );
       if(!nodeData) continue;
       nodes.push(nodeData);
     }

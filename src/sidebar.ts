@@ -157,8 +157,8 @@ export async function revealItemByFunc(func: FuncItem) {
 
 ///////////////// updateFileChildrenFromAst //////////////////////
 
-export function updateFileChildrenFromAst(fileItem: FileItem): 
-                 { structChg: boolean, funcItems: FuncItem[] } | null {
+export async function updateFileChildrenFromAst(fileItem: FileItem): 
+               Promise<{ structChg: boolean; funcItems: FuncItem[]; } | null> {
   start('updateFileChildrenFromAst', true);
   const document = fileItem.document;
   const uri      = document.uri;
@@ -173,7 +173,7 @@ export function updateFileChildrenFromAst(fileItem: FileItem):
   };
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
-  const nodeData = parse.parseCode(fileItem.lang, docText, fsPath);
+  const nodeData = await parse.parseCode(fileItem.lang, docText, fsPath);
   if(!nodeData || nodeData.length === 0) return empty();
   let matchCount              = 0;
   let structChg               = false;

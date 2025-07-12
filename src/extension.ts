@@ -3,7 +3,7 @@ import * as cmds         from './commands';
 import * as disp         from './display';
 import * as sbar         from './sidebar';
 import * as dbs          from './dbs';
-import {fils}            from './dbs';
+import * as pars         from './parse';
 import * as itmc         from './item-classes';
 import {Item, WsAndFolderItem, FileItem, FuncItem} 
                          from './item-classes';
@@ -23,6 +23,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   await sett.loadSettings();
+  await pars.activate(context);
         disp.activate(context);
          dbs.activate(context);
         sbar.activate(treeView, sidebarProvider);

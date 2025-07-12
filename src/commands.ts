@@ -194,7 +194,7 @@ export async function editorOrTextChg(
   if(!fileItem) return;
   // log('editorOrTextChg start', fileItem.label, fileItem.id, 
   //                              fileItem?.children?.length);
-  sbar.updateFileChildrenFromAst(fileItem);
+  await sbar.updateFileChildrenFromAst(fileItem);
   disp.updateGutter(editor, fileItem);
   sbar.updateItemInTree(fileItem);
 }
