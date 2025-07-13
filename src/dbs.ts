@@ -72,7 +72,7 @@ class Items {
     Items.itemsById.set(item.id, item);
   }
 
-  getFuncSetByFuncId(funcId: string): Set<FuncItem>  | undefined {
+  getFuncSetByFuncId(funcId: string): Set<FuncItem> | undefined {
     return Items.funcItemsByFuncId.get(funcId);
   }
 
@@ -93,7 +93,14 @@ class Items {
   }
 
   deleteFuncById(id: string) {
+    const funcItem = Items.itemsById.get(id) as FuncItem;
+    if(!funcItem) return;
     Items.itemsById.delete(id);
+    let funcId  = funcItem.funcId;
+    let funcSet = itms.getFuncSetByFuncId(funcId);
+    if(!funcSet) return;
+    funcSet = new Set([...funcSet].filter(
+                          funcItem => funcItem.funcId !== funcId));
   }
 
   delFuncSetByFuncId(funcId: string): Set<FuncItem> {

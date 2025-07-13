@@ -2,8 +2,7 @@ bugs ...
 
 todo ...
   find item in sidebar from editor name
-  deleteFuncById should also remove func from set
-
+  
 low priority ...
   bounce on some func clicks
   delete file leaves folder
