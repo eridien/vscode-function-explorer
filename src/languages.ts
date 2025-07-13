@@ -1,4 +1,3 @@
-import { types } from "util";
 
 export const langs: any = {
 
@@ -19,7 +18,7 @@ export const langs: any = {
             name: (property_identifier) @methodDefName) @methodDef)
         ((pair
             key: (property_identifier) @propertyName) @property) @propertyBody
-        ((assignment_expression
+        ((assignment
             left: [(identifier) (member_expression) (subscript_expression)]
                                                       @assExprName) @assExpr)
         ((variable_declarator
@@ -33,7 +32,7 @@ export const langs: any = {
       ['classDecl',         'class_declaration'],
       ['methodDef',         'method_definition'],
       ['propertyBody',      'pair'],
-      ['assExpr',           'assignment_expression'],
+      ['assExpr',           'assignment'],
       ['varDecl',           'variable_declarator'],
     ]),
     symbols: new Map<string, string>([
@@ -44,7 +43,7 @@ export const langs: any = {
       ['method_definition',     '©'],
       ['pair',                  ':'],
       ['assExpr',               ':'],
-      ['assignment_expression', '='],
+      ['assignment', '='],
       ['variable_declarator',   '='],
     ]),
     funcTypes: new Set(["function_declaration", "function_expression", 
@@ -62,15 +61,19 @@ export const langs: any = {
           name: (identifier) @funcDefName) @funcDef)
         ((class_definition
           name: (identifier) @classDefName) @classDef)
+        ((assignment
+          (pattern) @namedExprName) @namedExpr)
       ]
     `,
     capTypes: new Map([
       ['funcDef',  'function_definition'],
       ['classDef', 'class_definition'],
+      ['namedExpr', 'named_expression'],
     ]),
     symbols: new Map([
       ['function_definition', 'ƒ'],
       ['class_definition',    '©'],
+      ['named_expression',    '='],
     ]),
     funcTypes:   new Set(["function_definition"]),
     lowPriority: new Set(),

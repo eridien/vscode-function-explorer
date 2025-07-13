@@ -32,7 +32,7 @@ export function activate(treeViewIn: vscode.TreeView<Item>) {
 // }
 
 export async function toggleCmd() {
-  log('toggleCmd');
+  // log('toggleCmd');
   let aroundFuncItem = await disp.getFuncInAroundSelection();
   if(!aroundFuncItem) {
     await prevNext(true, true);

@@ -8,8 +8,6 @@ const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DEBUG_TYPE: string = '';
 const PARSE_DEBUG_NAME: string = '';
-// const PARSE_DEBUG_TYPE: string = 'function_definition';
-// const PARSE_DEBUG_NAME: string = 'Item';
 
 let context: vscode.ExtensionContext;
 

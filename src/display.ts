@@ -79,11 +79,11 @@ vscode.window.onDidChangeActiveColorTheme(() => {
   editor.setDecorations(gutterDec, decRanges);
 });
 
-export function updateGutter(editor:   vscode.TextEditor, 
+export async function updateGutter(editor:   vscode.TextEditor, 
                              fileItem: FileItem) {
-  const children = fileItem.getChildren();
+  const children = await fileItem.getChildren();
   decRanges = [];
-  for(const funcItem of children) {
+  for(const funcItem of [...children]) {
     if(!mrks.hasMark(funcItem)) continue;
     const lineNumber = funcItem.getStartLine();
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
@@ -110,7 +110,7 @@ export async function setMark(funcItem: FuncItem,
   if(marked) await sbar.revealItemByFunc(funcItem);
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
-  updateGutter(activeEditor, funcItem.parent);
+  await updateGutter(activeEditor, funcItem.parent);
   return marked;
 }
 
@@ -139,7 +139,7 @@ export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
      !sett.includeFile(fsPath)) return null;
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   if(!fileItem) return null;
-  const children = fileItem.getChildren(true) as FuncItem[] | undefined;
+  const children = await fileItem.getChildren(true);
   if (!children || children.length === 0) return null;
   const funcsInSelection:     FuncItem[] = [];
   const funcsAroundSelection: FuncItem[] = [];
@@ -192,7 +192,7 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
      !sett.includeFile(fsPath)) return [];
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   if(!fileItem) return [];
-  const children = fileItem.getChildren() as FuncItem[] | undefined;
+  const children = await fileItem.getChildren();
   if (!children || children.length === 0) return [];
   const overlapping: FuncItem[] = [];
   for (const selection of editor.selections) {

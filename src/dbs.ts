@@ -112,16 +112,16 @@ class FilePaths {
   async loadPaths(fsPath: string) {
     FilePaths.includedfsPaths.clear();
     async function findFuncFiles(fsPath: string) {
-      log('findFuncFiles', fsPath);
+      // log('findFuncFiles', fsPath);
       let stat;
       try{
         stat = await fs.stat(fsPath);
-        log('loadPaths stat', fsPath);
+        // log('loadPaths stat', fsPath);
         if (stat.isDirectory()) {
           if(!sett.includeFile(fsPath, true)) return;
           let entries: string[];
           entries = await fs.readdir(fsPath);
-          log('loadPaths readdir entries', fsPath, entries);
+          // log('loadPaths readdir entries', fsPath, entries);
           for (const entry of entries) {
             const childPath = path.join(fsPath, entry);
             await findFuncFiles(childPath);
@@ -129,11 +129,11 @@ class FilePaths {
         }
         else if(sett.includeFile(fsPath)) {
           if(settings.hideFolders) {
-            log('includedfsPaths.add fsPath', path.basename(fsPath));
+            // log('includedfsPaths.add fsPath', path.basename(fsPath));
             FilePaths.includedfsPaths.add(fsPath);
           }
           else {
-            log('includedfsPaths.add dirname', path.basename(fsPath));
+            // log('includedfsPaths.add dirname', path.basename(fsPath));
             FilePaths.includedfsPaths.add(path.dirname(fsPath));
           }
         }
@@ -144,7 +144,7 @@ class FilePaths {
       }
     }
     await findFuncFiles(fsPath);
-    log('loadPaths complete', [...FilePaths.includedfsPaths]);
+    // log('loadPaths complete', [...FilePaths.includedfsPaths]);
   }
   hasIncludedFile(fsPath: string): boolean {
     for(const includedPath of FilePaths.includedfsPaths) {

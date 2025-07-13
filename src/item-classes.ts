@@ -8,8 +8,8 @@ import * as utils      from './utils';
 import { parse } from '@babel/parser';
 const {log, start, end} = utils.getLog('itms');
 
-const DEBUG_FUNC_TYPE = false;
-// const DEBUG_FUNC_TYPE = true;
+// const DEBUG_FUNC_TYPE = false;
+const DEBUG_FUNC_TYPE = true;
 
 let itms:  any;
 let fils:  any;
@@ -23,7 +23,8 @@ export function setDbs(newItms:any, newFiles:any, newMarks:any) {
 let pointerItems:             Set<FuncItem>;
 let updateItemInTree:        (item: Item | undefined) => void = (item) => {};
 let updateFileChildrenFromAst: 
-     (fileItem: FileItem) => {structChg: boolean; funcItems: FuncItem[];} | null;
+     (fileItem: FileItem) =>
+       Promise<{structChg: boolean; funcItems: FuncItem[];} | null>;
 
 export function setDisp(pointerItemsIn: Set<FuncItem>) {
   pointerItems = pointerItemsIn;
@@ -32,7 +33,7 @@ export function setDisp(pointerItemsIn: Set<FuncItem>) {
 export function setSbar(
     updateItemInTreeIn:          (item: Item | undefined) => void,
     updateFileChildrenFromAstIn: (fileItem: FileItem) => 
-             {structChg: boolean; funcItems: FuncItem[];} | null) {
+             Promise<{structChg: boolean; funcItems: FuncItem[];} | null>) {
   updateItemInTree          = updateItemInTreeIn;
   updateFileChildrenFromAst = updateFileChildrenFromAstIn;
 }
@@ -198,7 +199,7 @@ export class FolderItem extends WsAndFolderItem {
     }
     if(this.parent) {
       this.parent.children = null;
-      log('FolderItem deleted, parent:', this.parent.label);
+      // log('FolderItem deleted, parent:', this.parent.label);
     }
     itemDeleteCount--;
   }
@@ -225,10 +226,10 @@ export class FileItem extends Item {
     this.alphaSorted   = settings.alphaSortFunctions;
     itms.setFileItem(this);
   }
-  getChildren(noFilter = false): FuncItem[] {
+  async getChildren(noFilter = false): Promise<FuncItem[]> {
     let structChg: boolean = false;
     if(!this.children) {
-      const chgs = updateFileChildrenFromAst(this);
+      const chgs = await updateFileChildrenFromAst(this);
       if(!chgs) return [];
       structChg = chgs.structChg;
     }
@@ -261,7 +262,7 @@ export class FileItem extends Item {
     let parent = this.parent;
     while(parent) {
       parent.children = null;
-      log('FileItem set to null', parent.label);
+      // log('FileItem set to null', parent.label);
       parent = parent.parent as WsAndFolderItem | null;
     }
     itemDeleteCount--;
@@ -422,7 +423,7 @@ export async function getSortedFuncs(fsPath: string, fileWrap = true,
   if(!fileWrap) {
     const fileItem = await getOrMakeFileItemByFsPath(fsPath);
     if(!fileItem) return [];
-    funcs = fileItem.getChildren(!filtered);
+    funcs = await fileItem.getChildren(!filtered);
   }
   else funcs = itms.getAllFuncItems();
   if(funcs.length === 0) return [];

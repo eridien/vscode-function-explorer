@@ -1,10 +1,5 @@
 bugs ...
 
-  prev stops with no mark
-    if (PARSE_DEBUG_NAME !== '' || 
-       PARSE_DEBUG_TYPE !== '')   
-      parseDebug(tree.rootNode);
-
 todo ...
   filter chkmark -> open file
   find item in sidebar from editor name

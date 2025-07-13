@@ -154,7 +154,7 @@ async function setFileWatcher(filesToExclude: string) {
   start('setFileWatcher', true);
   if (watchers.length > 0) {
     await Promise.all(watchers.map(watcher => watcher.close()))
-      .then(() => log('Previous watchers closed.'));
+      .then(() => log(''));
   }
   const excludePatterns = filesToExclude.split(',').map(p => p.trim());
   const wsFolders = vscode.workspace.workspaceFolders || [];
@@ -182,23 +182,23 @@ async function setFileWatcher(filesToExclude: string) {
       awaitWriteFinish: true,
     });
     watcherInstance.on('add', (filePath) => {
-      log('addFile:', filePath);
+      // log('addFile:', filePath);
       const fsPath = path.join(wsPath, filePath);
       fileCreated?.(fsPath);
     });
     watcherInstance.on('addDir', (dirPath) => {
-      log('addDir:', dirPath);
+      // log('addDir:', dirPath);
       const fsPath = path.join(wsPath, dirPath);
       fileCreated?.(fsPath);
     });
     watcherInstance.on('unlink', (filePath) => {
-      log('unlinkFile:', filePath);
+      // log('unlinkFile:', filePath);
       const fullPath = path.join(wsPath, filePath);
       const uri = vscode.Uri.file(fullPath);
       fileDeleted?.(uri);
     });
     watcherInstance.on('unlinkDir', (dirPath) => {
-      log('unlinkDir:', dirPath);
+      // log('unlinkDir:', dirPath);
       const fullPath = path.join(wsPath, dirPath);
       const uri = vscode.Uri.file(fullPath);
       fileDeleted?.(uri);
