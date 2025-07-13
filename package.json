@@ -37,6 +37,9 @@
         "title": "Jump to next Function Mark"
       },
       {
+        "command": "vscode-function-explorer.showNodes",
+        "title": "Show Syntax Nodes"
+      },{
         "​​‌‌‍​​‍‌": "======================",
         "​​‌‌‍‌​​‌": " Sidebar title menu   ",
         "​​‌‌‍‍​⁠‌": "......................",
@@ -149,6 +152,11 @@
         "command": "vscode-function-explorer.next",
         "key": "ctrl+alt+]",
         "mac": "cmd+alt+]"
+      },
+      {
+        "command": "vscode-function-explorer.showNodes",
+        "key": "ctrl+alt+shift+\\",
+        "mac": "cmd+alt+shift+\\"
       }
     ],
     "viewsContainers": {

@@ -65,7 +65,7 @@ export const langs: any = {
           (pattern) @namedExprName) @namedExpr)
       ]
     `,
-    capTypes: new Map([
+    capTypes: new Map<string, string>([
       ['funcDef',  'function_definition'],
       ['classDef', 'class_definition'],
       ['namedExpr', 'named_expression'],

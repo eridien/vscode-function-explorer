@@ -50,6 +50,33 @@ export async function toggleCmd() {
   await disp.revealFuncInEditor(funcItemToMark, red);
 }
 
+let nodesDecorationType: vscode.TextEditorDecorationType | undefined;
+
+export function showNodeHighlightsCmd() {
+  if(nodesDecorationType) hideNodeHighlightsCmd();
+  const editor = vscode.window.activeTextEditor;
+  if(!editor) return;
+  const doc       = editor.document;
+  const funcItems = itms.getFuncItemsByFsPath(editor.document.uri.fsPath);
+  const ranges: vscode.Range[] = [];
+  for(const funcItem of funcItems) {
+    const startPos = doc.positionAt(funcItem.startName);
+    const endPos   = doc.positionAt(funcItem.endName);
+    const range    = new vscode.Range(startPos, endPos);
+    ranges.push(range);
+  }
+  nodesDecorationType = vscode.window.createTextEditorDecorationType({
+    backgroundColor: 'rgba(255, 255, 0, 0.30)',
+  });
+  editor.setDecorations(nodesDecorationType, ranges);
+}
+
+export function hideNodeHighlightsCmd() {
+  if(!nodesDecorationType) return;
+  nodesDecorationType.dispose();
+  nodesDecorationType = undefined;
+}
+
 export async function toggleItemMarkCmd(funcItem: FuncItem) {
   const red = !await disp.setMark(funcItem, true);
   await disp.revealFuncInEditor(funcItem, red);

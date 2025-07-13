@@ -8,8 +8,8 @@ import * as utils      from './utils';
 import { parse } from '@babel/parser';
 const {log, start, end} = utils.getLog('itms');
 
-// const DEBUG_FUNC_TYPE = false;
-const DEBUG_FUNC_TYPE = true;
+const DEBUG_FUNC_TYPE = false;
+// const DEBUG_FUNC_TYPE = true;
 
 let treeView: vscode.TreeView<Item>;
 export function activate(treeViewIn: vscode.TreeView<Item>) {

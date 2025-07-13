@@ -43,6 +43,17 @@ class Items {
     return result;
   }
 
+  getFuncItemsByFsPath(fsPath: string): FuncItem[] {
+    const allFuncSets = Items.funcItemsByFuncId.values();
+    const result: FuncItem[] = [];
+    for(const funcSet of allFuncSets) {
+      for(const funcItem of funcSet) {
+        if(funcItem.getFsPath() === fsPath) result.push(funcItem);
+      }
+    }
+    return result;
+  }
+
   getById(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }

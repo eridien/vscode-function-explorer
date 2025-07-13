@@ -47,13 +47,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const next = vscode.commands.registerCommand(
                    'vscode-function-explorer.next', async () => {
-		// log('next');
 		await cmds.next();
+	});
+
+	const showNodes = vscode.commands.registerCommand(
+                   'vscode-function-explorer.showNodes', () => {
+		cmds.showNodeHighlightsCmd();
 	});
 
 	const removeAllMarksMenu = vscode.commands.registerCommand(
        'vscode-function-explorer.removeAllMarksMenu', async () => {
-      //  log('removeAllMarksMenu');
 		await cmds.removeAllMarksMenu();
 	});
 
@@ -192,15 +195,15 @@ export async function activate(context: vscode.ExtensionContext) {
   const selectionChg = vscode.window.onDidChangeTextEditorSelection(
     async event => {
       if (event.textEditor?.document.uri.scheme !== 'file') return;
-      // log('selectionChg');
+      cmds.hideNodeHighlightsCmd();
       await cmds.selectionChg(event);
   });
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => {
       if(editor) { 
+        cmds.hideNodeHighlightsCmd();
         await cmds.editorOrTextChg(editor);
-        // log('editorChg');
       }
     });
 
@@ -210,6 +213,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const {document} = event;
     for(const editor of vscode.window.visibleTextEditors
                     .filter(editor => editor.document === document)) {
+      cmds.hideNodeHighlightsCmd();
       await cmds.editorOrTextChg(editor);
     }
   });
@@ -221,7 +225,8 @@ export async function activate(context: vscode.ExtensionContext) {
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 
-    collapseAllMenu, showFolders, hideFolders, refresh
+    collapseAllMenu, showFolders, hideFolders, refresh,
+    showNodes,
   );
 
   end('activate');
