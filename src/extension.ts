@@ -27,6 +27,7 @@ export async function activate(context: vscode.ExtensionContext) {
         disp.activate(context);
          dbs.activate(context);
         sbar.activate(treeView, sidebarProvider);
+        itmc.activate(treeView);
         cmds.activate(treeView);
 
 
@@ -220,7 +221,7 @@ export async function activate(context: vscode.ExtensionContext) {
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 
-    collapseAllMenu, showFolders, hideFolders
+    collapseAllMenu, showFolders, hideFolders, refresh
   );
 
   end('activate');

@@ -11,6 +11,11 @@ const {log, start, end} = utils.getLog('itms');
 // const DEBUG_FUNC_TYPE = false;
 const DEBUG_FUNC_TYPE = true;
 
+let treeView: vscode.TreeView<Item>;
+export function activate(treeViewIn: vscode.TreeView<Item>) {
+  treeView = treeViewIn;
+}
+
 let itms:  any;
 let fils:  any;
 let mrks : any;
@@ -66,6 +71,7 @@ export async function getFuncItemsUnderNode(item: Item): Promise<FuncItem[]> {
 
 export async function getFolderChildren(parent: WsAndFolderItem,
                 foldersIn: Item[], filesIn: Item[], root = false) {
+  // log('getFolderChildren', parent.label, root, settings);
   if(root && settings.hideFolders) {
     for(const fsPath of fils.sortedFsPaths()) {
       const fileItem = await getOrMakeFileItemByFsPath(fsPath);
@@ -309,6 +315,7 @@ export async function getOrMakeFileItemByFsPath(
 
 export function toggleMarkedFilter(fileItem: FileItem) {
   fileItem.filtered = !fileItem.filtered;
+  treeView.reveal(fileItem, {expand: true, select: true, focus: false});
   updateItemInTree(fileItem);
 }
 

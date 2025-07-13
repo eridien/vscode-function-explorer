@@ -223,6 +223,7 @@ export async function loadSettings() {
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
     topMargin:            config.get('topMargin',                3),
   };
+  // log('loadSettings', settings);
   vscode.commands.executeCommand('setContext', 'foldersHidden', settings.hideFolders);
   const includeFilesPattern = 
             config.get<string>("filesToInclude", "**/*.js, **/*.ts")

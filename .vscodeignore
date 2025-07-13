@@ -10,5 +10,3 @@ vsc-extension-quickstart.md
 **/*.ts
 **/.vscode-test.*
 notes/**
-grammars/**
-get-grammars/**
