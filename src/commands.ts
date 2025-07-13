@@ -16,9 +16,11 @@ const NEXT_DEBUG = false;
 // const NEXT_DEBUG = true;
 
 let treeView:  vscode.TreeView<Item>;
+let treeViewVisible = false;
 
 export function activate(treeViewIn: vscode.TreeView<Item>) {
-  treeView = treeViewIn;
+  treeView        = treeViewIn;
+  treeViewVisible = treeView.visible;
 }
 
 export async function toggleCmd() {
@@ -216,9 +218,8 @@ export async function editorOrTextChg(
   sbar.updateItemInTree(fileItem);
 }
 
-let sideBarVisible = false;
 export function setSideBarVisibility(visible: boolean) {
-  sideBarVisible = visible;
+  treeViewVisible = visible;
 }
 
 let gestureTimeout:  NodeJS.Timeout | undefined;
@@ -259,8 +260,8 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
           // start('gesture', false);
           return;
         }
-        if(sideBarVisible && selStart === func.startName && 
-                             selEnd   === func.endName) {
+        if(treeViewVisible && selStart === func.startName && 
+                              selEnd   === func.endName) {
           func.stayVisible = true;
           await sbar.revealItemByFunc(func);
           await disp.updatePointers();

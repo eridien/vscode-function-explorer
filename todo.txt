@@ -1,10 +1,10 @@
 bugs ...
-  
+  symbol at beg of item label undefined
+
 todo ...
-  add imports to nodes
-  find item in sidebar from editor name
   
 low priority ...
+  add imports to nodes
   bounce on some func clicks
   delete file leaves folder
 
