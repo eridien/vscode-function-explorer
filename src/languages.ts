@@ -18,7 +18,7 @@ export const langs: any = {
             name: (property_identifier) @methodDefName) @methodDef)
         ((pair
             key: (property_identifier) @propertyName) @property) @propertyBody
-        ((assignment
+        ((assignment_expression
             left: [(identifier) (member_expression) (subscript_expression)]
                                                       @assExprName) @assExpr)
         ((variable_declarator
@@ -32,7 +32,7 @@ export const langs: any = {
       ['classDecl',         'class_declaration'],
       ['methodDef',         'method_definition'],
       ['propertyBody',      'pair'],
-      ['assExpr',           'assignment'],
+      ['assExpr',           'assignment_expression'],
       ['varDecl',           'variable_declarator'],
     ]),
     symbols: new Map<string, string>([
@@ -43,7 +43,7 @@ export const langs: any = {
       ['method_definition',     '©'],
       ['pair',                  ':'],
       ['assExpr',               ':'],
-      ['assignment', '='],
+      ['assignment_expression', '='],
       ['variable_declarator',   '='],
     ]),
     funcTypes: new Set(["function_declaration", "function_expression", 
