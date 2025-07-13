@@ -107,7 +107,7 @@ export async function setMark(funcItem: FuncItem,
   if(marked) mrks.addMark(fsPath, funcId);
   else       mrks.delMark(funcItem);
   sbar.updateItemInTree(funcItem.parent);
-  if(marked) await sbar.revealItemByFunc(funcItem);
+  if(marked) sbar.revealItemByFunc(funcItem);
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
   await updateGutter(activeEditor, funcItem.parent);
@@ -117,7 +117,6 @@ export async function setMark(funcItem: FuncItem,
 let pointerItems = new Set<FuncItem>();
 
 export async function updatePointers() {
-  // if(!treeView) debugger;
   // if(!treeView.visible) return;
   const oldPointerItems = new Set(pointerItems);
   pointerItems.clear();

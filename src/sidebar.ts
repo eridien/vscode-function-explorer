@@ -148,11 +148,9 @@ export async function refreshTree(updateFuncs = false) {
   if(sidebarProvider) sidebarProvider.refresh(undefined);
 }
 
-export async function revealItemByFunc(func: FuncItem) {
+export function revealItemByFunc(func: FuncItem) {
   if(!treeView.visible) return;
-  const fileItem = await itmc.getOrMakeFileItemByFsPath(func.getFsPath());
-  if(!fileItem || !fileItem.parent) return;
-  treeView.reveal(fileItem, {expand: true, select: true, focus: false});
+  treeView.reveal(func, {expand: true, select: true, focus: false});
 }
 
 ///////////////// updateFileChildrenFromAst //////////////////////

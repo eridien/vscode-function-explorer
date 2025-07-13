@@ -1,5 +1,5 @@
 bugs ...
-  symbol at beg of item label undefined
+  symbol at beg of unmarked item shows undefined
 
 todo ...
   
