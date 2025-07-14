@@ -164,15 +164,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // log('createTreeView', treeView);
 
-  const sidebarVisChg = treeView.onDidChangeVisibility(async (event) => {
-    // log('sidebarVisChg');
-    cmds.setSideBarVisibility(event.visible);
-    if(event.visible) {
-      await cmds.editorOrTextChg();
-      await disp.updatePointers();
-    }
-  });
-
   const treeSelChg = treeView.onDidChangeSelection(() => {
     // log('treeSelChg');
      // item selection[]
@@ -221,7 +212,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
     toggleCmd, prev, next, funcClickCmd, loadSettings,
     editorChg, selectionChg, textChg, toggleItemMark,
-    sidebarVisChg, treeSelChg, itemExpandChg, itemCollapseChg,
+    treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 

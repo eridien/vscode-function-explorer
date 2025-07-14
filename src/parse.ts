@@ -72,7 +72,12 @@ export function getFuncTypes(lang: string): Set<string> {
 }
 
 export function getSymbol(lang: string, type: string): string {
-  return langs[lang].symbols.get(type);
+  const symbol = langs[lang]?.symbols?.get(type);
+  if(symbol === undefined) {
+    if(type !== '') log(`No symbol for type '${type}' in lang '${lang}'`);
+    return '?';
+  }
+  return symbol;
 }
 
 export function getLangByFsPath(fsPath: string): string | null {

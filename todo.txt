@@ -1,7 +1,8 @@
 bugs ...
-  symbol at beg of unmarked item shows undefined
+  python import name at end
 
 todo ...
+  more languages
   
 low priority ...
   add imports to nodes
