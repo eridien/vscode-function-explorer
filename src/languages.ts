@@ -73,9 +73,6 @@ export const langs: any = {
           (dotted_name) @py.importName) @py.import
         (import_from_statement
           (dotted_name) @py.importFromName) @py.importFrom
-(if_statement
-  condition: (_) @py.ifCondition
-  consequence: (_) @py.ifBody)
       ]
     `,
     capTypes: new Map<string, string>([

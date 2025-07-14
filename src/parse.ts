@@ -7,7 +7,7 @@ import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DEBUG_TYPE: string = '';
-const PARSE_DEBUG_NAME: string = '';
+const PARSE_DEBUG_NAME: string = 'os';
 
 let context: vscode.ExtensionContext;
 
@@ -45,25 +45,32 @@ export interface NodeData {
 }
 
 function parseDebug(rootNode: SyntaxNode) {
-    function walkTree(node: SyntaxNode, visit: (node: SyntaxNode) => void) {
+  let dumping   = false;
+  let depth     = -1;
+  let lineCount = 0;
+  let done      = false;
+  function walkTree(node: SyntaxNode, visit: (node: SyntaxNode) => void) {
     visit(node);
     for (let i = 0; i < node.childCount; i++) {
       const child = node.child(i);
-      if (child) walkTree(child, visit);
+      if (child && !done) {
+        depth++;
+        walkTree(child, visit);
+        depth--;
+      }
     }
   }
   walkTree(rootNode, node => {
     let name = 'anonymous';
     const nameNode = node.childForFieldName('name');
     if(nameNode) name = nameNode.text;
-    const nodeData = {
-      name,
-      type: node.type,
-      start: node.startIndex,
-      end: node.endIndex
-    };
-    if(node.type === PARSE_DEBUG_TYPE) debugger;
-    if(nodeData && PARSE_DEBUG_NAME === name) debugger;
+    else if(node.type === 'identifier') name = node.text;
+    dumping ||= (node.type === PARSE_DEBUG_TYPE || PARSE_DEBUG_NAME === name);
+    if(dumping && !done) {
+      console.log(` ${'    '.repeat(depth)}${node.type} `+
+                  `(${node.startIndex},${node.endIndex}) ${name}`);
+      if(lineCount++ > 100) done = true;
+    }
   });
 }
 
@@ -185,8 +192,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     }
     return res1.concat(res2);
   }
-  if(PARSE_DEBUG_NAME !== '' || 
-     PARSE_DEBUG_TYPE !== '')   
+  if(PARSE_DEBUG_NAME !== '' || PARSE_DEBUG_TYPE !== '')   
     parseDebug(tree.rootNode);
   const nodes: NodeData[] = [];
   try {
