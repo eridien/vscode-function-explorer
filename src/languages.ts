@@ -69,21 +69,28 @@ export const langs: any = {
           name: (identifier) @py.classDefName) @py.classDef)
         ((assignment
           (pattern) @py.namedExprName) @py.namedExpr)
-        ((import_from_statement
-          module_name: (dotted_name) @py.importFromName) @py.importFrom)
+        (import_statement
+          (dotted_name) @py.importName) @py.import
+        (import_from_statement
+          (dotted_name) @py.importFromName) @py.importFrom
+(if_statement
+  condition: (_) @py.ifCondition
+  consequence: (_) @py.ifBody)
       ]
     `,
     capTypes: new Map<string, string>([
-      ['py.funcDef',   'function_definition'],
-      ['py.classDef',  'class_definition'],
-      ['py.namedExpr', 'assignment'],
-      ['py.namedExpr', 'assignment'],
-      ['py.importFrom','import_from_statement'],
+      ['py.funcDef',    'function_definition'],
+      ['py.classDef',   'class_definition'],
+      ['py.namedExpr',  'assignment'],
+      ['py.namedExpr',  'assignment'],
+      ['py.import',     'import_statement'],      // import foo
+      ['py.importFrom', 'import_from_statement'], // from foo import bar
     ]),
     symbols: new Map([
       ['function_definition',   'ƒ'],
       ['class_definition',      '©'],
       ['assignment',            '='],
+      ['import_statement',      '▷'],
       ['import_from_statement', '▷'],
     ]),
     funcTypes:   new Set(["function_definition"]),
