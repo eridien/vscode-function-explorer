@@ -6,38 +6,38 @@ export const langs: any = {
     sExpr: `
       [
         ((function_declaration
-            name: (identifier) @ts.funcDeclName) @ts.funcDecl)
+            name: (identifier) @funcDeclName) @funcDecl)
         ((variable_declarator
-            name: (identifier) @ts.funcExprDeclName
-            value: (function_expression) @ts.funcExprDecl) @ts.funcExprDeclBody)
+            name: (identifier) @funcExprDeclName
+            value: (function_expression) @funcExprDecl) @funcExprDeclBody)
         ((variable_declarator
-            name: (identifier) @ts.arrowFuncDeclName
-            value: (arrow_function) @ts.arrowFuncDecl) @ts.arrowFuncDeclBody)
+            name: (identifier) @arrowFuncDeclName
+            value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
         ((class_declaration
-            name: (type_identifier) @ts.classDeclName) @ts.classDecl)
+            name: (type_identifier) @classDeclName) @classDecl)
         ((method_definition
-            name: (property_identifier) @ts.methodDefName) @ts.methodDef)
+            name: (property_identifier) @methodDefName) @methodDef)
         ((pair
-            key: (property_identifier) @ts.propertyName) @ts.property) @ts.propertyBody
+            key: (property_identifier) @propertyName) @property) @propertyBody
         ((assignment_expression
             left: [(identifier) (member_expression) (subscript_expression)]
-                                                      @ts.assExprName) @ts.assExpr)
+                                                      @assExprName) @assExpr)
         ((variable_declarator
-            name: (identifier) @ts.varDeclName) @ts.varDecl)
+            name: (identifier) @varDeclName) @varDecl)
          ((namespace_import
-            (identifier) @ts.importName) @ts.import)
+            (identifier) @importName) @import)
      ]
     `,
     capTypes: new Map<string, string>([
-      ['ts.funcDecl',          'function_declaration'],
-      ['ts.funcExprDeclBody',  'function_expression'],
-      ['ts.arrowFuncDeclBody', 'arrow_function'],
-      ['ts.classDecl',         'class_declaration'],
-      ['ts.methodDef',         'method_definition'],
-      ['ts.propertyBody',      'pair'],
-      ['ts.assExpr',           'assignment_expression'],
-      ['ts.varDecl',           'variable_declarator'],
-      ['ts.import',            'namespace_import'],
+      ['funcDecl',          'function_declaration'],
+      ['funcExprDeclBody',  'function_expression'],
+      ['arrowFuncDeclBody', 'arrow_function'],
+      ['classDecl',         'class_declaration'],
+      ['methodDef',         'method_definition'],
+      ['propertyBody',      'pair'],
+      ['assExpr',           'assignment_expression'],
+      ['varDecl',           'variable_declarator'],
+      ['import',            'namespace_import'],
     ]),
     symbols: new Map<string, string>([
       ['function_declaration',  'ƒ'],
@@ -64,24 +64,24 @@ export const langs: any = {
     sExpr: `
       [
         ((function_definition
-          name: (identifier) @py.funcDefName) @py.funcDef)
+          name: (identifier) @funcDefName) @funcDef)
         ((class_definition
-          name: (identifier) @py.classDefName) @py.classDef)
+          name: (identifier) @classDefName) @classDef)
         ((assignment
-          (pattern) @py.namedExprName) @py.namedExpr)
+          (pattern) @namedExprName) @namedExpr)
         (import_statement
-          (dotted_name) @py.importName) @py.import
+          (dotted_name) @importName) @import
         (import_from_statement
-          (dotted_name) @py.importFromName) @py.importFrom
+          (dotted_name) @importFromName) @importFrom
       ]
     `,
     capTypes: new Map<string, string>([
-      ['py.funcDef',    'function_definition'],
-      ['py.classDef',   'class_definition'],
-      ['py.namedExpr',  'assignment'],
-      ['py.namedExpr',  'assignment'],
-      ['py.import',     'import_statement'],      // import foo
-      ['py.importFrom', 'import_from_statement'], // from foo import bar
+      ['funcDef',    'function_definition'],
+      ['classDef',   'class_definition'],
+      ['namedExpr',  'assignment'],
+      ['namedExpr',  'assignment'],
+      ['import',     'import_statement'],      // import foo
+      ['importFrom', 'import_from_statement'], // from foo import bar
     ]),
     symbols: new Map([
       ['function_definition',   'ƒ'],
@@ -101,17 +101,17 @@ export const langs: any = {
       [
         ((function_definition
           declarator: (function_declarator
-            declarator: (identifier) @c.funcDefName)) @c.funcDef)
+            declarator: (identifier) @funcDefName)) @funcDef)
         ((assignment_expression
-          left: (identifier) @c.assExprName) @c.assExpr)
+          left: (identifier) @assExprName) @assExpr)
         ((call_expression
-          function: (identifier) @c.callExprName) @c.callExpr)
+          function: (identifier) @callExprName) @callExpr)
       ]
     `,
     capTypes: new Map<string, string>([
-      ['c.funcDef',  'function_definition'],
-      ['c.assExpr',  'assignment_expression'],
-      ['c.callExpr', 'call_expression'],
+      ['funcDef',  'function_definition'],
+      ['assExpr',  'assignment_expression'],
+      ['callExpr', 'call_expression'],
     ]),
     symbols: new Map([
       ['function_definition',   'ƒ'],
@@ -121,6 +121,33 @@ export const langs: any = {
     funcTypes:   new Set(["function_definition"]),
     lowPriority: new Set(),
     suffixes:    new Set(['.c'])
+  },
+
+///////////////////////////// java ///////////////////////////
+  java: {
+    sExpr: `
+      [
+        (method_declaration
+           (identifier) @methodDeclName) @methodDecl
+        (class_declaration
+           name: (identifier) @classDeclName) @classDecl
+        (assignment_expression
+           left: (identifier) @assExprName) @assExpr
+      ]
+    `,
+    capTypes: new Map<string, string>([
+      ['methodDecl',  'method_declaration'],
+      ['classDecl',   'class_declaration'],
+      ['assExpr',     'assignment_expression'],
+    ]),
+    symbols: new Map([
+      ['method_declaration',    'ƒ'],
+      ['class_declaration',     '©'],
+      ['assignment_expression', '='],
+    ]),
+    funcTypes:   new Set(["method_declaration"]),
+    lowPriority: new Set(),
+    suffixes:    new Set(['.java'])
   },
 
 };

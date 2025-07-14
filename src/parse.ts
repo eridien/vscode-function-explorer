@@ -6,15 +6,14 @@ import { Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
-const PARSE_DEBUG_TYPE: string = '';
-const PARSE_DEBUG_NAME: string = 'os';
+const PARSE_DEBUG_TYPE: string = 'assignment_expression';  
+const PARSE_DEBUG_NAME: string = '';
 
 let context: vscode.ExtensionContext;
 
 export async function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
   await Parser.init();
-
 }
 
 const languageCache: Map<string, Language> = new Map();
@@ -45,10 +44,11 @@ export interface NodeData {
 }
 
 function parseDebug(rootNode: SyntaxNode) {
-  let dumping   = false;
-  let depth     = -1;
-  let lineCount = 0;
-  let done      = false;
+  let dumping    = false;
+  let depth      = 0;
+  let firstDepth = 0;
+  let lineCount  = 0;
+  let done       = false;
   function walkTree(node: SyntaxNode, visit: (node: SyntaxNode) => void) {
     visit(node);
     for (let i = 0; i < node.childCount; i++) {
@@ -56,19 +56,23 @@ function parseDebug(rootNode: SyntaxNode) {
       if (child && !done) {
         depth++;
         walkTree(child, visit);
-        depth--;
+        if(--depth < firstDepth) done = true;
       }
     }
   }
   walkTree(rootNode, node => {
-    let name = 'anonymous';
+    let name = ' ';
     const nameNode = node.childForFieldName('name');
     if(nameNode) name = nameNode.text;
     else if(node.type === 'identifier') name = node.text;
-    dumping ||= (node.type === PARSE_DEBUG_TYPE || PARSE_DEBUG_NAME === name);
+    if(!dumping && (node.type === PARSE_DEBUG_TYPE || 
+                         name === PARSE_DEBUG_NAME)) {
+      firstDepth = depth;
+      dumping    = true;
+    }
     if(dumping && !done) {
-      console.log(` ${'    '.repeat(depth)}${node.type} `+
-                  `(${node.startIndex},${node.endIndex}) ${name}`);
+      console.log(`${'    '.repeat(depth-firstDepth)}${node.type} `+
+                 `(${node.startIndex},${node.endIndex}) ${name}`);
       if(lineCount++ > 100) done = true;
     }
   });
@@ -79,12 +83,8 @@ export function getFuncTypes(lang: string): Set<string> {
 }
 
 export function getSymbol(lang: string, type: string): string {
-  const symbol = langs[lang]?.symbols?.get(type);
-  if(symbol === undefined) {
-    if(type !== '') log(`No symbol for type '${type}' in lang '${lang}'`);
-    return '?';
-  }
-  return symbol;
+  const  symbol = langs[lang]?.symbols?.get(type);
+  return symbol ?? '?';
 }
 
 export function getLangByFsPath(fsPath: string): string | null {
