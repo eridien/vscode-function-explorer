@@ -3,8 +3,8 @@ import {minimatch}   from 'minimatch';
 import * as fs       from 'fs/promises';
 import * as chokidar from 'chokidar';
 import path          from 'path';
+import {langs}       from './languages';
 import * as utils    from './utils';
-import { updateItemInTree } from './sidebar';
 const {log, start, end} = utils.getLog('sett');
 
 interface FunctionExplorerSettings {
@@ -34,7 +34,6 @@ export let settings:  FunctionExplorerSettings = {
 };
 
 let excludeCfg: string;
-let includeCfg: string;
 
 async function measureViewportCapacity(editor: vscode.TextEditor): Promise<number> {
   let visibleRanges = editor.visibleRanges;
@@ -127,15 +126,21 @@ export async function setScroll(editor: vscode.TextEditor,
                          vscode.TextEditorRevealType.AtTop);
 }
 
-export function includeFile(fsPath: string, folder?:boolean): boolean {
-  for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
-    if(fsPath === wsFolder.uri.fsPath) return true;
+export function includeFile(fsPath: string, folder = false): boolean {
+  if(!folder) {
+    const ext     = path.extname(fsPath).toLowerCase();
+    const hasLang = Object.values(langs).some(lang => lang.suffixes.has(ext));
+    if(!hasLang) return false;
+  }
+  else {
+    for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
+      if(fsPath === wsFolder.uri.fsPath) return true;
+    }
   }
   let filePath = vscode.workspace.asRelativePath(fsPath, true);
   filePath = filePath.replace(/\\/g, '/').split('/').slice(1).join('/');
   const relPath = folder ? filePath + '/' : filePath;
-  if(minimatch(relPath, excludeCfg, { dot: true })) return false;
-  return folder || minimatch(relPath, includeCfg, { dot: true });
+  return !minimatch(relPath, excludeCfg, { dot: true });
 }
 
 let fileCreated: (fsPath: string) => void;
@@ -224,15 +229,10 @@ export async function loadSettings() {
     topMargin:            config.get('topMargin',                3),
   };
   // log('loadSettings', settings);
-  vscode.commands.executeCommand('setContext', 'foldersHidden', settings.hideFolders);
-  const includeFilesPattern = 
-            config.get<string>("filesToInclude", "**/*.js, **/*.ts")
-                  .split(",").map(p => p.trim());
+  vscode.commands.executeCommand(
+                    'setContext', 'foldersHidden', settings.hideFolders);
   const excludeFoldersPattern = config.get('filesToExclude', 'node_modules/');
-  if(includeFilesPattern.length < 2) includeCfg = includeFilesPattern[0];
-  else                    includeCfg = '{'+includeFilesPattern.join(",")+'}';
-  const excParts = excludeFoldersPattern
-                         .split(",").map(p => p.trim());
+  const excParts = excludeFoldersPattern .split(",").map(p => p.trim());
   if(excParts.length < 2) excludeCfg = excParts[0];
   else                    excludeCfg = '{'+excParts.join(",")+'}';
   await setFileWatcher(excludeFoldersPattern);

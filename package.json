@@ -381,13 +381,6 @@
           "title": "Alpha Sort Functions",
           "description": "Sort functions in all files alphabetically instead of by position. This only applies when activating the extension. Then it can be toggled in the sidebar file \"A\" button separately for each file."
         },
-        "function-explorer.filesToInclude": {
-          "type": "string",
-          "default": "**/*.js, **/*.ts",
-          "order": 9,
-          "title": "Files/Folders To Include",
-          "description": "Files/Folders to include in the function explorer. Separate glob patterns with commas. If a file/folder matches an include pattern and an exclude pattern, it will not be included."
-        },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/",

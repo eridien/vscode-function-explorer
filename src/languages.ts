@@ -1,5 +1,18 @@
 
-export const langs: any = {
+type LangConfig = {
+  sExpr:       string;
+  capTypes:    Map<string, string>;
+  symbols:     Map<string, string>;
+  funcTypes:   Set<string>;
+  lowPriority: Set<string>;
+  suffixes:    Set<string>;
+};
+
+export type Langs = {
+  [lang: string]: LangConfig;
+};
+
+export const langs: Langs = {
 
 ///////////////////////////// typescript ///////////////////////////
   typescript: {
@@ -120,7 +133,7 @@ export const langs: any = {
     ]),
     funcTypes:   new Set(["function_definition"]),
     lowPriority: new Set(),
-    suffixes:    new Set(['.c'])
+    suffixes:    new Set(['.c','.cpp'])
   },
 
 ///////////////////////////// java ///////////////////////////
