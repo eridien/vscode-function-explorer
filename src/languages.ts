@@ -18,27 +18,27 @@ export const langs: Langs = {
   typescript: {
     sExpr: `
       [
-        ((function_declaration
-            name: (identifier) @funcDeclName) @funcDecl)
-        ((variable_declarator
+        (function_declaration
+            name: (identifier) @funcDeclName) @funcDecl
+        (variable_declarator
             name: (identifier) @funcExprDeclName
-            value: (function_expression) @funcExprDecl) @funcExprDeclBody)
-        ((variable_declarator
+            value: (function_expression) @funcExprDecl) @funcExprDeclBody
+        (variable_declarator
             name: (identifier) @arrowFuncDeclName
-            value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody)
-        ((class_declaration
-            name: (type_identifier) @classDeclName) @classDecl)
-        ((method_definition
-            name: (property_identifier) @methodDefName) @methodDef)
-        ((pair
+            value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody
+        (class_declaration
+            name: (type_identifier) @classDeclName) @classDecl
+        (method_definition
+            name: (property_identifier) @methodDefName) @methodDef
+        (pair
             key: (property_identifier) @propertyName) @property) @propertyBody
-        ((assignment_expression
+        (assignment_expression
             left: [(identifier) (member_expression) (subscript_expression)]
-                                                      @assExprName) @assExpr)
-        ((variable_declarator
-            name: (identifier) @varDeclName) @varDecl)
-         ((namespace_import
-            (identifier) @importName) @import)
+                                                      @assExprName) @assExpr
+        (variable_declarator
+            name: (identifier) @varDeclName) @varDecl
+         (namespace_import
+            (identifier) @importName) @import
      ]
     `,
     capTypes: new Map<string, string>([
@@ -76,12 +76,12 @@ export const langs: Langs = {
   python: {
     sExpr: `
       [
-        ((function_definition
-          name: (identifier) @funcDefName) @funcDef)
-        ((class_definition
-          name: (identifier) @classDefName) @classDef)
-        ((assignment
-          (pattern) @namedExprName) @namedExpr)
+        (function_definition
+          name: (identifier) @funcDefName) @funcDef
+        (class_definition
+          name: (identifier) @classDefName) @classDef
+        (assignment
+          (pattern) @namedExprName) @namedExpr
         (import_statement
           (dotted_name) @importName) @import
         (import_from_statement
@@ -112,13 +112,13 @@ export const langs: Langs = {
   c: {
     sExpr: `
       [
-        ((function_definition
+        (function_definition
           declarator: (function_declarator
-            declarator: (identifier) @funcDefName)) @funcDef)
-        ((assignment_expression
-          left: (identifier) @assExprName) @assExpr)
-        ((call_expression
-          function: (identifier) @callExprName) @callExpr)
+            declarator: (identifier) @funcDefName)) @funcDef
+        (assignment_expression
+          left: (identifier) @assExprName) @assExpr
+        (call_expression
+          function: (identifier) @callExprName) @callExpr
       ]
     `,
     capTypes: new Map<string, string>([
