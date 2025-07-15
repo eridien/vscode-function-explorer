@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -386,7 +386,7 @@
           "default": "node_modules/",
           "order": 10,
           "title": "Files/Folders To Exclude",
-          "description": "Files/Folders to exclude in the function explorer. Separate glob patterns with commas. To exclude a directory you must end the glob pattern with a slash (/), not /**/."
+          "description": "Files/Folders to exclude in the explorer. Separate glob patterns with commas. To exclude a directory end the glob pattern with a slash (/), not /**.  A sample file is **/*.js and folder is node_modules/"
         }
       }
     }
