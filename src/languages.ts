@@ -31,10 +31,9 @@ export const langs: Langs = {
         (method_definition
             name: (property_identifier) @methodDefName) @methodDef
         (pair
-            key: (property_identifier) @propertyName) @property) @propertyBody
+            key: (property_identifier) @propertyName) @property
         (assignment_expression
-            left: [(identifier) (member_expression) (subscript_expression)]
-                                                      @assExprName) @assExpr
+            left: (identifier) @assExprName) @assExpr
         (variable_declarator
             name: (identifier) @varDeclName) @varDecl
          (namespace_import
@@ -47,7 +46,7 @@ export const langs: Langs = {
       ['arrowFuncDeclBody', 'arrow_function'],
       ['classDecl',         'class_declaration'],
       ['methodDef',         'method_definition'],
-      ['propertyBody',      'pair'],
+      ['property',          'pair'],
       ['assExpr',           'assignment_expression'],
       ['varDecl',           'variable_declarator'],
       ['import',            'namespace_import'],
@@ -65,11 +64,9 @@ export const langs: Langs = {
       ['namespace_import',      '▷'],
     ]),
     funcTypes: new Set(["function_declaration", "function_expression", 
-                        "method_definition", "arrow_function"]),
-
+                        "method_definition",    "arrow_function"]),
     lowPriority: new Set(['variable_declarator']),
-
-    suffixes:    new Set(['.js', '.ts', '.tsx', '.jsx'])
+    suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
 
 ///////////////////////////// python ///////////////////////////
