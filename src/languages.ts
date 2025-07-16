@@ -3,7 +3,6 @@ type LangConfig = {
   sExpr:       string;
   symbols:     Map<string, string>;
   funcTypes:   Set<string>;
-  lowPriority: Set<string>;
   suffixes:    Set<string>;
 };
 
@@ -72,7 +71,6 @@ export const langs: Langs = {
     ]),
     funcTypes: new Set(["function_declaration", "function_expression", 
                         "method_definition",    "arrow_function"]),
-    lowPriority: new Set(),
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
 
@@ -111,7 +109,6 @@ export const langs: Langs = {
       ['importFrom',            '▷'],
     ]),
     funcTypes:   new Set(["function_definition"]),
-    lowPriority: new Set(),
     suffixes:    new Set(['.py'])
   },
 
@@ -139,7 +136,6 @@ export const langs: Langs = {
       ['call_expression',       '('],
     ]),
     funcTypes:   new Set(["function_definition"]),
-    lowPriority: new Set(),
     suffixes:    new Set(['.c','.cpp'])
   },
 
@@ -166,7 +162,6 @@ export const langs: Langs = {
       ['assignment_expression', '='],
     ]),
     funcTypes:   new Set(["method_declaration"]),
-    lowPriority: new Set(),
     suffixes:    new Set(['.java'])
   },
 
@@ -206,7 +201,6 @@ export const langs: Langs = {
       ['class_declaration',           '©'],
     ]),
     funcTypes:   new Set(["method_declaration", "local_function_statement"]),
-    lowPriority: new Set(),
     suffixes:    new Set(['.cs'])
   },
 

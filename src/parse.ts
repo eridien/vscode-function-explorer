@@ -103,10 +103,9 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   const language = await getLangFromWasm(lang);
   if (!language) return [];
 
-  const { sExpr, symbols, lowPriority }: {
+  const { sExpr, symbols }: {
     sExpr: string;
     symbols: Map<string, string>;
-    lowPriority: Set<string>;
   } = langs[lang];
 
   function getAllParents(node: SyntaxNode): SyntaxNode[] {
@@ -201,9 +200,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
                              capture => capture.name == 'name');
       if (!nameCapture || !nameCapture.node.isNamed) continue;
       const nodeData = capsToNodeData(
-        lang,
-        nameCapture as any,
-        funcCapture as any
+                         lang, nameCapture as any, funcCapture as any
       );
       if(!nodeData) continue;
       nodes.push(nodeData);
@@ -213,30 +210,8 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     return [];
   }
   nodes.sort((a, b) => a.start - b.start);
-  const result: NodeData[] = [];
-  let i = 0;
-  while (i < nodes.length) {
-    const node = nodes[i];
-    let j = i + 1;
-    while(
-      j < nodes.length &&
-      nodes[j].start === node.start &&
-      nodes[j].end   === node.end
-    ) j++;
-    let ok = node;
-    if (j > i + 1) {
-      for (let k = i + 1; k < j; k++) {
-        if(!lowPriority.has(nodes[k].type)) {
-          ok = nodes[k];
-          break;
-        }
-      }
-    } 
-    result.push(ok);
-    i = j;
-  }
   log(`${path.basename(fsPath)}, Parsed ${nodes.length} nodes, \n${
         [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n')}`);
   end('parseCode', true);
-  return result;
+  return nodes;
 }
