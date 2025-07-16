@@ -126,6 +126,8 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     return nameNode.text + "\x00" + node.type + "\x00";
   }
 
+  let typeCounts: Map<string, number> = new Map();
+
   function capsToNodeData(lang: string,
                           nameCapture: QueryCapture,
                           funcCapture: QueryCapture,
@@ -142,6 +144,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     let type     = funcNode.type;
     let parents  = getAllParents(funcNode);
     const funcParents: [string, string][] = [];
+    typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1);
     let funcId = idNodeName(funcNode);
     if( funcId === '') funcId = name + "\x00" + type + "\x00";
     if(bodyCapture) {
@@ -241,7 +244,8 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     result.push(ok);
     i = j;
   }
-  // log(`Parsed ${nodes.length} nodes`);
+  log(`${path.basename(fsPath)}, Parsed ${nodes.length} nodes, \n${
+        [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n')}`);
   end('parseCode', true);
   return result;
 }

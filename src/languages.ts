@@ -105,8 +105,8 @@ export const langs: Langs = {
     suffixes:    new Set(['.py'])
   },
 
-///////////////////////////// c ///////////////////////////
-  c: {
+///////////////////////////// cpp ///////////////////////////
+  cpp: {
     sExpr: `
       [
         (function_definition
@@ -158,6 +158,44 @@ export const langs: Langs = {
     funcTypes:   new Set(["method_declaration"]),
     lowPriority: new Set(),
     suffixes:    new Set(['.java'])
+  },
+
+///////////////////////////// c-sharp ///////////////////////////
+  "c-sharp": {
+    sExpr: `
+      [
+        (method_declaration
+           name: (identifier) @methodDeclName) @method_declaration
+        (local_function_statement
+           name: (identifier) @localFuncStateName) @local_function_statement
+        (local_declaration_statement              ;; int x = 5;
+          (variable_declaration
+            (variable_declarator
+              name: (identifier) @localDeclName))) @local_declaration_statement
+        (expression_statement                      ;;  x = 5;
+          (assignment_expression
+            left: (identifier) @exprStatementName)) @expression_statement
+        (class_declaration
+          name: (identifier) @cclassDeclName) @class_declaration
+      ]
+    `,
+    capTypes: new Map<string, string>([
+      ['method_declaration',          'method_declaration'],
+      ['local_function_statement',    'local_function_statement'],
+      ['local_declaration_statement', 'local_declaration_statement'],
+      ['expression_statement',        'expression_statement'],
+      ['class_declaration',           'class_declaration'],
+    ]),
+    symbols: new Map([
+      ['method_declaration',          'ƒ'],
+      ['local_function_statement',    'ƒ'],
+      ['local_declaration_statement', '='],
+      ['expression_statement',        '='],
+      ['class_declaration',           '©'],
+    ]),
+    funcTypes:   new Set(["method_declaration", "local_function_statement"]),
+    lowPriority: new Set(),
+    suffixes:    new Set(['.cs'])
   },
 
 };
