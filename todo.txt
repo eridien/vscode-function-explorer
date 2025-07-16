@@ -1,12 +1,18 @@
 bugs ...
+  no match js
+    const [id, status, result] = parts.slice(1);
+    const callIdx = calls.findIndex(call =>  call.id == id);
+  no match cpp (no class)
+    class CustomizedGuiManager : public ui::Manager,
+                                 public ui::LayoutIO {
 
 todo ...
   when no folders and file in folder show path in description
   del marks from Marks db on any delete all (x)
-  if all funcItem decorations end the same then trim them (alter.c)
-  
+  if all funcItem decorations end the same then trim them (d.c, g.cs)
+  ts plain import
+
 low priority ...
-  add imports to nodes
   bounce on some func clicks
   delete file leaves folder
 

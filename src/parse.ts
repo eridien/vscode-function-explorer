@@ -103,9 +103,8 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   const language = await getLangFromWasm(lang);
   if (!language) return [];
 
-  const { sExpr, capTypes, symbols, lowPriority }: {
+  const { sExpr, symbols, lowPriority }: {
     sExpr: string;
-    capTypes: Map<string, string>;
     symbols: Map<string, string>;
     lowPriority: Set<string>;
   } = langs[lang];
@@ -130,28 +129,21 @@ export async function parseCode(lang: string, code: string, fsPath: string,
 
   function capsToNodeData(lang: string,
                           nameCapture: QueryCapture,
-                          funcCapture: QueryCapture,
-                          bodyCapture: QueryCapture | undefined)
-                                      :NodeData | null {
+                          funcCapture: QueryCapture) :NodeData | null {
     const nameNode  = nameCapture.node;
     const startName = nameNode.startIndex;
     const endName   = nameNode.endIndex;
     const name      = code.slice(startName, endName);
     if (!name) return null;
+    let type     = funcCapture.name;
     let funcNode = funcCapture.node;
     let start    = funcNode.startIndex;
     let end      = funcNode.endIndex;
-    let type     = funcNode.type;
     let parents  = getAllParents(funcNode);
     const funcParents: [string, string][] = [];
     typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1);
     let funcId = idNodeName(funcNode);
     if( funcId === '') funcId = name + "\x00" + type + "\x00";
-    if(bodyCapture) {
-      start = bodyCapture.node.startIndex;
-      end   = bodyCapture.node.endIndex;
-      parents = parents.slice(1);
-    }
     for(let parent of parents) {
       funcId += idNodeName(parent);
       const nameNode = parent.childForFieldName('name');
@@ -203,16 +195,15 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     const matches = query.matches(tree.rootNode as any);
     for (const match of matches) {
       const funcCapture = match.captures.find(
-                             capture => capTypes.has(capture.name));
+                             capture => symbols.has(capture.name));
       if (!funcCapture || !funcCapture.node.isNamed) continue;
-      const nameCapture = match.captures.find(c => c.name.endsWith('Name'));
+      const nameCapture = match.captures.find(
+                             capture => capture.name == 'name');
       if (!nameCapture || !nameCapture.node.isNamed) continue;
-      const bodyCapture = match.captures.find(c => c.name.endsWith('Body'));
       const nodeData = capsToNodeData(
         lang,
         nameCapture as any,
-        funcCapture as any,
-        bodyCapture as any
+        funcCapture as any
       );
       if(!nodeData) continue;
       nodes.push(nodeData);

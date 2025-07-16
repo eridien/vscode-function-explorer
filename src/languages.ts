@@ -1,7 +1,6 @@
 
 type LangConfig = {
   sExpr:       string;
-  capTypes:    Map<string, string>;
   symbols:     Map<string, string>;
   funcTypes:   Set<string>;
   lowPriority: Set<string>;
@@ -19,53 +18,61 @@ export const langs: Langs = {
     sExpr: `
       [
         (function_declaration
-            name: (identifier) @funcDeclName) @funcDecl
+            name: (identifier) @name
+        ) @function_declaration
+
         (variable_declarator
-            name: (identifier) @funcExprDeclName
-            value: (function_expression) @funcExprDecl) @funcExprDeclBody
+            name: (identifier) @name
+            value: (function_expression)
+        ) @function_expression
+
         (variable_declarator
-            name: (identifier) @arrowFuncDeclName
-            value: (arrow_function) @arrowFuncDecl) @arrowFuncDeclBody
+            name: (identifier) @name
+            value: (arrow_function)
+        ) @arrow_function
+
         (class_declaration
-            name: (type_identifier) @classDeclName) @classDecl
+            name: (type_identifier) @name
+         ) @class_declaration
+
         (method_definition
-            name: (property_identifier) @methodDefName) @methodDef
+            name: (property_identifier) @name
+         ) @method_definition
+         
         (pair
-            key: (property_identifier) @propertyName) @property
+            key: (property_identifier) @name
+         ) @property
+
         (assignment_expression
-            left: (identifier) @assExprName) @assExpr
-        (variable_declarator
-            name: (identifier) @varDeclName) @varDecl
+            left: (identifier) @name
+         ) @assignment_expression
+
+        (lexical_declaration
+          (variable_declarator
+            name: (identifier) @name
+            value: (_) @value
+            (#not-match? @value "=>"))
+         ) @assignment
+
          (namespace_import
-            (identifier) @importName) @import
+            (identifier) @name
+         ) @import
      ]
     `,
-    capTypes: new Map<string, string>([
-      ['funcDecl',          'function_declaration'],
-      ['funcExprDeclBody',  'function_expression'],
-      ['arrowFuncDeclBody', 'arrow_function'],
-      ['classDecl',         'class_declaration'],
-      ['methodDef',         'method_definition'],
-      ['property',          'pair'],
-      ['assExpr',           'assignment_expression'],
-      ['varDecl',           'variable_declarator'],
-      ['import',            'namespace_import'],
-    ]),
     symbols: new Map<string, string>([
       ['function_declaration',  'ƒ'],
       ['function_expression',   'ƒ'],
       ['arrow_function',        'ƒ'],
       ['method_definition',     'f'],
       ['class_declaration',     '©'],
-      ['pair',                  ':'],
-      ['assExpr',               ':'],
+      ['property',              ':'],
+      ['assignment',            '='],
       ['assignment_expression', '='],
-      ['variable_declarator',   '='],
-      ['namespace_import',      '▷'],
+      ['import',                '▷'],
     ]),
     funcTypes: new Set(["function_declaration", "function_expression", 
                         "method_definition",    "arrow_function"]),
-    lowPriority: new Set(['variable_declarator']),
+    lowPriority: new Set(),
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
 
@@ -74,31 +81,34 @@ export const langs: Langs = {
     sExpr: `
       [
         (function_definition
-          name: (identifier) @funcDefName) @funcDef
+          name: (identifier) @name
+         ) @function_definition
+
         (class_definition
-          name: (identifier) @classDefName) @classDef
+          name: (identifier) @name
+         ) @class_definition
+
         (assignment
-          (pattern) @namedExprName) @namedExpr
+          (pattern) @name
+        ) @assignment
+
+        ;; assignment_expression ??
+        
         (import_statement
-          (dotted_name) @importName) @import
+          (dotted_name) @name
+        ) @import
+
         (import_from_statement
-          (dotted_name) @importFromName) @importFrom
+          (dotted_name) @name
+        ) @importFrom
       ]
     `,
-    capTypes: new Map<string, string>([
-      ['funcDef',    'function_definition'],
-      ['classDef',   'class_definition'],
-      ['namedExpr',  'assignment'],
-      ['namedExpr',  'assignment'],
-      ['import',     'import_statement'],      // import foo
-      ['importFrom', 'import_from_statement'], // from foo import bar
-    ]),
     symbols: new Map([
       ['function_definition',   'ƒ'],
       ['class_definition',      '©'],
       ['assignment',            '='],
-      ['import_statement',      '▷'],
-      ['import_from_statement', '▷'],
+      ['import',                '▷'],
+      ['importFrom',            '▷'],
     ]),
     funcTypes:   new Set(["function_definition"]),
     lowPriority: new Set(),
@@ -111,18 +121,18 @@ export const langs: Langs = {
       [
         (function_definition
           declarator: (function_declarator
-            declarator: (identifier) @funcDefName)) @funcDef
+            declarator: (identifier) @name)
+         ) @function_definition
+
         (assignment_expression
-          left: (identifier) @assExprName) @assExpr
+          left: (identifier) @name
+         ) @assignment_expression
+
         (call_expression
-          function: (identifier) @callExprName) @callExpr
+          function: (identifier) @name
+         ) @call_expression
       ]
     `,
-    capTypes: new Map<string, string>([
-      ['funcDef',  'function_definition'],
-      ['assExpr',  'assignment_expression'],
-      ['callExpr', 'call_expression'],
-    ]),
     symbols: new Map([
       ['function_definition',   'ƒ'],
       ['assignment_expression', '='],
@@ -138,18 +148,18 @@ export const langs: Langs = {
     sExpr: `
       [
         (method_declaration
-           (identifier) @methodDeclName) @methodDecl
+           (identifier) @name
+         ) @method_declaration
+
         (class_declaration
-           name: (identifier) @classDeclName) @classDecl
+           name: (identifier) @name
+         ) @class_declaration
+
         (assignment_expression
-           left: (identifier) @assExprName) @assExpr
+           left: (identifier) @name
+         ) @assignment_expression
       ]
     `,
-    capTypes: new Map<string, string>([
-      ['methodDecl',  'method_declaration'],
-      ['classDecl',   'class_declaration'],
-      ['assExpr',     'assignment_expression'],
-    ]),
     symbols: new Map([
       ['method_declaration',    'ƒ'],
       ['class_declaration',     '©'],
@@ -165,27 +175,29 @@ export const langs: Langs = {
     sExpr: `
       [
         (method_declaration
-           name: (identifier) @methodDeclName) @method_declaration
+           name: (identifier) @name
+         ) @method_declaration
+
         (local_function_statement
-           name: (identifier) @localFuncStateName) @local_function_statement
+           name: (identifier) @name
+         ) @local_function_statement
+
         (local_declaration_statement              ;; int x = 5;
           (variable_declaration
             (variable_declarator
-              name: (identifier) @localDeclName))) @local_declaration_statement
+              name: (identifier) @name))
+         ) @local_declaration_statement
+
         (expression_statement                      ;;  x = 5;
           (assignment_expression
-            left: (identifier) @exprStatementName)) @expression_statement
+            left: (identifier) @name)
+         ) @expression_statement
+
         (class_declaration
-          name: (identifier) @cclassDeclName) @class_declaration
+          name: (identifier) @name
+         ) @class_declaration
       ]
     `,
-    capTypes: new Map<string, string>([
-      ['method_declaration',          'method_declaration'],
-      ['local_function_statement',    'local_function_statement'],
-      ['local_declaration_statement', 'local_declaration_statement'],
-      ['expression_statement',        'expression_statement'],
-      ['class_declaration',           'class_declaration'],
-    ]),
     symbols: new Map([
       ['method_declaration',          'ƒ'],
       ['local_function_statement',    'ƒ'],
