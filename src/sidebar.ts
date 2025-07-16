@@ -171,7 +171,8 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
   };
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
-  const nodeData = await parse.parseCode(fileItem.lang, docText, fsPath);
+  const nodeData = await parse.parseCode(
+                                   fileItem.lang, docText, fsPath, document);
   if(!nodeData || nodeData.length === 0) return empty();
   let matchCount              = 0;
   let structChg               = false;

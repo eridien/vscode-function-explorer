@@ -98,8 +98,9 @@ export function getLangByFsPath(fsPath: string): string | null {
 
 let lastParseErrFsPath = '';
 
-export async function parseCode(lang: string, code: string, fsPath: string,
-                          retrying = false): Promise<NodeData[] | null> {
+export async function parseCode(lang: string, code: string, fsPath: string, 
+                          doc: vscode.TextDocument, retrying = false): 
+                                               Promise<NodeData[] | null> {
   const language = await getLangFromWasm(lang);
   if (!language) return [];
 
@@ -125,6 +126,30 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   }
 
   let typeCounts: Map<string, number> = new Map();
+  let maxGap     = 0;
+  let lastIdx    = 0;
+  let startIndex = 0;
+  let endIndex   = code.length;
+
+  function collectParseStats(nodeData: NodeData | null = null) {
+    if(!nodeData) {
+      const gap = code.length - lastIdx;
+      if(gap > maxGap) {
+        startIndex = lastIdx;
+        endIndex   = code.length;
+      }
+      return;
+    }
+    typeCounts.set(nodeData.type, 
+                  (typeCounts.get(nodeData.type) ?? 0) + 1);
+    const gap = nodeData.startName - lastIdx;
+    if(gap > maxGap) {
+      maxGap = gap;
+      startIndex = lastIdx;
+      endIndex   = nodeData.startName;
+    }
+    lastIdx = nodeData.endName;
+  }
 
   function capsToNodeData(lang: string,
                           nameCapture: QueryCapture,
@@ -140,7 +165,6 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     let end      = funcNode.endIndex;
     let parents  = getAllParents(funcNode);
     const funcParents: [string, string][] = [];
-    typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1);
     let funcId = idNodeName(funcNode);
     if( funcId === '') funcId = name + "\x00" + type + "\x00";
     for(let parent of parents) {
@@ -150,9 +174,12 @@ export async function parseCode(lang: string, code: string, fsPath: string,
       if (name) funcParents.push([name, parent.type]);
     }
     funcId += fsPath;
-    return { lang, name, funcParents, funcId, 
-             start, startName, endName, end, type };
+    const nodeData: NodeData = { lang, name, funcParents, funcId, 
+                                 start, startName, endName, end, type };
+    collectParseStats(nodeData);
+    return nodeData;
   }
+  
   start('parseCode', true);
   const parser = new Parser();
   parser.setLanguage(language);
@@ -175,10 +202,10 @@ export async function parseCode(lang: string, code: string, fsPath: string,
                                  (e as any).message, path.basename(fsPath));
     lastParseErrFsPath = fsPath;
     const firstHalf = code.slice(0, middle);
-    const res1      = await parseCode(lang, firstHalf, fsPath, true);
+    const res1      = await parseCode(lang, firstHalf, fsPath, doc, true);
     if(!res1) return [];
     const secondHalf = code.slice(middle);
-    const res2       = await parseCode(lang, secondHalf, fsPath, true);
+    const res2       = await parseCode(lang, secondHalf, fsPath, doc, true);
     if (!res2) return [];
     for (const node of res2) {
       node.start += middle;
@@ -210,8 +237,20 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     return [];
   }
   nodes.sort((a, b) => a.start - b.start);
-  log(`${path.basename(fsPath)}, Parsed ${nodes.length} nodes, \n${
-        [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n')}`);
+
+  collectParseStats();
+  const lineCount    = doc.positionAt(code.length).line;
+  const gapStartLine = doc.positionAt(startIndex ).line+2;
+  const gapEndLine   = doc.positionAt(endIndex   ).line;
+  const gapLines     = gapEndLine - gapStartLine;
+  const nodeCount    = nodes.length;
+
+  log('nomod', `\n${path.basename(fsPath)}: ` +
+      `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
+      `gap start: ${gapStartLine}, end: ${gapEndLine}\n` +
+      `gap lines avg: ${Math.floor(lineCount/(nodeCount + 1))}, ` +
+                `max: ${gapLines}\n` +
+       [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n'));
   end('parseCode', true);
   return nodes;
 }
