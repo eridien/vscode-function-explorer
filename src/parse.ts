@@ -8,6 +8,7 @@ const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DEBUG_TYPE: string = '';  
 const PARSE_DEBUG_NAME: string = '';
+const PARSE_DEBUG_STATS = false;
 
 let context: vscode.ExtensionContext;
 
@@ -109,7 +110,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     symbols: Map<string, string>;
   } = langs[lang];
 
-  function getAllParents(node: SyntaxNode): SyntaxNode[] {
+  function getParents(node: SyntaxNode): SyntaxNode[] {
     const parents: SyntaxNode[] = [];
     let parent = node.parent;
     while (parent) {
@@ -163,7 +164,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     let funcNode = funcCapture.node;
     let start    = funcNode.startIndex;
     let end      = funcNode.endIndex;
-    let parents  = getAllParents(funcNode);
+    let parents  = getParents(funcNode);
     const funcParents: [string, string][] = [];
     let funcId = idNodeName(funcNode);
     if( funcId === '') funcId = name + "\x00" + type + "\x00";
@@ -176,7 +177,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     funcId += fsPath;
     const nodeData: NodeData = { lang, name, funcParents, funcId, 
                                  start, startName, endName, end, type };
-    collectParseStats(nodeData);
+    if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
     return nodeData;
   }
   
@@ -238,19 +239,20 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   }
   nodes.sort((a, b) => a.start - b.start);
 
-  collectParseStats();
-  const lineCount    = doc.positionAt(code.length).line;
-  const gapStartLine = doc.positionAt(startIndex ).line+2;
-  const gapEndLine   = doc.positionAt(endIndex   ).line;
-  const gapLines     = gapEndLine - gapStartLine;
-  const nodeCount    = nodes.length;
-
-  log('nomod', `\n${path.basename(fsPath)}: ` +
-      `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
-      `gap start: ${gapStartLine}, end: ${gapEndLine}\n` +
-      `gap lines avg: ${Math.floor(lineCount/(nodeCount + 1))}, ` +
-                `max: ${gapLines}\n` +
-       [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n'));
+  if(PARSE_DEBUG_STATS) {
+    collectParseStats();
+    const lineCount    = doc.positionAt(code.length).line;
+    const gapStartLine = doc.positionAt(startIndex ).line+2;
+    const gapEndLine   = doc.positionAt(endIndex   ).line;
+    const gapLines     = gapEndLine - gapStartLine;
+    const nodeCount    = nodes.length;
+    log('nomod', `\n${path.basename(fsPath)}: ` +
+        `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
+        `gap start: ${gapStartLine}, end: ${gapEndLine}\n` +
+        `gap lines avg: ${Math.floor(lineCount/(nodeCount + 1))}, ` +
+                  `max: ${gapLines}\n` +
+        [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n'));
+  }
   end('parseCode', true);
   return nodes;
 }

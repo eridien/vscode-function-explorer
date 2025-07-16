@@ -6,6 +6,7 @@ import * as sett       from './settings';
 import {settings}      from './settings';
 import * as utils      from './utils';
 import { parse } from '@babel/parser';
+import { prev } from './commands';
 const {log, start, end} = utils.getLog('itms');
 
 const DEBUG_FUNC_TYPE = false;
@@ -255,7 +256,12 @@ export class FileItem extends Item {
       structChg = true;
     }
     if(this.alphaSorted) 
-      funcItems.sort((a, b) => a.name.localeCompare(b.name));
+                funcItems.sort((a, b) => a.name.localeCompare(b.name));
+    funcItems[0].prevSibling = undefined;
+    for(let idx = 1; idx < funcItems.length; idx++) {
+      const funcItem = funcItems[idx];
+      funcItem.prevSibling = funcItems[idx-1];
+    }
     if(structChg) updateItemInTree(this);
     return funcItems;
   };
@@ -340,6 +346,7 @@ interface FuncData {
 
 export class FuncItem extends Item {
   declare parent:     FileItem;
+  prevSibling?:       FuncItem;
   lang!:              string;
   name!:              string;
   decoration!:        string;
@@ -401,9 +408,25 @@ export class FuncItem extends Item {
     return label.trim();
   }
   getDescription() {
-    let description = '';
-    for(const funcParent of this.funcParents) 
-      description += this.getFuncItemStr(funcParent);
+    let description   = '';
+    const prevParents = this.prevSibling?.funcParents ?? [];
+    let matches       = (this.funcParents.length == prevParents.length);
+    for(let idx = 0; idx < this.funcParents.length; idx++) {
+      const funcParent = this.funcParents[idx];
+      if(matches) {
+        const prevParent = prevParents[idx];
+        if(prevParent[0] === funcParent[0] &&
+           prevParent[1] === funcParent[1]) {
+          if(idx == this.funcParents.length-1) {
+            description = ' △';
+            break;
+          }
+        } else matches = false;
+      }
+      description = this.getFuncItemStr(funcParent) + description;
+    }
+    // for(const funcParent of this.funcParents) 
+    //   description += this.getFuncItemStr(funcParent);
     if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
     return description.slice(1).trim();
   }
