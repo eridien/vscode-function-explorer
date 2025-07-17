@@ -6,9 +6,9 @@ import { Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
-const PARSE_DEBUG_TYPE: string = 'array_pattern';  
+const PARSE_DEBUG_TYPE: string = 'use_declaration';  
 const PARSE_DEBUG_NAME: string = '';
-const PARSE_DEBUG_STATS = false;
+const PARSE_DEBUG_STATS = true;
 
 let context: vscode.ExtensionContext;
 
@@ -72,8 +72,8 @@ function parseDebug(rootNode: SyntaxNode) {
       dumping    = true;
     }
     if(dumping && !done) {
-      console.log(`${'    '.repeat(depth-firstDepth)}${node.type} `+
-                 `(${node.startIndex},${node.endIndex}) ${name}`);
+      log('nomod', `${'    '.repeat(depth-firstDepth)}${node.type} `+
+                   `(${node.startIndex},${node.endIndex}) ${name}`);
       if(lineCount++ > 100) done = true;
     }
   });

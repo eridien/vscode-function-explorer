@@ -99,19 +99,19 @@ export const langs: Langs = {
             (#not-match? @value "=>"))
          ) @assignment
 
-[
-  ;; Namespace import: import * as fs from 'fs';
-  (namespace_import (identifier) @name) @import
+        [
+          ;; Namespace import: import * as fs from 'fs';
+          (namespace_import (identifier) @name) @import
 
-  ;; Default import: import path from 'path';
-  (import_clause
-    (identifier) @name) @import
+          ;; Default import: import path from 'path';
+          (import_clause
+            (identifier) @name) @import
 
-  ;; Named import: import { langs } from './languages';
-  (named_imports
-    (import_specifier
-      name: (identifier) @name)) @import
-]
+          ;; Named import: import { langs } from './languages';
+          (named_imports
+            (import_specifier
+              name: (identifier) @name)) @import
+        ]
      ]
     `,
     symbols: new Map<string, string>([
@@ -264,6 +264,63 @@ export const langs: Langs = {
     ]),
     funcTypes:   new Set(["method_declaration", "local_function_statement"]),
     suffixes:    new Set(['.cs'])
+  },
+
+///////////////////////////// rust ///////////////////////////
+  rust: {
+    sExpr: `
+      [
+        (function_item
+          name: (identifier) @name
+        ) @function
+
+        (struct_item
+          name: (type_identifier) @name
+        ) @struct
+
+        (enum_item
+          name: (type_identifier) @name
+        ) @enum
+
+        [
+          (let_declaration
+            (identifier) @name
+            (_) )
+          (let_declaration
+            (tuple_pattern
+              (identifier) @name)
+            (_) )
+          (let_declaration
+            (struct_pattern
+              (field_pattern
+                (identifier) @name))
+            (_) )
+          (assignment_expression
+            (identifier) @name
+            (_) )
+        ]  @assignment
+
+        [
+          (use_declaration
+            (scoped_identifier) @name)
+          (use_declaration
+            (use_as_clause
+              (_) "as" (identifier) @name))
+          (use_declaration
+            (use_list
+              (identifier) @name))
+        ] @use
+      ]
+    `,
+    symbols: new Map([
+      ['function',   'ƒ'],
+      ['struct',     '@'],
+      ['enum',       '@'],
+      ['assignment', '='],
+      ['use',        '▷'],
+    ]),
+    funcTypes:   new Set(["function"]),
+    suffixes:    new Set(['.rs'])
   },
 
 };
