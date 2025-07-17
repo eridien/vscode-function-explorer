@@ -156,7 +156,6 @@ export const langs: Langs = {
         (import_from_statement
           (dotted_name) @name
         ) @importFrom
-      ]
     `,
     symbols: new Map([
       ['function_definition',   'ƒ'],
@@ -222,6 +221,7 @@ export const langs: Langs = {
       ['method_declaration',    'ƒ'],
       ['class_declaration',     '©'],
       ['assignment_expression', '='],
+      
     ]),
     funcTypes:   new Set(["method_declaration"]),
     suffixes:    new Set(['.java'])
@@ -323,6 +323,62 @@ export const langs: Langs = {
     ]),
     funcTypes:   new Set(["function"]),
     suffixes:    new Set(['.rs'])
+  },
+
+///////////////////////////// go ///////////////////////////
+  go: {
+    sExpr: `
+      [
+        (function_declaration
+          name: (identifier) @name) @function
+        
+          ;; x := ...
+          (short_var_declaration
+            (expression_list
+              (identifier) @name)
+            (expression_list (_))) @assignment
+        
+          (type_declaration
+            (type_spec
+              name: (type_identifier) @name
+              type: (struct_type))) @struct
+
+          (type_declaration
+            (type_spec
+              name: (type_identifier) @name)) @type
+
+          (method_declaration
+            name: (field_identifier) @name) @method
+        [
+          ;; Simple function call: foo(bar)
+          (call_expression
+            function: (identifier) @name
+            arguments: (argument_list (_)*)) @call
+
+          ;; Method call: obj.Method()
+          (call_expression
+            function: (selector_expression
+              field: (field_identifier) @name)) @call
+        ]
+
+        (const_declaration
+          (const_spec
+            (identifier) @name)) @const
+
+      ]
+    `,
+
+    symbols: new Map([
+      ['function',   'ƒ'],
+      ['method',     'ƒ'],
+      ['assignment', '='],
+      ['struct',     '@'],
+      ['type',       '@'],
+      ['call',       '('],
+      ['const',      'π'],
+    ]),
+    funcTypes:   new Set(["function", 'method']),
+    suffixes:    new Set(['.go'])
   },
 
 };
