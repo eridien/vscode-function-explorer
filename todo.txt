@@ -1,10 +1,9 @@
 bugs ...
   rust: let io = TokioIo::new(stream);
+  show all doesn't work until file opened
 
 todo ... 
-  when no folders and file in folder show path in description
-  make pointers optional
-  turn off pointers when file not visible
+  editor reveal: leave cursor at name
 
 low priority ...
   a.js: ws.onopen = () => {  

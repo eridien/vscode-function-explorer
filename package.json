@@ -374,10 +374,17 @@
           "title": "Top Margin",
           "description": "Number of margin lines above function when scrolling with \"Function Top At Top\"."
         },
-        "function-explorer.alphaSortFunctions": {
+        "function-explorer.showPointers": {
           "type": "boolean",
           "default": false,
           "order": 8,
+          "title": "Show Pointers",
+          "description": "Show pointers in the function explorer that indicate the cursor position in the editor."
+        },
+        "function-explorer.alphaSortFunctions": {
+          "type": "boolean",
+          "default": false,
+          "order": 9,
           "title": "Alpha Sort Functions",
           "description": "Sort functions in all files alphabetically instead of by position. This only applies when activating the extension. Then it can be toggled in the sidebar file \"A\" button separately for each file."
         },

@@ -24,7 +24,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   await sett.loadSettings();
   await pars.activate(context);
-        disp.activate(context);
+        disp.activate(context, treeView);
          dbs.activate(context);
         sbar.activate(treeView, sidebarProvider);
         itmc.activate(treeView);
@@ -157,6 +157,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (event.affectsConfiguration('function-explorer')) {
       await sett.loadSettings();
       await sbar.refreshTree();
+      await disp.updatePointers();
     }
   });
 
@@ -192,6 +193,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => {
+      await disp.updatePointers();
       if(editor) { 
         cmds.hideNodeHighlightsCmd();
         await cmds.editorOrTextChg(editor);

@@ -6,7 +6,7 @@ import { Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
-const PARSE_DUMP_TYPE: string = 'import_declaration';  
+const PARSE_DUMP_TYPE: string = 'aliased_import';  
 const PARSE_DUMP_NAME: string = '';
 const PARSE_DEBUG_STATS = true;
 

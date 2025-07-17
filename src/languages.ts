@@ -147,15 +147,18 @@ export const langs: Langs = {
           (pattern) @name
         ) @assignment
 
-        ;; assignment_expression ??
-        
         (import_statement
           (dotted_name) @name
         ) @import
 
+        (aliased_import
+           (identifier) @name
+        ) @import
+
         (import_from_statement
-          (dotted_name) @name
-        ) @importFrom
+          name: (dotted_name) @name
+        ) @import
+      ]
     `,
     symbols: new Map([
       ['function_definition',   'ƒ'],

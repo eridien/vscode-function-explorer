@@ -13,9 +13,12 @@ const {log, start, end} = utils.getLog('disp');
 const CLEAR_MARKS_ON_STARTUP = true; 
 
 let context: vscode.ExtensionContext;
+let treeView: vscode.TreeView<vscode.TreeItem>;
 
-export function activate(contextIn:  vscode.ExtensionContext) {
+export function activate(contextIn:  vscode.ExtensionContext, 
+                         treeViewIn: vscode.TreeView<vscode.TreeItem>) {
   context = contextIn;
+  treeView = treeViewIn;
   initGutter();
   itmc.setDisp(pointerItems);
 }             
@@ -117,7 +120,10 @@ export async function setMark(funcItem: FuncItem,
 let pointerItems = new Set<FuncItem>();
 
 export async function updatePointers() {
-  // if(!treeView.visible) return;
+  if(!treeView.visible || !settings.showPointers) {
+    pointerItems.clear();
+    return;
+  }
   const oldPointerItems = new Set(pointerItems);
   pointerItems.clear();
   const newPointerItems = await getFuncsOverlappingSelections();

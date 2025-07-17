@@ -8,17 +8,18 @@ import * as utils    from './utils';
 const {log, start, end} = utils.getLog('sett');
 
 interface FunctionExplorerSettings {
-  hideRootFolders:    boolean;
-  hideFolders:        boolean;
-  showFilePaths:      boolean;
-  scrollPosition:    "Function Top At Top"           | 
-                     "Function Center At Center"     |
-                     "Function Bottom At Bottom"     | 
-                     "Function Top At Top If Needed" |
-                     "Function Center At Center If Needed";
-  fileWrap:           boolean;
-  alphaSortFunctions: boolean;
-  topMargin:          number;
+  hideRootFolders:      boolean;
+  hideFolders:          boolean;
+  showFilePaths:        boolean;
+  scrollPosition:      "Function Top At Top"           | 
+                       "Function Center At Center"     |
+                       "Function Bottom At Bottom"     | 
+                       "Function Top At Top If Needed" |
+                       "Function Center At Center If Needed";
+  fileWrap:             boolean;
+  alphaSortFunctions:   boolean;
+  showPointers:         boolean;
+  topMargin:            number;
   openFileWhenExpanded: boolean;
 }
 
@@ -29,6 +30,7 @@ export let settings:  FunctionExplorerSettings = {
   scrollPosition:       "Function Center At Center If Needed",
   fileWrap:             false,
   alphaSortFunctions:   false,
+  showPointers:         false,
   topMargin:            3,
   openFileWhenExpanded: false
 };
@@ -226,6 +228,7 @@ export async function loadSettings() {
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
     fileWrap:             config.get('fileWrap',             false),
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
+    showPointers:         config.get('showPointers',         false),
     topMargin:            config.get('topMargin',                3),
   };
   // log('loadSettings', settings);
