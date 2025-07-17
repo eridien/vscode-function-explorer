@@ -99,9 +99,19 @@ export const langs: Langs = {
             (#not-match? @value "=>"))
          ) @assignment
 
-         (namespace_import
-            (identifier) @name
-         ) @import
+[
+  ;; Namespace import: import * as fs from 'fs';
+  (namespace_import (identifier) @name) @import
+
+  ;; Default import: import path from 'path';
+  (import_clause
+    (identifier) @name) @import
+
+  ;; Named import: import { langs } from './languages';
+  (named_imports
+    (import_specifier
+      name: (identifier) @name)) @import
+]
      ]
     `,
     symbols: new Map<string, string>([

@@ -1,6 +1,4 @@
 bugs ...
-  no match js
-    const callIdx = calls.findIndex(call =>  call.id == id);
 
 todo ...
   add class to cpp
@@ -11,6 +9,7 @@ todo ...
   ts plain import
 
 low priority ...
+  b.ts:  import { a, b }  from 'c';
   bounce on some func clicks
   delete file leaves folder
 
