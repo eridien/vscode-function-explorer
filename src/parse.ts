@@ -6,8 +6,8 @@ import { Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
-const PARSE_DEBUG_TYPE: string = 'use_declaration';  
-const PARSE_DEBUG_NAME: string = '';
+const PARSE_DUMP_TYPE: string = '';  
+const PARSE_DUMP_NAME: string = '';
 const PARSE_DEBUG_STATS = true;
 
 let context: vscode.ExtensionContext;
@@ -66,8 +66,8 @@ function parseDebug(rootNode: SyntaxNode) {
     const nameNode = node.childForFieldName('name');
     if(nameNode) name = nameNode.text;
     else if(node.type === 'identifier') name = node.text;
-    if(!dumping && (node.type === PARSE_DEBUG_TYPE || 
-                         name === PARSE_DEBUG_NAME)) {
+    if(!dumping && (node.type === PARSE_DUMP_TYPE || 
+                         name === PARSE_DUMP_NAME)) {
       firstDepth = depth;
       dumping    = true;
     }
@@ -214,7 +214,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     }
     return res1.concat(res2);
   }
-  if(PARSE_DEBUG_NAME !== '' || PARSE_DEBUG_TYPE !== '')   
+  if(PARSE_DUMP_NAME !== '' || PARSE_DUMP_TYPE !== '')   
     parseDebug(tree.rootNode);
   const nodes: NodeData[] = [];
   try {
@@ -248,7 +248,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     const nodeCount    = nodes.length;
     log('nomod', `\n${path.basename(fsPath)}: ` +
         `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
-        `gap start: ${gapStartLine}, end: ${gapEndLine}\n` +
+        `max gap start line: ${gapStartLine}, end line: ${gapEndLine}\n` +
         `gap lines avg: ${Math.floor(lineCount/(nodeCount + 1))}, ` +
                   `max: ${gapLines}\n` +
         [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n'));

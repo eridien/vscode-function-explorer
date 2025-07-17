@@ -310,6 +310,7 @@ export const langs: Langs = {
             (use_list
               (identifier) @name))
         ] @use
+                
       ]
     `,
     symbols: new Map([
@@ -318,6 +319,7 @@ export const langs: Langs = {
       ['enum',       '@'],
       ['assignment', '='],
       ['use',        '▷'],
+      ['call',       '('],
     ]),
     funcTypes:   new Set(["function"]),
     suffixes:    new Set(['.rs'])
