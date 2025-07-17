@@ -1,12 +1,9 @@
 bugs ...
   no match js
-    const [id, status, result] = parts.slice(1);
     const callIdx = calls.findIndex(call =>  call.id == id);
-  no match cpp (no class)
-    class CustomizedGuiManager : public ui::Manager,
-                                 public ui::LayoutIO {
 
 todo ...
+  add class to cpp
   make pointer optional
   when no folders and file in folder show path in description
   del marks from Marks db on any delete all (x)

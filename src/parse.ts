@@ -6,7 +6,7 @@ import { Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
-const PARSE_DEBUG_TYPE: string = '';  
+const PARSE_DEBUG_TYPE: string = 'array_pattern';  
 const PARSE_DEBUG_NAME: string = '';
 const PARSE_DEBUG_STATS = false;
 

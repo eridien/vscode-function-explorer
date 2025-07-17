@@ -19,16 +19,62 @@ export const langs: Langs = {
         (function_declaration
             name: (identifier) @name
         ) @function_declaration
-
         (variable_declarator
             name: (identifier) @name
             value: (function_expression)
         ) @function_expression
+        [
+          ;; Identifier declaration
+          (variable_declarator
+            name: (identifier) @name
+            value: [
+              (arrow_function)
+              (call_expression
+                arguments: (arguments
+                  (arrow_function)))
+              (parenthesized_expression
+                (arrow_function))
+            ])
+          ;; Array destructuring declaration
+          (variable_declarator
+            name: (array_pattern
+              (identifier) @name)
+            value: [
+              (arrow_function)
+              (call_expression
+                arguments: (arguments
+                  (arrow_function)))
+              (parenthesized_expression
+                (arrow_function))
+            ])
+          ;; Identifier assignment
+          (assignment_expression
+            left: (identifier) @name
+            right: [
+              (arrow_function)
+              (call_expression
+                arguments: (arguments
+                  (arrow_function)))
+              (parenthesized_expression
+                (arrow_function))
+            ])
+          ;; Array destructuring assignment
+          (assignment_expression
+            left: (array_pattern
+              (identifier) @name)
+            right: [
+              (arrow_function)
+              (call_expression
+                arguments: (arguments
+                  (arrow_function)))
+              (parenthesized_expression
+                (arrow_function))
+            ])
+        ] @arrow_function
 
         (variable_declarator
-            name: (identifier) @name
-            value: (arrow_function)
-        ) @arrow_function
+            name: (array_pattern (identifier) @name)
+        ) @array_pattern
 
         (class_declaration
             name: (type_identifier) @name
@@ -63,6 +109,7 @@ export const langs: Langs = {
       ['function_expression',   'ƒ'],
       ['arrow_function',        'ƒ'],
       ['method_definition',     'f'],
+      ['array_pattern',         '.'],
       ['class_declaration',     '©'],
       ['property',              ':'],
       ['assignment',            '='],
