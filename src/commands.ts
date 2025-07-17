@@ -2,6 +2,7 @@ import * as vscode      from 'vscode';
 import * as path        from 'path';
 import * as disp        from './display';
 import * as dbs         from './dbs';
+import  {mrks}          from './dbs';
 import  {itms, fils}    from './dbs';
 import * as sbar        from './sidebar';
 import * as itmc        from './item-classes';
@@ -191,11 +192,15 @@ export async function funcClickCmd(funcItem: FuncItem) {
 
 export async function removeMarks(item: Item) {
   if(item === undefined) {
-    vscode.window.showInformationMessage('No item was selected. No function marks were removed.');
+    vscode.window.showInformationMessage(
+                'No item was selected. No function marks were removed.');
     return;
   }
   const funcs = await itmc.getFuncItemsUnderNode(item);
-  for (const func of funcs) await disp.setMark(func);
+  for (const func of funcs) { 
+    await disp.setMark(func);
+    mrks.delMark(func);
+  }
 }
 
 export async function editorOrTextChg(
