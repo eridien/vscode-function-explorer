@@ -325,7 +325,7 @@
         },
         "function-explorer.showFilePaths": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "order": 3,
           "title": "Show File Paths",
           "description": "Show file path after filenames when folders are hidden."
