@@ -185,12 +185,17 @@ export const langs: Langs = {
         (call_expression
           function: (identifier) @name
          ) @call_expression
+
+        (class_specifier
+          name: (type_identifier) @name
+         ) @class
       ]
     `,
     symbols: new Map([
       ['function_definition',   'ƒ'],
       ['assignment_expression', '='],
       ['call_expression',       '('],
+      ['class',                 '@'],
     ]),
     funcTypes:   new Set(["function_definition"]),
     suffixes:    new Set(['.c','.cpp'])

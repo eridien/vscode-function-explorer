@@ -1,11 +1,10 @@
 bugs ...
+  no @ in cpp: class CustomizedGuiManager : public ui::Manager,
 
 todo ... 
   when no folders and file in folder show path in description
-  add class to cpp
-  make pointer optional
-  when no folders and file in folder show path in description
-  ts plain import
+  make pointers optional
+  turn off pointers when file not visible
 
 low priority ...
   a.js: ws.onopen = () => {  
