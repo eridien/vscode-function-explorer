@@ -1,19 +1,19 @@
 bugs ...
+changin margin and selecting function wrong highlight
 
 todo ... 
 
 low priority ...
   a.js: ws.onopen = () => {  
-  b.ts:  import { a, b }  from 'c';
   bounce on some func clicks
   delete file leaves folder
+  multiple items in one line
   fix rust
 
 unlikely ...
   incremental parsing
   chg funcnodes to use indexes not lines
     solves multiple items in one line
-    fixes priority behavior
 
 options ... 
   reveal item when marking
