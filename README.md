@@ -1,4 +1,10 @@
-## Function Explorer
+
+<table>
+<tr>
+<td><img src="images/icon-48x48.png" alt="Extension Icon" width="48"/></td>
+<td  style="position:relative; top:-6px"><h2>Function Explorer</h2></td>
+</tr>
+</table>
 
 ### Overview
 
