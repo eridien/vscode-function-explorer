@@ -207,6 +207,7 @@ export async function removeMarks(item: Item) {
 
 export async function editorOrTextChg(
                       editor: vscode.TextEditor | undefined = undefined) {
+  hideNodeHighlightsCmd();
   if(!editor) {
     editor = vscode.window.activeTextEditor;
     if(!editor) return;
@@ -233,8 +234,10 @@ function clrGesture() {
   gestureFuncItem = undefined;
 }
 
-export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
-  const {textEditor, selections} = p;
+export async function selectionChg(
+                            event: vscode.TextEditorSelectionChangeEvent) {
+  hideNodeHighlightsCmd();
+  const {textEditor, selections} = event;
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
   const selection = selections[0];
@@ -262,10 +265,11 @@ export async function selectionChg(p: vscode.TextEditorSelectionChangeEvent) {
           return;
         }
         if(treeView.visible && selStart === func.startName && 
-                              selEnd   === func.endName) {
+                              selEnd    === func.endName) {
           func.stayVisible = true;
           sbar.revealItemByFunc(func);
           await disp.updatePointers();
+          if(func.parent) sbar.updateItemInTree(func.parent);
           return;
         }
       }

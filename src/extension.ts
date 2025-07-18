@@ -187,7 +187,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const selectionChg = vscode.window.onDidChangeTextEditorSelection(
     async event => {
       if (event.textEditor?.document.uri.scheme !== 'file') return;
-      cmds.hideNodeHighlightsCmd();
       await cmds.selectionChg(event);
   });
 
@@ -195,7 +194,6 @@ export async function activate(context: vscode.ExtensionContext) {
     async editor => {
       await disp.updatePointers();
       if(editor) { 
-        cmds.hideNodeHighlightsCmd();
         await cmds.editorOrTextChg(editor);
       }
     });
@@ -206,7 +204,6 @@ export async function activate(context: vscode.ExtensionContext) {
       const {document} = event;
     for(const editor of vscode.window.visibleTextEditors
                     .filter(editor => editor.document === document)) {
-      cmds.hideNodeHighlightsCmd();
       await cmds.editorOrTextChg(editor);
     }
   });
