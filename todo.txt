@@ -1,15 +1,14 @@
 bugs ...
-  rust: let io = TokioIo::new(stream);
   show all doesn't work until file opened
 
 todo ... 
-  editor reveal: leave cursor at name
 
 low priority ...
   a.js: ws.onopen = () => {  
   b.ts:  import { a, b }  from 'c';
   bounce on some func clicks
   delete file leaves folder
+  fix rust
 
 unlikely ...
   incremental parsing

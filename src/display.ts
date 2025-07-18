@@ -230,7 +230,9 @@ export async function revealFuncInEditor(
     const startPos = document.positionAt(itemDoc.start);
     const endPos   = document.positionAt(itemDoc.end);
     await scrollAndFlash(editor, startPos, endPos, red);
-    editor.selection = new vscode.Selection(startPos, startPos);
+    const startNamePos = document.positionAt(itemDoc.startName);
+    const endNamePos   = document.positionAt(itemDoc.endName);
+    editor.selection   = new vscode.Selection(startNamePos, endNamePos);
   }
   else if(itemDoc) await vscode.window.showTextDocument(
       itemDoc.uri, {preview: true, preserveFocus: true });
