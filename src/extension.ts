@@ -51,8 +51,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const showNodes = vscode.commands.registerCommand(
-                   'vscode-function-explorer.showNodes', () => {
-		cmds.showNodeHighlightsCmd();
+                   'vscode-function-explorer.showNodes', async () => {
+		await cmds.showNodeHighlightsCmd();
 	});
 
 	const removeAllMarksMenu = vscode.commands.registerCommand(

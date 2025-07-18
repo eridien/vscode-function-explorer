@@ -53,11 +53,13 @@ export async function toggleCmd() {
 
 let nodesDecorationType: vscode.TextEditorDecorationType | undefined;
 
-export function showNodeHighlightsCmd() {
+export async function showNodeHighlightsCmd() {
   if(nodesDecorationType) hideNodeHighlightsCmd();
   const editor = vscode.window.activeTextEditor;
   if(!editor) return;
   const doc       = editor.document;
+  const fileItem  = itms.getFldrFileByFsPath(editor.document.uri.fsPath);
+  if (fileItem) await sbar.updateFileChildrenFromAst(fileItem as any);
   const funcItems = itms.getFuncItemsByFsPath(editor.document.uri.fsPath);
   const ranges: vscode.Range[] = [];
   for(const funcItem of funcItems) {
