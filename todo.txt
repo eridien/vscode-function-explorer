@@ -1,5 +1,7 @@
 bugs ...
-changin margin and selecting function wrong highlight
+  changin margin and selecting function wrong highlight
+  gutter highlight skips blank lines
+  0 margin wrong: app.py, def __init__(
 
 todo ... 
 

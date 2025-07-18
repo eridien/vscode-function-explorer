@@ -4,5 +4,6 @@ node_modules
 .vscode-test/
 *.vsix
 .vscode/bookmarks.json
+.vscode/settings.json
 package-lock.json
 notes/
