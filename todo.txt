@@ -1,9 +1,14 @@
 bugs ...
   changin margin and selecting function wrong highlight
-  gutter highlight skips blank lines
   0 margin wrong: app.py, def __init__(
+  next prev needs cursor in editor
+  next doesn't wrap
+  prev/next limited to 2 marks
+  gutter empty until file opened
 
 todo ... 
+  gutter highlight skips blank lines
+  prev/next when no editors
 
 low priority ...
   a.js: ws.onopen = () => {  
