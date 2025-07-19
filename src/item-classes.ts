@@ -418,7 +418,8 @@ export class FuncItem extends Item {
         if(prevParent[0] === funcParent[0] &&
            prevParent[1] === funcParent[1]) {
           if(idx == this.funcParents.length-1) {
-            description = ' △';
+            // description = ' △';
+            description = ' "';
             break;
           }
         } else matches = false;

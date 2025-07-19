@@ -35,11 +35,19 @@ The Function Explorer shows folders, files, and functions.
 
 This is the secomd major feature which ties in with the first.  Functions can be marked much like a bookmark. 
 
+![Marking Gif](images/marking.gif)
 
+- There are the three common mark commands: toggle the function mark, navigate to the next mark or to the previous. You can navigate around the active file or all files.
+
+- You can mark a function in five different ways.
+  - Clicking the M symbol on an item in the explorer.
+  - Using the `Toggle Function Mark` command in the command palette.
+  - Right-clicking `Toggle Function Mark` in the editor context menu.
+  - Using the keyboard `ctrl-alt-\`
+  - Gesturing with the mouse on the function name.
 
 - A mark symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function name in the explorer. 
 
-- There are the three common mark commands: toggle the mark, navigate to the next mark, or to the previous mark. You can optionally navigate around the active file or all files. (There are actually four ways to toggle a mark, see usage instructions below).
 
 - As mentioned above the function list under a file can be filtered to only show marked functions. Each file can be set separately with a click.
 
@@ -57,7 +65,7 @@ Just to keep things confusing, in this documentation the term function often ref
 
  All syntax types can be marked the same way functions are. The marks appear in the gutter just like function marks and they are also used in navigation. 
  
- The explorer shows only actual functions by default but when another type of syntax is marked it also appears in the list until unmarked. This feature is important when using the marks like bookmarks. There need to be a lot of marks for navigation.
+ The explorer shows only actual functions by default but when another type of syntax is marked it also appears in the list until unmarked. This feature is important when using the marks like bookmarks. There needs to be a lot of marks for navigation.
 
  #### Symbols indicate the type of syntax node.
 
@@ -67,22 +75,27 @@ Just to keep things confusing, in this documentation the term function often ref
 
  #### Breadcrumbs
 
- To the right of the name is a breadcrumb list showing the nesting in the syntax tree. This is the same as the breadcrumbs at the top of the editor except only recognized types are shown.  Here are js examples. To the right of each code line is the label seen in the explorer. 
+ To the right of the name is a breadcrumb list showing the nesting in the syntax tree. This is the same as the breadcrumbs at the top of the editor except only recognized types are shown. 
+
+When the breadcrumbs on the right are identical to the the function above, a ditto mark `"` is shown instead. This keeps the explorer from being covered with in crumbs.
+
+ Here are js examples. To the right of each code line is the label seen in the explorer. 
 
 ```
 function aaa(){};           aaa
-import * from './bbb';      ▷bbb
+import * from './bbb';      ▷ bbb
 class ccc {                 ©ccc
   ddd() {                   ddd © ccc
     function eee() {        eee © ccc ƒ ddd  
-      const fff = 1;        =fff © ccc ƒ ddd ƒ eee
+      const fff = 1;        = fff © ccc ƒ ddd ƒ eee
+      const ggg = 1;        = ggg "
     }
   }
 }
 ```
 
-
 ### Usage instructions.
+
 
 
 #### Author: Mark Hahn (eridien)
