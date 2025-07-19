@@ -1,14 +1,11 @@
-
-<table>
-<tr>
-<td><img src="images/icon-48x48.png" alt="Extension Icon" width="48"/></td>
-<td  style="position:relative; top:-6px"><h2>Function Explorer</h2></td>
-</tr>
-</table>
+<div style="display: flex; align-items: center;">
+  <img src="images/icon-48x48.png" alt="Extension Icon" width="48"/>
+  <span style="font-size:2em; margin-left: 12px;"><b>Function Explorer</b></span>
+</div>
 
 ### Overview
 
-Function Explorer is a vscode extension that provides a sidebar explorer much like the built-in file explorer. The big difference is that you can expand the file items to see and open their functions.
+Function Explorer is a vscode extension that provides a sidebar explorer much like the built-in file explorer. The big difference is that you can expand the file items to see and open their functions. It also features marking functions much like bookmarks.
 
 ![Intro Gif](images/intro.gif)
 
@@ -37,6 +34,8 @@ The Function Explorer shows folders, files, and functions.
 #### Function Marks
 
 This is the secomd major feature which ties in with the first.  Functions can be marked much like a bookmark. 
+
+
 
 - A mark symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function name in the explorer. 
 
@@ -72,7 +71,7 @@ Just to keep things confusing, in this documentation the term function often ref
 
 ```
 function aaa(){};           aaa
-import bbb from './bbb';    ▷bbb
+import * from './bbb';      ▷bbb
 class ccc {                 ©ccc
   ddd() {                   ddd © ccc
     function eee() {        eee © ccc ƒ ddd  
