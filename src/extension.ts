@@ -157,7 +157,6 @@ export async function activate(context: vscode.ExtensionContext) {
     if (event.affectsConfiguration('function-explorer')) {
       await sett.loadSettings();
       await sbar.refreshTree();
-      await disp.updatePointers();
     }
   });
 
@@ -192,10 +191,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const editorChg = vscode.window.onDidChangeActiveTextEditor(
     async editor => {
-      await disp.updatePointers();
-      if(editor) { 
-        await cmds.editorOrTextChg(editor);
-      }
+      if (editor) await cmds.editorOrTextChg(editor);
     });
 
   const textChg = vscode.workspace.onDidChangeTextDocument(

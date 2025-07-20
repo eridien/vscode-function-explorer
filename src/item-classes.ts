@@ -26,15 +26,10 @@ export function setDbs(newItms:any, newFiles:any, newMarks:any) {
   mrks = newMarks;
 }
 
-let pointerItems:             Set<FuncItem>;
 let updateItemInTree:        (item: Item | undefined) => void = (item) => {};
 let updateFileChildrenFromAst: 
      (fileItem: FileItem) =>
        Promise<{structChg: boolean; funcItems: FuncItem[];} | null>;
-
-export function setDisp(pointerItemsIn: Set<FuncItem>) {
-  pointerItems = pointerItemsIn;
-}
 
 export function setSbar(
     updateItemInTreeIn:          (item: Item | undefined) => void,
@@ -400,11 +395,9 @@ export class FuncItem extends Item {
     return ` ${pars.getSymbol(this.lang, type)} ${name}`;
   }
   getLabel() {
-    // log('getLabel', this.name, this.type, pointerItems.has(this));
     let label = this.name;
     if(!this.isFunction())     
       label = this.getFuncItemStr([label, this.type]);
-    if(pointerItems.has(this)) label = '→ ' + label;
     return label.trim();
   }
   getDescription() {

@@ -115,7 +115,6 @@ async function prevNext(next: boolean, fromToggle = false) {
   const selKey = utils.createSortKey(
         selFsPath, editor.selection.active.line);
   let func: FuncItem | null = null;
-
   if(next) {
     for(let i = 0; i < funcs.length; i++) {
       func = funcs[i];
@@ -285,14 +284,12 @@ export async function selectionChg(
                               selEnd    === func.endName) {
           func.stayVisible = true;
           sbar.revealItemByFunc(func);
-          await disp.updatePointers();
           if(func.parent) sbar.updateItemInTree(func.parent);
           return;
         }
       }
     }
   }
-  await disp.updatePointers();
 }
 
 export async function openFile(item: Item) {

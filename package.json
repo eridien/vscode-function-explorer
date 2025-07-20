@@ -374,13 +374,6 @@
           "title": "Top Margin",
           "description": "Number of margin lines above function when scrolling with \"Function Top At Top\"."
         },
-        "function-explorer.showPointers": {
-          "type": "boolean",
-          "default": false,
-          "order": 8,
-          "title": "Show Pointers",
-          "description": "Show pointers in the function explorer that indicate the cursor position in the editor."
-        },
         "function-explorer.alphaSortFunctions": {
           "type": "boolean",
           "default": false,

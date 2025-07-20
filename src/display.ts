@@ -20,7 +20,6 @@ export function activate(contextIn:  vscode.ExtensionContext,
   context = contextIn;
   treeView = treeViewIn;
   initGutter();
-  itmc.setDisp(pointerItems);
 }             
 
 ////////////////////// Gutter //////////////////////
@@ -88,22 +87,6 @@ export async function setMark(funcItem: FuncItem,
   await updateGutter(activeEditor, funcItem.parent);
   return marked;
 }
-
-let pointerItems = new Set<FuncItem>();
-
-export async function updatePointers() {
-  if(!treeView.visible || !settings.showPointers) {
-    pointerItems.clear();
-    return;
-  }
-  const oldPointerItems = new Set(pointerItems);
-  pointerItems.clear();
-  const newPointerItems = await getFuncsOverlappingSelections();
-  for(const funcItem of newPointerItems) pointerItems.add(funcItem);
-  for(const funcItem of oldPointerItems)sbar.updateItemInTree(funcItem);
-  for(const funcItem of newPointerItems)sbar.updateItemInTree(funcItem);
-}
-
 
 ///////////////////// editor text //////////////////////
 

@@ -18,7 +18,6 @@ interface FunctionExplorerSettings {
                        "Function Center At Center If Needed";
   fileWrap:             boolean;
   alphaSortFunctions:   boolean;
-  showPointers:         boolean;
   topMargin:            number;
   openFileWhenExpanded: boolean;
 }
@@ -30,7 +29,6 @@ export let settings:  FunctionExplorerSettings = {
   scrollPosition:       "Function Center At Center If Needed",
   fileWrap:             false,
   alphaSortFunctions:   false,
-  showPointers:         false,
   topMargin:            3,
   openFileWhenExpanded: false
 };
@@ -228,7 +226,6 @@ export async function loadSettings() {
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
     fileWrap:             config.get('fileWrap',             false),
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
-    showPointers:         config.get('showPointers',         false),
     topMargin:            config.get('topMargin',                3),
   };
   // log('loadSettings', settings);
