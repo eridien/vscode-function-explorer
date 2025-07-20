@@ -82,8 +82,8 @@ vscode.window.onDidChangeActiveColorTheme(() => {
   editor.setDecorations(gutterDec, decRanges);
 });
 
-export async function updateGutter(editor:   vscode.TextEditor, 
-                             fileItem: FileItem) {
+export async function updateGutter(editor: vscode.TextEditor,
+                                   fileItem: FileItem) {
   const children = await fileItem.getChildren();
   decRanges = [];
   for(const funcItem of [...children]) {

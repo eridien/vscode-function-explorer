@@ -86,26 +86,35 @@ export async function toggleItemMarkCmd(funcItem: FuncItem) {
 }
 
 async function prevNext(next: boolean, fromToggle = false) {
-  let activeEditor = vscode.window.activeTextEditor;
-  if(!activeEditor || activeEditor.document.uri.scheme !== 'file' ||
-                     !sett.includeFile(activeEditor.document.uri.fsPath)) {
-    for(activeEditor of vscode.window.visibleTextEditors) {
-      if(activeEditor.document.uri.scheme === 'file' &&
-         sett.includeFile(activeEditor.document.uri.fsPath))
-      break;
+  let editor = vscode.window.activeTextEditor;
+  if(!editor || editor.document.uri.scheme !== 'file' ||
+                     !sett.includeFile(editor.document.uri.fsPath)) {
+    const funcItems = itms.getAllFuncItems();
+    if(funcItems.length == 0) return;
+    let gotEditor = false;
+    for(const funcItem of funcItems) {
+      if(mrks.hasMark(funcItem)) {
+        const fsPath = funcItem.getFsPath();
+        editor = await utils.revealEditorByFspath(fsPath);
+        if(editor) {
+          gotEditor = true;
+          break;
+        }
+      }
     }
+    if(!gotEditor) return;
   }
-  if (activeEditor && 
-      activeEditor.document.uri.scheme === 'file' &&
-      sett.includeFile(activeEditor.document.uri.fsPath)) {
-    const fsPath   = activeEditor.document.uri.fsPath;
+  if (editor && 
+      editor.document.uri.scheme === 'file' &&
+      sett.includeFile(editor.document.uri.fsPath)) {
+    const fsPath   = editor.document.uri.fsPath;
     const fileWrap = settings.fileWrap && !fromToggle;
     const filtered = !fromToggle && !NEXT_DEBUG;
     const funcs = await itmc.getSortedFuncs(fsPath, fileWrap, filtered);
     if(funcs.length == 0) return;
     const selFsPath = (fileWrap ? fsPath : '');
     const selKey = utils.createSortKey(
-          selFsPath, activeEditor.selection.active.line);
+          selFsPath, editor.selection.active.line);
     let func: FuncItem | null = null;
     for(let i = (next? 0 : funcs.length-1); 
                 (next? (i < funcs.length) : (i >= 0)); 
@@ -139,9 +148,9 @@ async function prevNext(next: boolean, fromToggle = false) {
     }
     if(!func) return;
     if(fromToggle) {
-      if(activeEditor.visibleRanges.length > 0) {
-        const lastRange = activeEditor
-                .visibleRanges[activeEditor.visibleRanges.length - 1];
+      if(editor.visibleRanges.length > 0) {
+        const lastRange = editor
+                .visibleRanges[editor.visibleRanges.length - 1];
         const lastVisibleLine = lastRange.end.line;
         if(func.getStartLine() >= lastVisibleLine) return;
       }

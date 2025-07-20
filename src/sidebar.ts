@@ -203,7 +203,7 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
     funcItems.push(funcItem);
     funcItemsInList.add(funcItem);
   }
-  for(const funcItem of funcItems) itms.setFunc(funcItem);
+  for(const funcItem of funcItems) itms.setFuncItem(funcItem);
   fileItem.children = funcItems;
   // log(`updated ${path.basename(fsPath)} funcs, `+
   //             `${structChg ? 'with structChg, ' : ''}`+

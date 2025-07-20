@@ -22,16 +22,16 @@ export function flashRange(editor: vscode.TextEditor,
   }, 750);
 }
 
-export async function revealEditorByFspath(fsPath: string) {
-  const uri    = vscode.Uri.file(fsPath);
-  const editor = vscode.window.visibleTextEditors.find(
+export async function revealEditorByFspath(fsPath: string):
+                                 Promise<vscode.TextEditor | undefined> {
+  const uri  = vscode.Uri.file(fsPath);
+  let editor = vscode.window.visibleTextEditors.find(
                         editor => editor.document.uri.fsPath === fsPath);
-  if (editor) {
-    await vscode.window.showTextDocument(editor.document, editor.viewColumn);
-  } else {
+  if (!editor) {
     const document = await vscode.workspace.openTextDocument(uri);
-    await vscode.window.showTextDocument(document);
+    editor = await vscode.window.showTextDocument(document, {preview: true});
   }
+  return editor;
 }
 
 export function findMiddleOfText(code: string): number {

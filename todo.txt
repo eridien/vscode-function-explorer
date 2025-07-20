@@ -1,14 +1,24 @@
 bugs ...
-  changin margin and selecting function wrong highlight
+  changing margin and selecting function wrong highlight
   0 margin wrong: app.py, def __init__(
   next prev needs cursor in editor
-  next doesn't wrap
-  prev/next limited to 2 marks
+
+  next doesn't wrap - prev/next limited to 2 marks
   gutter empty until file opened
+  prev/next should highlight item
+  pointers broken
+  margin ignored if function just fits
 
 todo ... 
+  filter/unfilter all marks
+  reveal item when marking
+  preview mode on/off in top menu
   gutter highlight skips blank lines
-  prev/next when no editors
+  prev/next across root folders?
+
+options ... 
+  preview mode default
+  when adding mark then always scroll item
 
 low priority ...
   a.js: ws.onopen = () => {  
@@ -21,11 +31,6 @@ unlikely ...
   incremental parsing
   chg funcnodes to use indexes not lines
     solves multiple items in one line
-
-options ... 
-  reveal item when marking
-  open in preview mode
-  when adding mark then always scroll
 
 testing ...
   settings changes
