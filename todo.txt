@@ -1,11 +1,10 @@
 bugs ...
-  changing margin and selecting function wrong highlight
-  0 margin wrong: app.py, def __init__(
-  next prev needs cursor in editor
+  can't repeat ...
+    changing margin and selecting function wrong highlight
+    0 margin wrong: app.py, def __init__(
+    remove all marks didn't work until file open
 
-  next doesn't wrap - prev/next limited to 2 marks
-  gutter empty until file opened
-  prev/next should highlight item
+  show all highlights wrong after edit
   pointers broken
   margin ignored if function just fits
 

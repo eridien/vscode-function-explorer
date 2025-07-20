@@ -194,7 +194,8 @@ export async function scrollAndFlash(editor: vscode.TextEditor,
 }
 
 export async function revealFuncInEditor(
-               itemDoc: vscode.TextDocument | FuncItem | null, red = false) {
+               itemDoc: vscode.TextDocument | FuncItem | null, 
+               red = false, setSelection = false) {
   if(itemDoc instanceof FuncItem) {
     const document = itemDoc.parent.document;
     const editor = await vscode.window.showTextDocument(
@@ -202,9 +203,11 @@ export async function revealFuncInEditor(
     const startPos = document.positionAt(itemDoc.start);
     const endPos   = document.positionAt(itemDoc.end);
     await scrollAndFlash(editor, startPos, endPos, red);
-    // const line         = startPos.line;
-    // const eolPos       = document.lineAt(line).range.end;
-    // editor.selection   = new vscode.Selection(eolPos, eolPos);
+    if(setSelection) {
+      const line       = startPos.line;
+      const eolPos     = document.lineAt(line).range.end;
+      editor.selection = new vscode.Selection(eolPos, eolPos);
+    }
   }
   else if(itemDoc) await vscode.window.showTextDocument(
       itemDoc.uri, {preview: true, preserveFocus: true });

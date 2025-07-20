@@ -103,61 +103,69 @@ async function prevNext(next: boolean, fromToggle = false) {
       editor = await utils.revealEditorByFspath(fsPaths[idx]);
     if(!editor) return;
   }
-  if (editor && 
-      editor.document.uri.scheme === 'file' &&
-      sett.includeFile(editor.document.uri.fsPath)) {
-    const fsPath   = editor.document.uri.fsPath;
-    const fileWrap = settings.fileWrap && !fromToggle;
-    const filtered = !fromToggle && !NEXT_DEBUG;
-    const funcs = await itmc.getSortedFuncs(fsPath, fileWrap, filtered);
-    if(funcs.length == 0) return;
-    const selFsPath = (fileWrap ? fsPath : '');
-    const selKey = utils.createSortKey(
-          selFsPath, editor.selection.active.line);
-    let func: FuncItem | null = null;
-    for(let i = (next? 0 : funcs.length-1); 
-                (next? (i < funcs.length) : (i >= 0)); 
-           i += (next? 1 : -1)) {
+  if (!editor ||
+      editor.document.uri.scheme !== 'file' ||
+      !sett.includeFile(editor.document.uri.fsPath)) return;
+  const fsPath   = editor.document.uri.fsPath;
+  const fileWrap = settings.fileWrap && !fromToggle;
+  const filtered = !fromToggle && !NEXT_DEBUG;
+  const funcs = await itmc.getSortedFuncs(fsPath, fileWrap, filtered);
+  if(funcs.length == 0) return;
+  const selFsPath = (fileWrap ? fsPath : '');
+  const selKey = utils.createSortKey(
+        selFsPath, editor.selection.active.line);
+  let func: FuncItem | null = null;
+
+  if(next) {
+    for(let i = 0; i < funcs.length; i++) {
       func = funcs[i];
       const funcFsPath = (fileWrap ? func.getFsPath() : '');
-      if(next ? (funcFsPath < selFsPath) 
-              : (funcFsPath > selFsPath)) continue;
-      if(funcFsPath !== selFsPath) {
+      if(funcFsPath < selFsPath) continue;
+      if(funcFsPath > selFsPath) {
         if(fromToggle) return;
         break;
       }
       const funcKey = utils.createSortKey(
-                               funcFsPath, func.getStartLine());
-      if(next) {
-        if(selKey < funcKey) break;
-        else if(i == funcs.length-1) {  
-          if(fromToggle) return;
-          func = funcs[0];
-          break;
-        }
-      }
-      else {
-        if(selKey > funcKey) break;
-        else if(i == 0) {
-          if(fromToggle) return;
-          func = funcs[funcs.length-1];
-          break;
-        }
+                                funcFsPath, func.getStartLine());
+      if(funcKey > selKey) break;
+      else if(i == funcs.length-1) {  
+        if(fromToggle) return;
+        func = funcs[0];
+        break;
       }
     }
-    if(!func) return;
-    sbar.revealItemByFunc(func);
-    if(fromToggle) {
-      if(editor.visibleRanges.length > 0) {
-        const lastRange = editor
-                .visibleRanges[editor.visibleRanges.length - 1];
-        const lastVisibleLine = lastRange.end.line;
-        if(func.getStartLine() >= lastVisibleLine) return;
-      }
-    }
-    await disp.revealFuncInEditor(func);
-    if(fromToggle) await disp.setMark(func, true);
   }
+  else {
+    for(let i = funcs.length-1; i >= 0; i--) {
+      func = funcs[i];
+      const funcFsPath = (fileWrap ? func.getFsPath() : '');
+      if(funcFsPath > selFsPath) continue;
+      if(funcFsPath < selFsPath) {
+        if(fromToggle) return;
+        break;
+      }
+      const funcKey = utils.createSortKey(
+                                funcFsPath, func.getStartLine());
+      if(funcKey < selKey) break;
+      else if(i == 0) {
+        if(fromToggle) return;
+        func = funcs[funcs.length-1];
+        break;
+      }
+    }
+  }
+  if(!func) return;
+  sbar.revealItemByFunc(func);
+  if(fromToggle) {
+    if(editor.visibleRanges.length > 0) {
+      const lastRange = editor
+              .visibleRanges[editor.visibleRanges.length - 1];
+      const lastVisibleLine = lastRange.end.line;
+      if(func.getStartLine() >= lastVisibleLine) return;
+    }
+  }
+  await disp.revealFuncInEditor(func, false, true);
+  if(fromToggle) await disp.setMark(func, true);
 }
 
 export async function prev() { await prevNext(false); }
