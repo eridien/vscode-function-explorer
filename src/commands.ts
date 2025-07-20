@@ -19,7 +19,7 @@ const NEXT_DEBUG = false;
 let treeView:  vscode.TreeView<Item>;
 
 export function activate(treeViewIn: vscode.TreeView<Item>) {
-  treeView        = treeViewIn;
+  treeView = treeViewIn;
 }
 
 export async function toggleCmd() {
@@ -89,20 +89,18 @@ async function prevNext(next: boolean, fromToggle = false) {
   let editor = vscode.window.activeTextEditor;
   if(!editor || editor.document.uri.scheme !== 'file' ||
                      !sett.includeFile(editor.document.uri.fsPath)) {
-    const funcItems = itms.getAllFuncItems();
-    if(funcItems.length == 0) return;
-    let gotEditor = false;
-    for(const funcItem of funcItems) {
-      if(mrks.hasMark(funcItem)) {
-        const fsPath = funcItem.getFsPath();
+    const fsPathMarkIds = mrks.getAllMarks();
+    if(fsPathMarkIds.length == 0) return;
+    const fsPaths = fsPathMarkIds.map(([fsPath]) => fsPath);
+    for(const fsPath of fsPaths) {
+      if(utils.fsPathHasTab(fsPath)) {
         editor = await utils.revealEditorByFspath(fsPath);
-        if(editor) {
-          gotEditor = true;
-          break;
-        }
+        if(editor) break;
       }
     }
-    if(!gotEditor) return;
+    for (let idx = 0; !editor && idx < fsPaths.length; idx++) 
+      editor = await utils.revealEditorByFspath(fsPaths[idx]);
+    if(!editor) return;
   }
   if (editor && 
       editor.document.uri.scheme === 'file' &&
@@ -147,6 +145,7 @@ async function prevNext(next: boolean, fromToggle = false) {
       }
     }
     if(!func) return;
+    sbar.revealItemByFunc(func);
     if(fromToggle) {
       if(editor.visibleRanges.length > 0) {
         const lastRange = editor

@@ -28,8 +28,11 @@ export async function revealEditorByFspath(fsPath: string):
   let editor = vscode.window.visibleTextEditors.find(
                         editor => editor.document.uri.fsPath === fsPath);
   if (!editor) {
-    const document = await vscode.workspace.openTextDocument(uri);
-    editor = await vscode.window.showTextDocument(document, {preview: true});
+    try {
+      const document = await vscode.workspace.openTextDocument(uri);
+      editor = await vscode.window.showTextDocument(document, {preview: true});
+    }
+    catch (err) { return undefined; }
   }
   return editor;
 }
@@ -49,6 +52,18 @@ export function findMiddleOfText(code: string): number {
     } else if (dist > minDist) break;
   }
   return closest;
+}
+
+export function fsPathHasTab(fsPath: string): boolean {
+  const uri = vscode.Uri.file(fsPath);
+  return vscode.window.tabGroups.all
+    .some(group => group.tabs
+    .some(tab => {
+        if (tab.input instanceof vscode.TabInputText) {
+          return tab.input.uri.toString() === uri.toString();
+        }
+        return false;
+      }));
 }
 
 const outputChannel = vscode.window.createOutputChannel('function-explorer');

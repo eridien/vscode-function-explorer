@@ -14,7 +14,8 @@ todo ...
   reveal item when marking
   preview mode on/off in top menu
   gutter highlight skips blank lines
-  prev/next across root folders?
+  test prev/next across root folders
+  marks pile up
 
 options ... 
   preview mode default

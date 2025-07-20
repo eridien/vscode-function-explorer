@@ -7,13 +7,11 @@ import * as itmc       from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
         FileItem, FuncItem} from './item-classes';
 import * as utils      from './utils';
-import { get } from 'http';
 const {log, start, end} = utils.getLog('dbss');
 
 let context: vscode.ExtensionContext;
 
-const CLEAR_MARKS_ON_STARTUP   = false;
-const CLEAR_FUNCIDS_ON_STARTUP = false;
+const CLEAR_MARKS_ON_STARTUP = false;
 
 export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
@@ -29,28 +27,6 @@ class Items {
   private static itemsById:         Map<string, Item>           = new Map();
   private static fldrItemsByFspath: Map<string, AllButFuncItem> = new Map();
   private static funcItemsByFuncId: Map<string, Set<FuncItem>>  = new Map();
-
-  static loadFuncIds() {
-    let funcIdArr: string[] = context.workspaceState.get('funcidIds', []);
-    if(CLEAR_FUNCIDS_ON_STARTUP) {
-      funcIdArr = [];
-      context.workspaceState.update('funcidIds', []);
-    }
-    for(const funcId of funcIdArr) {
-      const fsPath = funcId.split('\x00').pop();
-      const funcItem = itmc.getOrMakeFuncItemByFsPath(fsPath);
-      itms.setFuncItem(funcItem);
-    }
-  }
-
-  static saveFuncIds() {
-    const funcidIdSetArr = mrks.getAllFuncIds();
-    const funcIdArrArr = [];
-    for(const [fsPath, funcidIdSet] of funcidIdSetArr) {
-      funcIdArrArr.push([fsPath, [...funcidIdSet]]);
-    }
-    context.workspaceState.update('funcidIds', funcIdArrArr);
-  }
 
   getAllFolderFileItems(): AllButFuncItem[] {
     return Array.from(Items.fldrItemsByFspath.values()); 
@@ -96,7 +72,7 @@ class Items {
     return Items.fldrItemsByFspath.get(fsPath) ?? null;
   }
 
-  setFuncItem(item: FuncItem) {
+  setFunc(item: FuncItem) {
     if(!item.funcId) return;
     let set = Items.funcItemsByFuncId.get(item.funcId);
     if(!set) {
@@ -246,7 +222,6 @@ class Marks {
     saveMarks();
   }
 }
-
 export const mrks = new Marks();
 
 function loadMarks() {
@@ -261,13 +236,11 @@ function loadMarks() {
   }
 }
 
-
 function saveMarks() {
   const markIdSetArr = mrks.getAllMarks();
   const markIdArrArr = [];
-  for(const [fsPath, markIdSet] of markIdSetArr) {
+  for(const [fsPath, markIdSet] of markIdSetArr)
     markIdArrArr.push([fsPath, [...markIdSet]]);
-  }
   context.workspaceState.update('markIds', markIdArrArr);
 }
 
