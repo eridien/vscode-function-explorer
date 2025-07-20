@@ -18,8 +18,9 @@ const NEXT_DEBUG = false;
 
 let treeView:  vscode.TreeView<Item>;
 
-export function activate(treeViewIn: vscode.TreeView<Item>) {
+export async function activate(treeViewIn: vscode.TreeView<Item>) {
   treeView = treeViewIn;
+  await editorOrTextChg();
 }
 
 export async function toggleCmd() {

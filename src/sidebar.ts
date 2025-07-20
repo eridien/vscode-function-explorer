@@ -1,7 +1,7 @@
 import * as vscode          from 'vscode';
 import * as path            from 'path';
 import * as parse           from './parse';
-import {fils, itms}         from './dbs';
+import {fils, mrks, itms}   from './dbs';
 import * as itmc            from './item-classes';
 import {Item, WsAndFolderItem,
         FileItem, FuncItem} from './item-classes';
@@ -211,3 +211,31 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
   end('updateFileChildrenFromAst', true);
   return {structChg, funcItems};
 }
+
+export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
+                                    expanded: boolean) {
+  if(!(item instanceof FileItem)) return;
+  if(!expanded) {
+    const funcItems = await itmc.getFuncItemsUnderNode(item);
+    let filesChanged = new Set<FileItem>();
+    let haveMark = false;
+    for(const funcItem of funcItems) {
+      if(mrks.hasMark(funcItem)) haveMark = true;
+      if(funcItem.stayVisible) {
+        filesChanged.add(funcItem.parent);
+        funcItem.clrStayVisible();
+      }
+    }
+    if(!haveMark && item.filtered) {
+      filesChanged.add(item);
+      item.filtered = false;
+    }
+    for(const fileItem of filesChanged) updateItemInTree(fileItem);
+  }
+  else {
+    if(settings.openFileWhenExpanded)
+      await utils.revealEditorByFspath(item.document.uri.fsPath);    
+  }
+  item.expanded = expanded;
+}
+

@@ -28,7 +28,7 @@ export async function activate(context: vscode.ExtensionContext) {
          dbs.activate(context);
         sbar.activate(treeView, sidebarProvider);
         itmc.activate(treeView);
-        cmds.activate(treeView);
+  await cmds.activate(treeView);
 
 
 ////////////  COMMANDS  ////////////
@@ -172,13 +172,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const itemExpandChg = treeView.onDidExpandElement(async event => {
     // log('itemExpandChg');
-    await disp.itemExpandChg(
+    await sbar.itemExpandChg(
                    event.element as WsAndFolderItem | FileItem, true);
   });
 
   const itemCollapseChg = treeView.onDidCollapseElement(async event => {
     // log('itemCollapseChg');
-    await disp.itemExpandChg(
+    await sbar.itemExpandChg(
                    event.element as WsAndFolderItem | FileItem, false);
   });
 

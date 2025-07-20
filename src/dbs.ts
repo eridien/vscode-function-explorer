@@ -223,6 +223,7 @@ class Marks {
   }
 }
 export const mrks = new Marks();
+let loadingMarks = true;
 
 function loadMarks() {
   let fsPathMarkIdArr: Array<[string, string[]]> =  
@@ -234,9 +235,11 @@ function loadMarks() {
   for(const [fsPath, markIds] of fsPathMarkIdArr) {
     for(const funcId of markIds) mrks.addMark(fsPath, funcId);
   }
+  loadingMarks = false;
 }
 
 function saveMarks() {
+  if(loadingMarks) return;
   const markIdSetArr = mrks.getAllMarks();
   const markIdArrArr = [];
   for(const [fsPath, markIdSet] of markIdSetArr)

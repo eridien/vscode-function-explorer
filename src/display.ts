@@ -23,34 +23,6 @@ export function activate(contextIn:  vscode.ExtensionContext,
   itmc.setDisp(pointerItems);
 }             
 
-export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
-                                    expanded: boolean) {
-  if(!(item instanceof FileItem)) return;
-  if(!expanded) {
-    const funcItems = await itmc.getFuncItemsUnderNode(item);
-    let filesChanged = new Set<FileItem>();
-    let haveMark = false;
-    for(const funcItem of funcItems) {
-      if(mrks.hasMark(funcItem)) haveMark = true;
-      if(funcItem.stayVisible) {
-        filesChanged.add(funcItem.parent);
-        funcItem.clrStayVisible();
-      }
-    }
-    if(!haveMark && item.filtered) {
-      filesChanged.add(item);
-      item.filtered = false;
-    }
-    for(const fileItem of filesChanged)
-         sbar.updateItemInTree(fileItem);
-  }
-  else {
-    if(settings.openFileWhenExpanded)
-      await utils.revealEditorByFspath(item.document.uri.fsPath);    
-  }
-  item.expanded = expanded;
-}
-
 ////////////////////// Gutter //////////////////////
 
 let gutDecLgtUri: vscode.Uri;
@@ -217,7 +189,7 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
 
 export async function scrollAndFlash(editor: vscode.TextEditor, 
           startPos: vscode.Position, endPos: vscode.Position, red = false) {
-  await sett.setScroll(  editor, startPos.line, endPos.line);
+  await sett.setScroll(editor, startPos.line, endPos.line);
   utils.flashRange(editor, startPos.line, endPos.line, red);
 }
 
