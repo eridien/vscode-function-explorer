@@ -182,6 +182,14 @@ export function collapseAllMenu() {
         'workbench.actions.treeView.sidebarView.collapseAll');
 }
 
+export function showOnlyMarks() {
+  const fileItems = itms.getAllFileItems();
+  for (const fileItem of fileItems) {
+    fileItem.filtered = true;
+    fileItem.clear();
+  }
+}
+
 export async function refresh() {
   await sbar.refreshTree(true);
 }

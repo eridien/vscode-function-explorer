@@ -1,20 +1,22 @@
 bugs ...
   can't repeat ...
-    changing margin and selecting function wrong highlight
-    0 margin wrong: app.py, def __init__(
-    show all highlights wrong after edit
+    after edit, changing margin, selecting function: 
+      wrong highlight -- maybe only local
+    0 margin wrong: app.py, def __init__
+    languages.ts prev sibling
+    ...functionTopMargin
+  can't fix ...
+    margin ignored if function just fits << vscode bad vis ranges
 
-  margin ignored if function just fits
-
-todo ... 
-  filter/unfilter all marks
+todo ...
+  filter all marks
   reveal item when marking
   preview mode on/off in top menu
   gutter highlight skips blank lines
   test prev/next across root folders
   marks pile up
 
-options ... 
+options ...
   preview mode default
   when adding mark then always scroll item
 

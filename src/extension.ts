@@ -66,6 +66,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		cmds.collapseAllMenu();
 	});
 
+	const showOnlyMarks = vscode.commands.registerCommand(
+       'vscode-function-explorer.showOnlyMarks', () => {
+      //  log('showOnlyMarks');
+		cmds.showOnlyMarks();
+	});
+
 	const refresh = vscode.commands.registerCommand(
        'vscode-function-explorer.refresh', async () => {
       //  log('refresh');
@@ -212,7 +218,7 @@ export async function activate(context: vscode.ExtensionContext) {
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 
     collapseAllMenu, showFolders, hideFolders, refresh,
-    showNodes,
+    showNodes, showOnlyMarks,
   );
 
   end('activate');

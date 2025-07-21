@@ -93,15 +93,14 @@ export async function setScroll(editor: vscode.TextEditor,
   let top = 0;
   if(funcHeight >= screenHeight)
     top = functionTopMargin; 
-  else {
+  else { 
     switch(settings.scrollPosition) {
       case "Function Top At Top": 
               top = functionTopMargin; 
               break;
       case "Function Center At Center": 
-              top = funcTop -
-                      (Math.floor( screenHeight / 2) - 
-                      Math.floor( funcHeight   / 2)); 
+              top = funcTop - (Math.floor( screenHeight / 2) - 
+                               Math.floor( funcHeight   / 2)); 
               break;
       case "Function Bottom At Bottom":
               top = funcBottom - screenHeight; 
@@ -113,14 +112,15 @@ export async function setScroll(editor: vscode.TextEditor,
               break;
       case "Function Center At Center If Needed":
               if(functionTopMargin < screenTop || funcBottom > screenBottom)
-                top = funcTop -
-                        (Math.floor( screenHeight / 2) - 
-                        Math.floor( funcHeight   / 2));
+                top = funcTop - (Math.floor( screenHeight / 2) - 
+                                 Math.floor( funcHeight   / 2));
               else top = screenTop;
               break;
       default: top = functionTopMargin; 
     }
   }
+  if(functionTopMargin < screenTop)
+     top = functionTopMargin - settings.topMargin;
   if(top < 0) top = 0;
   editor.revealRange(new vscode.Range(top, 0, top, 0), 
                          vscode.TextEditorRevealType.AtTop);

@@ -32,6 +32,11 @@ class Items {
     return Array.from(Items.fldrItemsByFspath.values()); 
   }
 
+  getAllFileItems(): FileItem[] {
+    const  allItems = this.getAllFolderFileItems();
+    return allItems.filter(item => item instanceof FileItem);
+  }
+
   getAllFuncItems(): FuncItem[] {
     const allFuncSets = Items.funcItemsByFuncId.values();
     const result: FuncItem[] = [];
