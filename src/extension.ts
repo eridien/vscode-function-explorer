@@ -90,6 +90,18 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.hideFolders();
 	});
 
+	const openEditorsAsPinned = vscode.commands.registerCommand(
+       'vscode-function-explorer.openEditorsAsPinned', async () => {
+      //  log('openEditorsAsPinned');
+		await cmds.openEditorsAsPinned();
+	});
+
+	const openEditorsAsPreview = vscode.commands.registerCommand(
+       'vscode-function-explorer.openEditorsAsPreview', async () => {
+      //  log('openEditorsAsPreview');
+		await cmds.openEditorsAsPreview();
+	});
+
 	const settingsMenu = vscode.commands.registerCommand(
        'vscode-function-explorer.settingsMenu', async () => {
       //  log('settingsMenu');
@@ -218,7 +230,7 @@ export async function activate(context: vscode.ExtensionContext) {
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 
     collapseAllMenu, showFolders, hideFolders, refresh,
-    showNodes, showOnlyMarks,
+    showNodes, showOnlyMarks, openEditorsAsPinned, openEditorsAsPreview
   );
 
   end('activate');

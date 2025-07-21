@@ -22,7 +22,7 @@ export function flashRange(editor: vscode.TextEditor,
   }, 750);
 }
 
-export async function revealEditorByFspath(fsPath: string):
+export async function revealEditorByFspath(fsPath: string, preview = false):
                                  Promise<vscode.TextEditor | undefined> {
   const uri  = vscode.Uri.file(fsPath);
   let editor = vscode.window.visibleTextEditors.find(
@@ -30,7 +30,7 @@ export async function revealEditorByFspath(fsPath: string):
   if (!editor) {
     try {
       const document = await vscode.workspace.openTextDocument(uri);
-      editor = await vscode.window.showTextDocument(document, {preview: true});
+      editor = await vscode.window.showTextDocument(document, {preview});
     }
     catch (err) { return undefined; }
   }

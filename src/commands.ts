@@ -95,12 +95,14 @@ async function prevNext(next: boolean, fromToggle = false) {
     const fsPaths = fsPathMarkIds.map(([fsPath]) => fsPath);
     for(const fsPath of fsPaths) {
       if(utils.fsPathHasTab(fsPath)) {
-        editor = await utils.revealEditorByFspath(fsPath);
+        editor = await utils.revealEditorByFspath(fsPath, 
+                                              !settings.openEditorsAsPinned);
         if(editor) break;
       }
     }
     for (let idx = 0; !editor && idx < fsPaths.length; idx++) 
-      editor = await utils.revealEditorByFspath(fsPaths[idx]);
+      editor = await utils.revealEditorByFspath(fsPaths[idx], 
+                                               !settings.openEditorsAsPinned);
     if(!editor) return;
   }
   if (!editor ||
@@ -206,6 +208,16 @@ export async function hideFolders() {
   await sbar.refreshTree();
 }
 
+export async function openEditorsAsPinned() {
+  await sett.setShowPinned(true);
+  await sbar.refreshTree();
+}
+
+export async function openEditorsAsPreview() {
+  await sett.setShowPinned(false);
+  await sbar.refreshTree();
+}
+
 export async function settingsMenu() {
   await vscode.commands.executeCommand(
        'workbench.action.openSettings', 'function-explorer');
@@ -307,7 +319,8 @@ export async function openFile(item: Item) {
     log('info', 'No file item was selected.');
     return;
   }
-  await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath);
+  await utils.revealEditorByFspath((item as FileItem).document.uri.fsPath, 
+                                              !settings.openEditorsAsPinned);
 }
 
 export function fileCreated(fsPath: string) {

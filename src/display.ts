@@ -182,7 +182,7 @@ export async function revealFuncInEditor(
   if(itemDoc instanceof FuncItem) {
     const document = itemDoc.parent.document;
     const editor = await vscode.window.showTextDocument(
-                          document, { preview: true });
+             document, { preview: !settings.openEditorsAsPinned });
     const startPos = document.positionAt(itemDoc.start);
     const endPos   = document.positionAt(itemDoc.end);
     await scrollAndFlash(editor, startPos, endPos, red);
@@ -193,6 +193,7 @@ export async function revealFuncInEditor(
     }
   }
   else if(itemDoc) await vscode.window.showTextDocument(
-      itemDoc.uri, {preview: true, preserveFocus: true });
+      itemDoc.uri, {preview:  !settings.openEditorsAsPinned, 
+                    preserveFocus: true });
 }
 

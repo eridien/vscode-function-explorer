@@ -10,6 +10,7 @@ const {log, start, end} = utils.getLog('sett');
 interface FunctionExplorerSettings {
   hideRootFolders:      boolean;
   hideFolders:          boolean;
+  openEditorsAsPinned:  boolean;
   showFilePaths:        boolean;
   scrollPosition:      "Function Top At Top"           | 
                        "Function Center At Center"     |
@@ -25,6 +26,7 @@ interface FunctionExplorerSettings {
 export let settings:  FunctionExplorerSettings = {
   hideRootFolders:      true,
   hideFolders:          true,
+  openEditorsAsPinned:  true,
   showFilePaths:        true,
   scrollPosition:       "Function Center At Center If Needed",
   fileWrap:             false,
@@ -222,6 +224,7 @@ export async function loadSettings() {
                             "Function Center At Center If Needed"),
     hideRootFolders:      config.get('hideRootFolders',      true),
     hideFolders:          config.get('hideFolders',          true),
+    openEditorsAsPinned:  config.get('openEditorsAsPinned',  true),
     showFilePaths:        config.get('showFilePaths',        true),
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
     fileWrap:             config.get('fileWrap',             false),
@@ -231,6 +234,8 @@ export async function loadSettings() {
   // log('loadSettings', settings);
   vscode.commands.executeCommand(
                     'setContext', 'foldersHidden', settings.hideFolders);
+  vscode.commands.executeCommand(
+                    'setContext', 'pinned', settings.openEditorsAsPinned);
   const excludeFoldersPattern = config.get('filesToExclude', 'node_modules/');
   const excParts = excludeFoldersPattern .split(",").map(p => p.trim());
   if(excParts.length < 2) excludeCfg = excParts[0];
@@ -243,4 +248,10 @@ export async function setHideFolders(value: boolean) {
   vscode.commands.executeCommand('setContext', 'foldersHidden', value);
   await vscode.workspace.getConfiguration('function-explorer')
     .update('hideFolders', value, vscode.ConfigurationTarget.Workspace);
+}
+export async function setShowPinned(value: boolean) {
+  settings.openEditorsAsPinned = value;
+  vscode.commands.executeCommand('setContext', 'pinned', value);
+  await vscode.workspace.getConfiguration('function-explorer')
+    .update('openEditorsAsPinned', value, vscode.ConfigurationTarget.Workspace);
 }

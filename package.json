@@ -67,6 +67,14 @@
         "title": "Hide Folders"
       },
       {
+        "command": "vscode-function-explorer.openEditorsAsPinned",
+        "title": "Open Editors As Pinned"
+      },
+      {
+        "command": "vscode-function-explorer.openEditorsAsPreview",
+        "title": "Open Editors As Preview"
+      },
+      {
         "command": "vscode-function-explorer.showFilePaths",
         "title": "Show File Paths"
       },
@@ -221,6 +229,16 @@
           "group": "f"
         },
         {
+          "command": "vscode-function-explorer.openEditorsAsPinned",
+          "when": "view == sidebarView && !pinned",
+          "group": "e"
+        },
+        {
+          "command": "vscode-function-explorer.openEditorsAsPreview",
+          "when": "view == sidebarView && pinned",
+          "group": "f"
+        },
+        {
           "command": "vscode-function-explorer.settingsMenu",
           "when": "view == sidebarView",
           "group": "g"
@@ -331,6 +349,13 @@
           "order": 2,
           "title": "Hide Folders",
           "description": "Hide all folders from the tree and show only files and functions. This setting can also be toggled in the Function Explorer sidebar menu. This is useful to reduce indentation and save space."
+        },
+        "function-explorer.openEditorsAsPinned": {
+          "type": "boolean",
+          "default": true,
+          "order": 2,
+          "title": "Show Pinned",
+          "description": "Open editors in pinned mode, not preview mode. When pinned, files opened will stay open until closed manually. This setting can also be toggled in the Function Explorer sidebar menu. "
         },
         "function-explorer.showFilePaths": {
           "type": "boolean",

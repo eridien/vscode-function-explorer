@@ -234,7 +234,8 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
   }
   else {
     if(settings.openFileWhenExpanded)
-      await utils.revealEditorByFspath(item.document.uri.fsPath);    
+      await utils.revealEditorByFspath(item.document.uri.fsPath, 
+                                              !settings.openEditorsAsPinned); 
   }
   item.expanded = expanded;
 }

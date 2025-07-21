@@ -8,8 +8,6 @@ bugs ...
     margin ignored if function just fits << vscode bad vis ranges
 
 todo ...
-  reveal item when marking
-  preview mode on/off in top menu
   gutter highlight skips blank lines
   test prev/next across root folders
   marks pile up
