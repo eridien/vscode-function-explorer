@@ -6,9 +6,11 @@ bugs ...
     ...functionTopMargin
   can't fix ...
     margin ignored if function just fits << vscode bad vis ranges
+    gutter highlight skips blank lines
+
+  root folder empty when second one
 
 todo ...
-  gutter highlight skips blank lines
   test prev/next across root folders
   marks pile up
 

@@ -24,7 +24,7 @@ interface FunctionExplorerSettings {
 }
 
 export let settings:  FunctionExplorerSettings = {
-  hideRootFolders:      true,
+  hideRootFolders:      false,
   hideFolders:          true,
   openEditorsAsPinned:  true,
   showFilePaths:        true,
@@ -222,10 +222,10 @@ export async function loadSettings() {
   settings = {
     scrollPosition:       config.get('scrollPosition', 
                             "Function Center At Center If Needed"),
-    hideRootFolders:      config.get('hideRootFolders',      true),
-    hideFolders:          config.get('hideFolders',          true),
-    openEditorsAsPinned:  config.get('openEditorsAsPinned',  true),
-    showFilePaths:        config.get('showFilePaths',        true),
+    hideRootFolders:      config.get('hideRootFolders',      false),
+    hideFolders:          config.get('hideFolders',           true),
+    openEditorsAsPinned:  config.get('openEditorsAsPinned',   true),
+    showFilePaths:        config.get('showFilePaths',         true),
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
     fileWrap:             config.get('fileWrap',             false),
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),

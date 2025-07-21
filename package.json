@@ -338,7 +338,7 @@
       "properties": {
         "function-explorer.hideRootFolders": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "order": 1,
           "title": "Hide Root Folders",
           "description": "Hide root folders from the tree. This is useful to reduce indentation and save space. This only applies when Hide Folders setting is off."
