@@ -179,18 +179,21 @@ export async function removeAllMarksMenu() {
     await disp.setMark(funcItem);
 }
 
-export function collapseAllMenu() {
+export function collapseAllItems() {
   vscode.commands.executeCommand(
         'workbench.actions.treeView.sidebarView.collapseAll');
 }
 
-export function showOnlyMarks() {
+export async function showOnlyMarks() {
+  collapseAllItems();
   const fileItems = itms.getAllFileItems();
   for (const fileItem of fileItems) {
-    fileItem.filtered = true;
+    const hasMarks = await fileItem.hasMarks();
+    fileItem.filtered = hasMarks;
     fileItem.clear();
+    sbar.blockExpChg();
     sbar.updateItemInTree(fileItem);
-    treeView.reveal(fileItem, { expand: true });
+    treeView.reveal(fileItem, {expand: hasMarks});
   }
 }
 

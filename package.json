@@ -48,11 +48,11 @@
       },
       {
         "command": "vscode-function-explorer.showOnlyMarks",
-        "title": "Show Only Marks"
+        "title": "Show All Marks"
       },
       {
-        "command": "vscode-function-explorer.collapseAllMenu",
-        "title": "Collapse Folders/Files"
+        "command": "vscode-function-explorer.collapseAllItems",
+        "title": "Collapse All"
       },
       {
         "command": "vscode-function-explorer.refresh",
@@ -209,7 +209,7 @@
           "group": "b"
         },
         {
-          "command": "vscode-function-explorer.collapseAllMenu",
+          "command": "vscode-function-explorer.collapseAllItems",
           "when": "view == sidebarView",
           "group": "c"
         },
@@ -355,7 +355,7 @@
           "default": true,
           "order": 2,
           "title": "Show Pinned",
-          "description": "Open editors in pinned mode, not preview mode. When pinned, files opened will stay open until closed manually. This setting can also be toggled in the Function Explorer sidebar menu. "
+          "description": "Open editors in pinned mode, not preview mode. When pinned, files opened will stay open until closed manually. This setting can also be toggled in the Function Explorer sidebar menu."
         },
         "function-explorer.showFilePaths": {
           "type": "boolean",

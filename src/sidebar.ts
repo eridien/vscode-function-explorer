@@ -30,10 +30,12 @@ export async function getTree() {
   }
   if (!settings.hideFolders && !settings.hideRootFolders) {
     const tree: Item[] = [];
+    let firstWsFolder = true;
     for(const wsFolder of wsFolders) {
-      await fils.loadPaths(wsFolder.uri.fsPath);
+      await fils.loadPaths(wsFolder.uri.fsPath, firstWsFolder);
       const wsFolderItem = itmc.getOrMakeWsFolderItem(wsFolder);
       tree.push(wsFolderItem);
+      firstWsFolder = false;
     }
     return tree;
   }
@@ -212,9 +214,22 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
   return {structChg, funcItems};
 }
 
+
+let blockChg = false;
+export function blockExpChg() { blockChg = true; }
+let blockChgTimeout: NodeJS.Timeout | undefined;
+
 export async function itemExpandChg(item: WsAndFolderItem | FileItem, 
                                     expanded: boolean) {
   if(!(item instanceof FileItem)) return;
+  if (blockChg) {
+    if(blockChgTimeout) clearTimeout(blockChgTimeout);
+    blockChgTimeout = setTimeout(() => {
+      blockChg        = false;
+      blockChgTimeout = undefined;
+    }, 200);
+    return undefined;
+  }
   if(!expanded) {
     const funcItems = await itmc.getFuncItemsUnderNode(item);
     let filesChanged = new Set<FileItem>();

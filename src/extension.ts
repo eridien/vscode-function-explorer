@@ -60,16 +60,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		await cmds.removeAllMarksMenu();
 	});
 
-	const collapseAllMenu = vscode.commands.registerCommand(
-       'vscode-function-explorer.collapseAllMenu', () => {
-      //  log('collapseAllMenu');
-		cmds.collapseAllMenu();
+	const collapseAllItems = vscode.commands.registerCommand(
+       'vscode-function-explorer.collapseAllItems', () => {
+      //  log('collapseAllItems');
+		cmds.collapseAllItems();
 	});
 
 	const showOnlyMarks = vscode.commands.registerCommand(
-       'vscode-function-explorer.showOnlyMarks', () => {
+       'vscode-function-explorer.showOnlyMarks', async () => {
       //  log('showOnlyMarks');
-		cmds.showOnlyMarks();
+		await cmds.showOnlyMarks();
 	});
 
 	const refresh = vscode.commands.registerCommand(
@@ -229,7 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 
-    collapseAllMenu, showFolders, hideFolders, refresh,
+    collapseAllItems, showFolders, hideFolders, refresh,
     showNodes, showOnlyMarks, openEditorsAsPinned, openEditorsAsPreview
   );
 

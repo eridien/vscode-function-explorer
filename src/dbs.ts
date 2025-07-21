@@ -132,8 +132,8 @@ export const itms = new Items();
 
 class FilePaths {
   private static includedfsPaths = new Set<string>();
-  async loadPaths(fsPath: string) {
-    FilePaths.includedfsPaths.clear();
+  async loadPaths(fsPath: string, clear = false) {
+    if (clear) FilePaths.includedfsPaths.clear();
     async function findFuncFiles(fsPath: string) {
       // log('findFuncFiles', fsPath);
       let stat;

@@ -260,7 +260,11 @@ export class FileItem extends Item {
     }
     if(structChg) updateItemInTree(this);
     return funcItems;
-  };
+  }
+  async hasMarks(): Promise<boolean> {
+    const children = await this.getChildren();
+    return children.length > 0;
+  }
   delete() {
     itemDeleteCount++;
     itms.deleteFileById(this.id);
