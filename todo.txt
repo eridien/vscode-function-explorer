@@ -9,7 +9,6 @@ bugs ...
     margin ignored if function just fits << vscode bad vis ranges
 
 todo ...
-  filter all marks
   reveal item when marking
   preview mode on/off in top menu
   gutter highlight skips blank lines

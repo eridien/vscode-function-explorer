@@ -187,6 +187,7 @@ export function showOnlyMarks() {
   for (const fileItem of fileItems) {
     fileItem.filtered = true;
     fileItem.clear();
+    sbar.updateItemInTree(fileItem);
   }
 }
 

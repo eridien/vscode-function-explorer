@@ -235,7 +235,7 @@ export class FileItem extends Item {
       if(!chgs) return [];
       structChg = chgs.structChg;
     }
-    if(!this.children) return [];
+    if(!this.children || this.children.length === 0) return [];
     let hasMark = false;
     const funcItems = [...this.children as FuncItem[]].filter( func => {
       if(noFilter) return true;
@@ -246,6 +246,7 @@ export class FileItem extends Item {
       return marked || func.stayVisible ||
                       (func.isFunction() && !this.filtered);
     });
+    if(funcItems.length === 0) return [];
     if(this.filtered && !hasMark) {
       this.filtered = false;
       structChg = true;
@@ -411,7 +412,6 @@ export class FuncItem extends Item {
         if(prevParent[0] === funcParent[0] &&
            prevParent[1] === funcParent[1]) {
           if(idx == this.funcParents.length-1) {
-            // description = ' △';
             description = ' "';
             break;
           }
