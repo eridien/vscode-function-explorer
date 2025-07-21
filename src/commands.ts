@@ -188,6 +188,7 @@ export function showOnlyMarks() {
     fileItem.filtered = true;
     fileItem.clear();
     sbar.updateItemInTree(fileItem);
+    treeView.reveal(fileItem, { expand: true });
   }
 }
 

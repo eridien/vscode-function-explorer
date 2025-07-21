@@ -3,7 +3,6 @@ bugs ...
     after edit, changing margin, selecting function: 
       wrong highlight -- maybe only local
     0 margin wrong: app.py, def __init__
-    languages.ts prev sibling
     ...functionTopMargin
   can't fix ...
     margin ignored if function just fits << vscode bad vis ranges
