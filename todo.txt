@@ -10,9 +10,9 @@ bugs ...
     gutter highlight skips blank lines
 
   = err
+  remove all marks
 
 todo ...
-  test prev/next across root folders
   marks pile up
 
 options ...
