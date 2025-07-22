@@ -55,7 +55,7 @@ export async function toggleCmd() {
 let nodesDecorationType: vscode.TextEditorDecorationType | undefined;
 
 export async function showNodeHighlightsCmd() {
-  if(nodesDecorationType) hideNodeHighlightsCmd();
+  if(nodesDecorationType) hideNodeHighlights();
   const editor = vscode.window.activeTextEditor;
   if(!editor) return;
   const doc       = editor.document;
@@ -75,7 +75,7 @@ export async function showNodeHighlightsCmd() {
   editor.setDecorations(nodesDecorationType, ranges);
 }
 
-export function hideNodeHighlightsCmd() {
+export function hideNodeHighlights() {
   if(!nodesDecorationType) return;
   nodesDecorationType.dispose();
   nodesDecorationType = undefined;
@@ -247,7 +247,7 @@ export async function removeMarks(item: Item) {
 
 export async function editorOrTextChg(
                       editor: vscode.TextEditor | undefined = undefined) {
-  hideNodeHighlightsCmd();
+  hideNodeHighlights();
   if(!editor) {
     editor = vscode.window.activeTextEditor;
     if(!editor) return;
@@ -276,41 +276,36 @@ function clrGesture() {
 
 export async function selectionChg(
                             event: vscode.TextEditorSelectionChangeEvent) {
-  hideNodeHighlightsCmd();
+  hideNodeHighlights();
   const {textEditor, selections} = event;
   if (textEditor.document.uri.scheme !== 'file' ||
      !sett.includeFile(textEditor.document.uri.fsPath)) return;
   const selection = selections[0];
-  if(selection.start.line === selection.end.line) {
-    const document  = textEditor.document;
-    const fsPath    = document.uri.fsPath;
-    const selStart  = document.offsetAt(selection.anchor);
-    const selEnd    = document.offsetAt(selection.active);
-    // log('selectionChg', selStart, selEnd);
-    // end('gesture', true);
-    if(gestureFuncItem && selection.isEmpty &&
-          selStart >= gestureFuncItem.start && selEnd <= gestureFuncItem.end) {
-      await disp.setMark(gestureFuncItem, true);
-      // end('gesture', false, 'ended setMark');
-      clrGesture();
-    }
-    if(selStart != selEnd) {
-      const funcs = await itmc.getSortedFuncs(fsPath, false, false);
-      for(const func of [...funcs]) {
-        if(!gestureTimeout && selEnd > func.endName && 
-              selStart >= func.startName && selStart <= func.endName ) {
-          gestureTimeout  = setTimeout(clrGesture, 5000);
-          gestureFuncItem = func;
-          // start('gesture', false);
-          return;
-        }
-        if(treeView.visible && selStart === func.startName && 
-                               selEnd   === func.endName) {
-          func.stayVisible = true;
-          sbar.revealItemByFunc(func);
-          if(func.parent) sbar.updateItemInTree(func.parent);
-          return;
-        }
+  const document  = textEditor.document;
+  const fsPath    = document.uri.fsPath;
+  const selStart  = document.offsetAt(selection.anchor);
+  const selEnd    = document.offsetAt(selection.active);
+  if(gestureFuncItem && selection.isEmpty &&
+        selStart >= gestureFuncItem.start && selEnd <= gestureFuncItem.end) {
+    await disp.setMark(gestureFuncItem, true);
+    clrGesture();
+  }
+  if(selStart != selEnd) {
+    const funcs = await itmc.getSortedFuncs(fsPath, false, false);
+    for(const func of [...funcs]) {
+      if(!gestureTimeout &&
+            selStart >= func.startName && selStart <= func.endName &&
+            (selEnd   <  func.startName ||  selEnd  >  func.endName)) {
+        gestureTimeout  = setTimeout(clrGesture, 3000);
+        gestureFuncItem = func;
+        return;
+      }
+      if(treeView.visible && selStart === func.startName && 
+                              selEnd   === func.endName) {
+        func.stayVisible = true;
+        sbar.revealItemByFunc(func);
+        if(func.parent) sbar.updateItemInTree(func.parent);
+        return;
       }
     }
   }

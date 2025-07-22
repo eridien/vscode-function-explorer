@@ -1,29 +1,23 @@
 bugs ...
   can't repeat ...
-    after edit, changing margin, selecting function: 
-      wrong highlight -- maybe only local
     ...functionTopMargin
     = err
 
-  can't fix ...
-    gutter highlight skips blank lines
-
 todo ...
-
-options ...
+  files need 3 clicks after show or clear all marks
 
 low priority ...
-  files need 3 clicks after show or clear all marks
-  a.js: ws.onopen = () => {  
+  foo.bar = 1;
   delete file leaves folder
-  multiple items in one line
   fix rust
 
 unlikely ...
+  multiple items in one line
   bounce on some func clicks
   incremental parsing
   chg funcnodes to use indexes not lines
     solves multiple items in one line
+  gutter highlight skips blank lines
 
 testing ...
   settings changes
