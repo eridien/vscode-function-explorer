@@ -121,9 +121,7 @@ export async function setScroll(editor: vscode.TextEditor,
       default: top = functionTopMargin; 
     }
   }
-  if(functionTopMargin < screenTop)
-     top = functionTopMargin - settings.topMargin;
-  if(top < 0) top = 0;
+  top = Math.max(0, Math.min(functionTopMargin, top));
   editor.revealRange(new vscode.Range(top, 0, top, 0), 
                          vscode.TextEditorRevealType.AtTop);
 }
@@ -158,7 +156,7 @@ export function setWatcherCallbacks(
 let watchers: chokidar.FSWatcher[] = [];
 
 async function setFileWatcher(filesToExclude: string) {
-  // start('setFileWatcher', true);
+  start('setFileWatcher', true);
   if (watchers.length > 0) {
     await Promise.all(watchers.map(watcher => watcher.close()))
       .then(() => log(''));
