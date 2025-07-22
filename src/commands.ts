@@ -112,7 +112,11 @@ async function prevNext(next: boolean, fromToggle = false) {
   const fileWrap = settings.fileWrap && !fromToggle;
   const filtered = !fromToggle && !NEXT_DEBUG;
   const funcs = await itmc.getSortedFuncs(fsPath, fileWrap, filtered);
-  if(funcs.length == 0) return;
+  if(funcs.length == 0) {
+    const fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem;
+    treeView.reveal(fileItem, {expand: true});
+    return;
+  }
   const selFsPath = (fileWrap ? fsPath : '');
   const selKey = utils.createSortKey(
         selFsPath, editor.selection.active.line);
@@ -178,11 +182,6 @@ export function removeAllMarksMenu() {
   sbar.updateItemInTree();
 }
 
-export function collapseAllItems() {
-  vscode.commands.executeCommand(
-        'workbench.actions.treeView.sidebarView.collapseAll');
-}
-
 export async function showOnlyMarks() {
   collapseAllItems();
   const fileItems = itms.getAllFileItems();
@@ -194,6 +193,11 @@ export async function showOnlyMarks() {
     sbar.updateItemInTree(fileItem);
     treeView.reveal(fileItem, {expand: hasMarks});
   }
+}
+
+export function collapseAllItems() {
+  vscode.commands.executeCommand(
+        'workbench.actions.treeView.sidebarView.collapseAll');
 }
 
 export async function refresh() {
