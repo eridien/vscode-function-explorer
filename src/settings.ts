@@ -158,7 +158,7 @@ export function setWatcherCallbacks(
 let watchers: chokidar.FSWatcher[] = [];
 
 async function setFileWatcher(filesToExclude: string) {
-  start('setFileWatcher', true);
+  // start('setFileWatcher', true);
   if (watchers.length > 0) {
     await Promise.all(watchers.map(watcher => watcher.close()))
       .then(() => log(''));

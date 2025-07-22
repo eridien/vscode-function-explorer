@@ -81,7 +81,7 @@ export async function setMark(funcItem: FuncItem,
   if(marked) mrks.addMark(fsPath, funcId);
   else       mrks.delMark(funcItem);
   sbar.updateItemInTree(funcItem.parent);
-  if(marked) sbar.revealItemByFunc(funcItem);
+  if(treeView.visible && marked) sbar.revealItemByFunc(funcItem);
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
   await updateGutter(activeEditor, funcItem.parent);

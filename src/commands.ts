@@ -173,10 +173,9 @@ export async function prev() { await prevNext(false); }
 
 export async function next() { await prevNext(true); }
 
-export async function removeAllMarksMenu() {
-  const funcItems = itms.getAllFuncItems();
-  for(const funcItem of funcItems) 
-    await disp.setMark(funcItem);
+export function removeAllMarksMenu() {
+  mrks.clearAllMarks();
+  sbar.updateItemInTree();
 }
 
 export function collapseAllItems() {
@@ -306,7 +305,7 @@ export async function selectionChg(
           return;
         }
         if(treeView.visible && selStart === func.startName && 
-                              selEnd    === func.endName) {
+                               selEnd   === func.endName) {
           func.stayVisible = true;
           sbar.revealItemByFunc(func);
           if(func.parent) sbar.updateItemInTree(func.parent);

@@ -2,31 +2,26 @@ bugs ...
   can't repeat ...
     after edit, changing margin, selecting function: 
       wrong highlight -- maybe only local
-    0 margin wrong: app.py, def __init__
     ...functionTopMargin
+    = err
 
   can't fix ...
     margin ignored if function just fits << vscode bad vis ranges
     gutter highlight skips blank lines
 
-  = err
-  remove all marks
-
 todo ...
-  marks pile up
 
 options ...
-  preview mode default
-  when adding mark then always scroll item
 
 low priority ...
+  files need 3 clicks after show or clear all marks
   a.js: ws.onopen = () => {  
-  bounce on some func clicks
   delete file leaves folder
   multiple items in one line
   fix rust
 
 unlikely ...
+  bounce on some func clicks
   incremental parsing
   chg funcnodes to use indexes not lines
     solves multiple items in one line

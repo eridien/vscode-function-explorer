@@ -6,9 +6,9 @@ import { Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
-const PARSE_DUMP_TYPE: string = 'aliased_import';  
+const PARSE_DUMP_TYPE: string = '';  
 const PARSE_DUMP_NAME: string = '';
-const PARSE_DEBUG_STATS = true;
+const PARSE_DEBUG_STATS = false;
 
 let context: vscode.ExtensionContext;
 
@@ -181,7 +181,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     return nodeData;
   }
   
-  start('parseCode', true);
+  // start('parseCode', true);
   const parser = new Parser();
   parser.setLanguage(language);
   let tree: Tree | null;
@@ -253,6 +253,6 @@ export async function parseCode(lang: string, code: string, fsPath: string,
                   `max: ${gapLines}\n` +
         [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n'));
   }
-  end('parseCode', true);
+  // end('parseCode', true);
   return nodes;
 }

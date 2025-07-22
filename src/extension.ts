@@ -56,8 +56,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const removeAllMarksMenu = vscode.commands.registerCommand(
-       'vscode-function-explorer.removeAllMarksMenu', async () => {
-		await cmds.removeAllMarksMenu();
+       'vscode-function-explorer.removeAllMarksMenu', () => {
+		cmds.removeAllMarksMenu();
 	});
 
 	const collapseAllItems = vscode.commands.registerCommand(
@@ -184,7 +184,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const treeSelChg = treeView.onDidChangeSelection(() => {
     // log('treeSelChg');
-     // item selection[]
   });
 
   const itemExpandChg = treeView.onDidExpandElement(async event => {

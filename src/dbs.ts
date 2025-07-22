@@ -194,6 +194,11 @@ export const fils = new FilePaths();
 class Marks {
   private static markIdSetByFspath: Map<string, Set<string>> = new Map();
 
+  clearAllMarks() {
+    Marks.markIdSetByFspath.clear();
+    saveMarks();
+    log('cleared all marks');
+  }
   getAllMarks(): Array<[string, Set<string>]> {
     return [...Marks.markIdSetByFspath.entries()];
   }
@@ -228,7 +233,6 @@ class Marks {
   }
 }
 export const mrks = new Marks();
-let loadingMarks = true;
 
 function loadMarks() {
   let fsPathMarkIdArr: Array<[string, string[]]> =  
@@ -237,18 +241,31 @@ function loadMarks() {
     fsPathMarkIdArr = [];
     context.workspaceState.update('markIds', []);
   }
+  let markCount = 0;
   for(const [fsPath, markIds] of fsPathMarkIdArr) {
-    for(const funcId of markIds) mrks.addMark(fsPath, funcId);
+    for(const funcId of markIds) {
+      mrks.addMark(fsPath, funcId);
+      markCount++;
+    }
   }
-  loadingMarks = false;
+  log(`loaded ${markCount} marks`);
 }
 
+let saveMarksTO: NodeJS.Timeout | undefined;
+
 function saveMarks() {
-  if(loadingMarks) return;
-  const markIdSetArr = mrks.getAllMarks();
-  const markIdArrArr = [];
-  for(const [fsPath, markIdSet] of markIdSetArr)
-    markIdArrArr.push([fsPath, [...markIdSet]]);
-  context.workspaceState.update('markIds', markIdArrArr);
+  if(saveMarksTO) clearTimeout(saveMarksTO);
+  saveMarksTO = setTimeout(() => {
+    saveMarksTO        = undefined;
+    const markIdSetArr = mrks.getAllMarks();
+    let markCount      = 0;
+    const markIdArrArr = [];
+    for(const [fsPath, markIdSet] of markIdSetArr) {
+      markCount += markIdSet.size;
+      markIdArrArr.push([fsPath, [...markIdSet]]);
+    }
+    context.workspaceState.update('markIds', markIdArrArr);
+    log(`saved ${markCount} marks`);
+  }, 100);
 }
 
