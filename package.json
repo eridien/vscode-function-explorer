@@ -26,61 +26,75 @@
     "commands": [
       {
         "command": "vscode-function-explorer.toggle",
-        "title": "Toggle Function Mark(s)"
+        "title": "Toggle Function Mark(s)",
+        "category": "Function Explorer" 
       },
       {
         "command": "vscode-function-explorer.prev",
-        "title": "Jump to previous Function Mark"
+        "title": "Jump to previous Function Mark",
+        "category": "Function Explorer" 
       },
       {
         "command": "vscode-function-explorer.next",
-        "title": "Jump to next Function Mark"
+        "title": "Jump to next Function Mark",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.showNodes",
-        "title": "Show Syntax Nodes"
+        "title": "Show Syntax Nodes",
+        "category": "Function Explorer" 
       },{
         "​​‌‌‍​​‍‌": "======================",
         "​​‌‌‍‌​​‌": " Sidebar title menu   ",
         "​​‌‌‍‍​⁠‌": "......................",
         "command": "vscode-function-explorer.removeAllMarksMenu",
-        "title": "Remove All Marks"
+        "title": "Remove All Marks",
+        "category": "Function Explorer" 
       },
       {
         "command": "vscode-function-explorer.showOnlyMarks",
-        "title": "Show All Marks"
+        "title": "Show All Marks",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.collapseAllItems",
-        "title": "Collapse All"
+        "title": "Collapse All",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.refresh",
-        "title": "Refresh"
+        "title": "Refresh",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.showFolders",
-        "title": "Show Folders"
+        "title": "Show Folders",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.hideFolders",
-        "title": "Hide Folders"
+        "title": "Hide Folders",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.openEditorsAsPinned",
-        "title": "Open Editors As Pinned"
+        "title": "Open Editors As Pinned",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.openEditorsAsPreview",
-        "title": "Open Editors As Preview"
+        "title": "Open Editors As Preview",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.showFilePaths",
-        "title": "Show File Paths"
+        "title": "Show File Paths",
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.settingsMenu",
-        "title": "Open Settings"
+        "title": "Open Settings",
+        "category": "Function Explorer"
       },
       {
         "​​​‌​⁠​‍‌": "=========================",
