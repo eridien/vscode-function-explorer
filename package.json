@@ -387,7 +387,7 @@
         },
         "function-explorer.fileWrap": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "order": 5,
           "title": "File Wrap",
           "description": "Next and previous navigation will wrap around all files instead of just the active file."

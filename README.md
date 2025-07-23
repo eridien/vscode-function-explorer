@@ -137,7 +137,7 @@ You can bring up the settings for the extension using the menu at the top of the
 
 - **Open File When Expanded**.  Whenever a file is expanded to show its functions the file is shown in an editor. Default: disabled.
 
-- **File Wrap**.  When navigating by jumping between marks this option allows the jumps to wrap around all files instead of wrapping inside the active file. It even jumps between  files in different root folders. Default: disabled.
+- **File Wrap**.  When navigating by jumping between marks this option allows the jumps to wrap around all files instead of wrapping inside the active file. It even jumps between  files in different root folders. Default: enabled.
 
 - **Scroll Position**
   - **Function Top At Top**

@@ -29,7 +29,7 @@ export let settings:  FunctionExplorerSettings = {
   openEditorsAsPinned:  true,
   showFilePaths:        true,
   scrollPosition:       "Function Center At Center If Needed",
-  fileWrap:             false,
+  fileWrap:             true,
   alphaSortFunctions:   false,
   topMargin:            3,
   openFileWhenExpanded: false
@@ -225,7 +225,7 @@ export async function loadSettings() {
     openEditorsAsPinned:  config.get('openEditorsAsPinned',   true),
     showFilePaths:        config.get('showFilePaths',         true),
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
-    fileWrap:             config.get('fileWrap',             false),
+    fileWrap:             config.get('fileWrap',              true),
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
     topMargin:            config.get('topMargin',                3),
   };
