@@ -9,7 +9,8 @@ bugs ...
     cut/paste leaves mark behind
 
 todo ...
-  put dbl-click name in readme
+  clnup languages
+  find all syntax names and space them
 
 low priority ...
   foo.bar = 1;
