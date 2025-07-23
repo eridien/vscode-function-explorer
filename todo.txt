@@ -9,8 +9,8 @@ bugs ...
     cut/paste leaves mark behind
 
 todo ...
-  don't scroll editor or expand file when adding a mark
-  don't set selection on prev/next
+  put dbl-click name in readme
+  file wrap default on
 
 low priority ...
   foo.bar = 1;

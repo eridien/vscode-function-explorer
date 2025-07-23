@@ -151,7 +151,6 @@ export async function refreshTree(updateFuncs = false) {
 }
 
 export function revealItemByFunc(func: FuncItem) {
-  // if(!treeView.visible) return;
   treeView.reveal(func, {expand: true, select: true, focus: false});
 }
 

@@ -48,8 +48,6 @@ export async function toggleCmd() {
     if(distFromSelToAround <= distFromSelToNext)
       funcItemToMark = aroundFuncItem;
   }
-  const red = !await disp.setMark(funcItemToMark, true);
-  await disp.revealFuncInEditor(funcItemToMark, red);
 }
 
 let nodesDecorationType: vscode.TextEditorDecorationType | undefined;

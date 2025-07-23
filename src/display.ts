@@ -81,7 +81,6 @@ export async function setMark(funcItem: FuncItem,
   if(marked) mrks.addMark(fsPath, funcId);
   else       mrks.delMark(funcItem);
   sbar.updateItemInTree(funcItem.parent);
-  if(treeView.visible && marked) sbar.revealItemByFunc(funcItem);
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
   await updateGutter(activeEditor, funcItem.parent);
@@ -187,9 +186,8 @@ export async function revealFuncInEditor(
     const endPos   = document.positionAt(itemDoc.end);
     await scrollAndFlash(editor, startPos, endPos, red);
     if(setSelection) {
-      const line       = startPos.line;
-      const eolPos     = document.lineAt(line).range.end;
-      editor.selection = new vscode.Selection(eolPos, eolPos);
+      const namePos = document.positionAt(itemDoc.startName);
+      editor.selection = new vscode.Selection(namePos, namePos);
     }
   }
   else if(itemDoc) await vscode.window.showTextDocument(
