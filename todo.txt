@@ -2,8 +2,16 @@ bugs ...
   can't repeat ...
     ...functionTopMargin
     = err
+    next broken in demo folder
+      one mark in _init_.py
+      collapse all
+      next broken
+    cut/paste leaves mark behind
+
+  remove all marks leaves gutter marked (=)
 
 todo ...
+  don't set selection on prev/next
 
 low priority ...
   foo.bar = 1;

@@ -273,6 +273,7 @@ let gestureFuncItem: FuncItem       | undefined;
 
 function clrGesture() {
   // end('gesture', true, 'clrGesture');
+  log('clrGesture');
   clearTimeout(gestureTimeout);
   gestureTimeout  = undefined;
   gestureFuncItem = undefined;
@@ -280,10 +281,18 @@ function clrGesture() {
 
 export async function selectionChg(
                             event: vscode.TextEditorSelectionChangeEvent) {
+
+  log('0');
+
   hideNodeHighlights();
   const {textEditor, selections} = event;
   if (textEditor.document.uri.scheme !== 'file' ||
-     !sett.includeFile(textEditor.document.uri.fsPath)) return;
+     !sett.includeFile(textEditor.document.uri.fsPath)) {
+
+     log('1');
+
+     return;
+  }
   const selection = selections[0];
   const document  = textEditor.document;
   const fsPath    = document.uri.fsPath;
@@ -292,6 +301,9 @@ export async function selectionChg(
   if(gestureFuncItem && selection.isEmpty &&
         selStart >= gestureFuncItem.start && selEnd <= gestureFuncItem.end) {
     await disp.setMark(gestureFuncItem, true);
+
+    log('1.5');
+
     clrGesture();
   }
   if(selStart != selEnd) {
@@ -302,17 +314,24 @@ export async function selectionChg(
             (selEnd   <  func.startName ||  selEnd  >  func.endName)) {
         gestureTimeout  = setTimeout(clrGesture, 3000);
         gestureFuncItem = func;
+
+        log('2');
+
         return;
       }
       if(treeView.visible && selStart === func.startName && 
-                              selEnd   === func.endName) {
+                             selEnd   === func.endName) {
         func.stayVisible = true;
         sbar.revealItemByFunc(func);
         if(func.parent) sbar.updateItemInTree(func.parent);
+
+        log('3');
+        
         return;
       }
     }
   }
+  log('4');
 }
 
 export async function openFile(item: Item) {

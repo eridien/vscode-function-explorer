@@ -19,8 +19,6 @@ The Function Explorer shows folders, files, and functions.
 
 - Folders, such as node_modules, can be disabled in settings. Folders are only shown when enabled files are contained in the subtree.
 
-- Functions can be marked (see below) and with a click the function list changes to only show marked items. This is useful for selecting a set of functions currently being worked on.
-
 - Since each function has a name, each function in the explorer has a clean label.  No more showing a chopped-up line such as bookmarks have.
 
 - The functions can be sorted by position or alphabetically and changed with a click in the file item.
@@ -33,23 +31,26 @@ The Function Explorer shows folders, files, and functions.
 
 #### Function Marks
 
-This is the secomd major feature which ties in with the first.  Functions can be marked much like a bookmark. 
+This is the second major feature which ties in with the first.  Functions can be marked much like a bookmark. 
 
 ![Marking Gif](images/marking.gif)
 
 - There are the three common mark commands: toggle the function mark, navigate to the next mark or to the previous. You can navigate around the active file or all files.
 
-- You can mark a function in five different ways.
+-- When marked a symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function name in the explorer. 
+
+ You can mark a function in five different ways.
   - Clicking the M symbol on an item in the explorer.
   - Using the `Toggle Function Mark` command in the command palette.
   - Right-clicking `Toggle Function Mark` in the editor context menu.
   - Using the keyboard `ctrl-alt-\`
-  - Gesturing with the mouse on the function name.
+  - And lastly, you can gesture with the mouse. The guesture is to click in a function name, drag to anywhere outside the name, and go back and single-click on it.
 
-- A mark symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function name in the explorer. 
+![Guesture Gif](images/guesture.gif)
 
+- The function list under a file can be filtered to only show marked functions. Each file can be set separately with a click or all can be set with a menu item. This lets you select the set of files you are working on.
 
-- As mentioned above the function list under a file can be filtered to only show marked functions. Each file can be set separately with a click.
+![Show All Gif](images/show-all.gif)
 
 ### Functions
 
@@ -77,7 +78,7 @@ Just to keep things confusing, in this documentation the term function often ref
 
  To the right of the name is a breadcrumb list showing the nesting in the syntax tree. This is the same as the breadcrumbs at the top of the editor except only recognized types are shown. 
 
-When the breadcrumbs on the right are identical to the the function above, a ditto mark `"` is shown instead. This keeps the explorer from being covered with in crumbs.
+When the breadcrumbs on the right are identical to the the function above, a ditto mark `"` is shown instead. This keeps the explorer from being covered with crumbs.
 
  Here are js examples. To the right of each code line is the label seen in the explorer. 
 
