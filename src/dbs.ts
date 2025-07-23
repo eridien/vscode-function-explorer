@@ -197,7 +197,7 @@ class Marks {
   clearAllMarks() {
     Marks.markIdSetByFspath.clear();
     saveMarks();
-    log('cleared all marks');
+    // log('cleared all marks');
   }
   getAllMarks(): Array<[string, Set<string>]> {
     return [...Marks.markIdSetByFspath.entries()];
@@ -248,7 +248,7 @@ function loadMarks() {
       markCount++;
     }
   }
-  log(`loaded ${markCount} marks`);
+  // log(`loaded ${markCount} marks`);
 }
 
 let saveMarksTO: NodeJS.Timeout | undefined;
@@ -265,7 +265,7 @@ function saveMarks() {
       markIdArrArr.push([fsPath, [...markIdSet]]);
     }
     context.workspaceState.update('markIds', markIdArrArr);
-    log(`saved ${markCount} marks`);
+    // log(`saved ${markCount} marks`);
   }, 100);
 }
 

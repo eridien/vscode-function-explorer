@@ -56,8 +56,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const removeAllMarksMenu = vscode.commands.registerCommand(
-       'vscode-function-explorer.removeAllMarksMenu', () => {
-		cmds.removeAllMarksMenu();
+       'vscode-function-explorer.removeAllMarksMenu', async () => {
+		await cmds.removeAllMarksMenu();
 	});
 
 	const collapseAllItems = vscode.commands.registerCommand(

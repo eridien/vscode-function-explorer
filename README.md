@@ -7,7 +7,7 @@
 
 Function Explorer is a vscode extension that provides a sidebar explorer much like the built-in file explorer. The big difference is that you can expand the file items to show their functions. It also features marking functions much like bookmarks.
 
-![Intro Gif](images/intro.gif)
+![Intro Gif](images/intro.gifx)
 
 ### Two Major Features
 
@@ -15,7 +15,7 @@ Function Explorer is a vscode extension that provides a sidebar explorer much li
 
 The Function Explorer shows folders, files, and functions. 
 
-- Since each function has a name, each function in the explorer has a clean label.  No more showing a chopped line such as bookmarks have.
+- Since each function has a name, each function in the explorer has a clean label, not a chopped line such as bookmarks have.
 
 - Clicking on a function brings it up in an  editor. The function is positioned in the editor in a number of optional ways. In each option the function is shown, not a line number.
 
@@ -27,7 +27,7 @@ The Function Explorer shows folders, files, and functions.
 
 This is the second major feature which ties in with the first.  Functions can be marked much like a bookmark. 
 
-![Marking Gif](images/marking.gif)
+![Marking Gif](images/marking.gifx)
 
 - There are the three common mark commands: `Toggle Function Mark (ctrl-alt-\)`,  `Jump To Previous Function Mark (ctrl-alt-[)`, and `Jump To Next Function Mark (ctrl-alt-])`. You can navigate around the active file or all files.
 
@@ -35,11 +35,11 @@ This is the second major feature which ties in with the first.  Functions can be
 
  - You can also toggle a function mark by gesturing with the mouse. The guesture is to click in a function name, drag to anywhere outside the name, and go back and single-click on it.
 
-![Guesture Gif](images/guesture.gif)
+![Guesture Gif](images/guesture.gifx)
 
   - The function list under a file can be filtered to only show marked functions. Each file can be set to filter its functions separately with a click or all can be set with a menu item. This lets you select the set of files you are working on.
 
-![Show All Gif](images/show-all.gif)
+![Show All Gif](images/show-all.gifx)
 
 ### Files Supported
 

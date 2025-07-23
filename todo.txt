@@ -8,8 +8,6 @@ bugs ...
       next broken
     cut/paste leaves mark behind
 
-  remove all marks leaves gutter marked (=)
-
 todo ...
   don't scroll editor or expand file when adding a mark
   don't set selection on prev/next
