@@ -81,15 +81,6 @@ function parseDebug(rootNode: SyntaxNode) {
   });
 }
 
-export function getFuncTypes(lang: string): Set<string> {
-  return langs[lang].funcTypes;
-}
-
-export function getSymbol(lang: string, type: string): string {
-  const  symbol = langs[lang]?.symbols?.get(type);
-  return symbol ?? '?';
-}
-
 export function getLangByFsPath(fsPath: string): string | null {
   const ext = path.extname(fsPath);
   for (const [lang, {suffixes}] of Object.entries(langs) as any) {
@@ -102,16 +93,14 @@ export function getLangByFsPath(fsPath: string): string | null {
 let lastParseErrFsPath = '';
 
 export async function parseCode(lang: string, code: string, fsPath: string, 
-                          doc: vscode.TextDocument, retrying = false): 
+                                doc: vscode.TextDocument, 
+                                retrying = false, parseIdIdx: number | null = null): 
                                                Promise<NodeData[] | null> {
   start('parseCode', true);
   const language = await getLangFromWasm(lang);
   if (!language) return [];
 
-  const { sExpr, symbols }: {
-    sExpr: string;
-    symbols: Map<string, string>;
-  } = langs[lang];
+  const {sExpr} = langs[lang];
 
   function getParents(node: SyntaxNode): SyntaxNode[] {
     const parents: SyntaxNode[] = [];
@@ -159,7 +148,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
 
   function capsToNodeData(lang: string,
                           nameCapture: QueryCapture,
-                          funcCapture: QueryCapture) :NodeData | null {
+                          funcCapture: QueryCapture): NodeData | null {
     const nameNode  = nameCapture.node;
     const startName = nameNode.startIndex;
     const endName   = nameNode.endIndex;
@@ -232,21 +221,14 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     for (const match of matches) {
       const nameCapture = match.captures.find(
                              capture => capture.name == 'name');
-      if (!nameCapture || !nameCapture.node.isNamed) continue;
-
-      const nameCapNode = nameCapture.node;
-      if(nameCapNode.grammarType === 'identifier')  {
-        const startIdx = nameCapNode.startIndex;
-        if (startIdx - lastFuncIdx < MIN_ID_GAP_LINES) continue;
-        lastFuncIdx = startIdx;
-      }
-
       const funcCapture = match.captures.find(
-                             capture => symbols.has(capture.name));
-      if (!funcCapture || !funcCapture.node.isNamed) continue;
-      const nodeData = capsToNodeData(
-                         lang, nameCapture as any, funcCapture as any
-      );
+                             capture => capture.name == 'function');                 
+      const idCapture = match.captures.find(
+                             capture => capture.name == 'id');     
+      if (!nameCapture || !funcCapture) continue;            
+      const nodeData = capsToNodeData(lang, 
+                                      nameCapture as QueryCapture, 
+                                      funcCapture as QueryCapture );
       if(!nodeData) continue;
       nodes.push(nodeData);
     }

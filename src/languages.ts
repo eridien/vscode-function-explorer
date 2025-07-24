@@ -40,7 +40,6 @@ export const langs: Langs = {
             name: (property_identifier) @name
         )
       ] @function
-
       (((identifier) @name) @id)        
     ]`,
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
@@ -51,8 +50,7 @@ export const langs: Langs = {
     sExpr: `[
       (function_definition
         name: (identifier) @name
-        ) @function
-
+       ) @function
       (((identifier) @name) @id)        
     ]`,
     suffixes: new Set(['.py'])
@@ -65,7 +63,6 @@ export const langs: Langs = {
         declarator: (function_declarator
           declarator: (identifier) @name)
        ) @function
-
       (((identifier) @name) @id)        
     ]`,
     suffixes: new Set(['.c','.cpp'])
@@ -77,7 +74,6 @@ export const langs: Langs = {
       (method_declaration
            (identifier) @name
        ) @function
-
       (((identifier) @name) @id)
     ]`,
     suffixes:    new Set(['.java'])
@@ -94,7 +90,6 @@ export const langs: Langs = {
           name: (identifier) @name
         )
       ] @function
-
       (((identifier) @name) @id)
     ]`,
     suffixes:    new Set(['.cs'])
@@ -108,7 +103,6 @@ export const langs: Langs = {
         (method_declaration
           name: (field_identifier) @name)
       ] @function
-
       (((identifier) @name ) @id)
     ]`,
     suffixes: new Set(['.go'])
@@ -120,7 +114,6 @@ export const langs: Langs = {
       (function_item
         name: (identifier) @name
       ) @function
-
       (((identifier) @name) @id)                
     ]`,
     suffixes: new Set(['.rs'])

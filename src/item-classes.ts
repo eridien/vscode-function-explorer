@@ -386,7 +386,7 @@ export class FuncItem extends Item {
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
   isFunction(type: string = this.type): boolean {
-    return pars.getFuncTypes(this.lang).has(type);
+    return (type == 'function');
   }
   clear() {
     this.startLine = undefined;
@@ -397,7 +397,7 @@ export class FuncItem extends Item {
   getFuncItemStr(nameType: [string, string]): string {
     const [name, type] = nameType;
     if(this.isFunction(type)) return ` ƒ ${name}`;
-    return ` ${pars.getSymbol(this.lang, type)} ${name}`;
+    return ` ⋆ ${name}`;
   }
   getLabel() {
     let label = this.name;
