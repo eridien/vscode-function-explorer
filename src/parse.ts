@@ -8,7 +8,8 @@ const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DUMP_TYPE: string = '';  
 const PARSE_DUMP_NAME: string = '';
-const PARSE_DEBUG_STATS = false;
+const PARSE_DEBUG_STATS = true;
+const MIN_ID_GAP_LINES = 300;
 
 let context: vscode.ExtensionContext;
 
@@ -62,19 +63,20 @@ function parseDebug(rootNode: SyntaxNode) {
     }
   }
   walkTree(rootNode, node => {
-    let name = ' ';
-    const nameNode = node.childForFieldName('name');
-    if(nameNode) name = nameNode.text;
-    else if(node.type === 'identifier') name = node.text;
-    if(!dumping && (node.type === PARSE_DUMP_TYPE || 
-                         name === PARSE_DUMP_NAME)) {
+    let name = '';
+    if(node.grammarType === 'identifier') 
+      name = node.text + ", ";
+    else 
+      name = node.text.replace(/\s+/g, '').slice(0, 10) + ", " + 
+                                       node.grammarType + ", ";
+    if(!dumping) {
       firstDepth = depth;
       dumping    = true;
     }
     if(dumping && !done) {
       log('nomod', `${'    '.repeat(depth-firstDepth)}${node.type} `+
                    `(${node.startIndex},${node.endIndex}) ${name}`);
-      if(lineCount++ > 100) done = true;
+      if(lineCount++ > 1000) done = true;
     }
   });
 }
@@ -102,6 +104,7 @@ let lastParseErrFsPath = '';
 export async function parseCode(lang: string, code: string, fsPath: string, 
                           doc: vscode.TextDocument, retrying = false): 
                                                Promise<NodeData[] | null> {
+  start('parseCode', true);
   const language = await getLangFromWasm(lang);
   if (!language) return [];
 
@@ -183,12 +186,16 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     return nodeData;
   }
   
+  let lastFuncIdx = 0;
+
   // start('parseCode', true);
   const parser = new Parser();
   parser.setLanguage(language);
   let tree: Tree | null;
   try {
+    start('parser.parse', true);
     tree = parser.parse(code) as Tree | null;
+    end('parser.parse', false);
     if(!tree) {
       log('err', 'parser.parse returned null tree for', path.basename(fsPath));
       return [];
@@ -223,12 +230,20 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     const query   = new Query(language as any, sExpr);
     const matches = query.matches(tree.rootNode as any);
     for (const match of matches) {
-      const funcCapture = match.captures.find(
-                             capture => symbols.has(capture.name));
-      if (!funcCapture || !funcCapture.node.isNamed) continue;
       const nameCapture = match.captures.find(
                              capture => capture.name == 'name');
       if (!nameCapture || !nameCapture.node.isNamed) continue;
+
+      const nameCapNode = nameCapture.node;
+      if(nameCapNode.grammarType === 'identifier')  {
+        const startIdx = nameCapNode.startIndex;
+        if (startIdx - lastFuncIdx < MIN_ID_GAP_LINES) continue;
+        lastFuncIdx = startIdx;
+      }
+
+      const funcCapture = match.captures.find(
+                             capture => symbols.has(capture.name));
+      if (!funcCapture || !funcCapture.node.isNamed) continue;
       const nodeData = capsToNodeData(
                          lang, nameCapture as any, funcCapture as any
       );
@@ -249,12 +264,13 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     const gapLines     = gapEndLine - gapStartLine;
     const nodeCount    = nodes.length;
     log('nomod', `\n${path.basename(fsPath)}: ` +
+        `MIN_ID_GAP_LINES: ${MIN_ID_GAP_LINES}, \n` +
         `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
         `max gap start line: ${gapStartLine}, end line: ${gapEndLine}\n` +
         `gap lines avg: ${Math.floor(lineCount/(nodeCount + 1))}, ` +
                   `max: ${gapLines}\n` +
         [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n'));
   }
-  // end('parseCode', true);
+  end('parseCode', false);
   return nodes;
 }
