@@ -126,29 +126,10 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   for (const mark of marks) marksSet.add(mark.split('\x00')[0]);
 
   let typeCounts: Map<string, number> = new Map();
-  let maxGap     = 0;
-  let lastIdx    = 0;
-  let startIndex = 0;
-  let endIndex   = code.length;
 
-  function collectParseStats(nodeData: NodeData | null = null) {
-    if(!nodeData) {
-      const gap = code.length - lastIdx;
-      if(gap > maxGap) {
-        startIndex = lastIdx;
-        endIndex   = code.length;
-      }
-      return;
-    }
+  function collectParseStats(nodeData: NodeData) {
     typeCounts.set(nodeData.type, 
                   (typeCounts.get(nodeData.type) ?? 0) + 1);
-    const gap = nodeData.startName - lastIdx;
-    if(gap > maxGap) {
-      maxGap = gap;
-      startIndex = lastIdx;
-      endIndex   = nodeData.startName;
-    }
-    lastIdx = nodeData.endName;
   }
 
   function capToNodeData(
@@ -234,18 +215,12 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   nodes.sort((a, b) => a.start - b.start);
 
   if(PARSE_DEBUG_STATS) {
-    collectParseStats();
-    const lineCount    = doc.positionAt(code.length).line;
-    const gapStartLine = doc.positionAt(startIndex ).line+2;
-    const gapEndLine   = doc.positionAt(endIndex   ).line;
-    const gapLines     = gapEndLine - gapStartLine;
-    const nodeCount    = nodes.length;
+    const lineCount = doc.positionAt(code.length).line;
+    const nodeCount = nodes.length;
     log('nomod', `\n${path.basename(fsPath)}: ` +
         `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
-        `max gap start line: ${gapStartLine}, end line: ${gapEndLine}\n` +
-        `gap lines avg: ${Math.floor(lineCount/(nodeCount + 1))}, ` +
-                  `max: ${gapLines}\n` +
-        [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`).join('\n'));
+        [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`)
+                                 .join('\n'), '\n');
   }
   end('parseCode', false);
   return nodes;
