@@ -1,17 +1,18 @@
 import * as vscode                         from 'vscode';
 import path                                from 'path';
 import {langs}                             from './languages';
-import { Tree, SyntaxNode, QueryCapture }  from 'tree-sitter';
-import { Parser, Language, Query }         from 'web-tree-sitter';
+import { Tree, QueryCapture, 
+         Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DUMP_TYPE: string = '';  
 const PARSE_DUMP_NAME: string = '';
 const PARSE_DEBUG_STATS = true;
-const MIN_ID_GAP_LINES = 300;
+const CONTEXT_LENGTH    = 30;
 
 let context: vscode.ExtensionContext;
+type SyntaxNode = NonNullable<ReturnType<Parser['parse']>>['rootNode'];
 
 export async function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
@@ -90,35 +91,41 @@ export function getLangByFsPath(fsPath: string): string | null {
   return null;
 }
 
+function idNodeName(node: SyntaxNode): string {
+  const context  = node.text.slice(0, CONTEXT_LENGTH).replace(/\s+/g, '');
+  if(node.grammarType === 'identifier') 
+    return node.text + "\x00id\x00" + context + "\x00";
+  else {
+    const nameNode = node.childForFieldName('name');
+    const name     = nameNode ? nameNode.text + "\x00" : '';
+    return name + node.grammarType + "\x00" + context + "\x00";
+  }
+}
+
+function getParentFuncId(node: SyntaxNode): string {
+  let parentFuncId = '';
+  let parent       = node.parent;
+  while (parent) {
+    parentFuncId += idNodeName(parent);
+    parent = parent.parent;
+  }
+  return parentFuncId;
+}
+
+
 let lastParseErrFsPath = '';
 
 export async function parseCode(lang: string, code: string, fsPath: string, 
-                                doc: vscode.TextDocument, 
+                                doc: vscode.TextDocument, marks: String[] = [],
                                 retrying = false, parseIdIdx: number | null = null): 
                                                Promise<NodeData[] | null> {
   start('parseCode', true);
   const language = await getLangFromWasm(lang);
   if (!language) return [];
-
   const {sExpr} = langs[lang];
 
-  function getParents(node: SyntaxNode): SyntaxNode[] {
-    const parents: SyntaxNode[] = [];
-    let parent = node.parent;
-    while (parent) {
-      parents.push(parent);
-      parent = parent.parent;
-    }
-    return parents;
-  }
-
-  function idNodeName(node: SyntaxNode): string {
-  if(node.grammarType === 'identifier') 
-    return node.text + "\x00";
-  else 
-    return node.text.replace(/\s+/g, '').slice(0, 10) + "\x00" + 
-                                     node.grammarType + "\x00";
-  }
+  const marksSet = new Set();
+  for (const mark of marks) marksSet.add(mark.split('\x00')[0]);
 
   let typeCounts: Map<string, number> = new Map();
   let maxGap     = 0;
@@ -146,7 +153,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     lastIdx = nodeData.endName;
   }
 
-  function capsToNodeData(lang: string,
+  function capToNodeData(lang: string,
                           nameCapture: QueryCapture,
                           funcCapture: QueryCapture): NodeData | null {
     const nameNode  = nameCapture.node;
@@ -158,7 +165,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     let funcNode = funcCapture.node;
     let start    = funcNode.startIndex;
     let end      = funcNode.endIndex;
-    let parents  = getParents(funcNode);
+    let parents  = getParentFuncId(funcNode);
     const funcParents: [string, string][] = [];
     let funcId = idNodeName(funcNode);
     if( funcId === '') funcId = name + "\x00" + type + "\x00";
@@ -175,8 +182,6 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     return nodeData;
   }
   
-  let lastFuncIdx = 0;
-
   // start('parseCode', true);
   const parser = new Parser();
   parser.setLanguage(language);
@@ -219,16 +224,42 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     const query   = new Query(language as any, sExpr);
     const matches = query.matches(tree.rootNode as any);
     for (const match of matches) {
-      const nameCapture = match.captures.find(
-                             capture => capture.name == 'name');
-      const funcCapture = match.captures.find(
-                             capture => capture.name == 'function');                 
-      const idCapture = match.captures.find(
-                             capture => capture.name == 'id');     
-      if (!nameCapture || !funcCapture) continue;            
-      const nodeData = capsToNodeData(lang, 
-                                      nameCapture as QueryCapture, 
-                                      funcCapture as QueryCapture );
+      for (const capture of match.captures) {
+        let name:        String       | undefined = undefined;
+        let funcCapture: QueryCapture | undefined = undefined;
+        let idCapture:   QueryCapture | undefined = undefined;
+        switch(capture.name) {
+          case 'name':  name = capture.node.text;  break;
+          case 'function': funcCapture = capture; break;
+          case 'id':         idCapture = capture; break;
+        }
+        if (!name || !(funcCapture || idCapture)) continue;
+        if(funcCapture) {
+          let funcId = name + "\x00" + funcCapture.name + "\x00";
+          funcId += getParentFuncId(funcCapture.node);
+          capToNodeData(lang, funcId, funcCapture);
+
+        }
+        else if(idCapture) {
+
+        }
+          if(!idCapture.node) continue;
+          const node = idCapture.node;
+          if(node.grammarType !== 'identifier') {
+            log('err', 'id capture node is not identifier:', 
+                node.grammarType, path.basename(fsPath));
+            continue;
+          }
+          if(!marksSet.has(node.text)) continue; // skip unmarked nodes
+          const funcId = getParentFuncId(node);
+          if(!funcId) continue; // no parent functions
+
+      }
+    }
+
+      const nodeData = capToNodeData(lang,
+                                      name as QueryCapture,
+                                      funcCapture as QueryCapture);
       if(!nodeData) continue;
       nodes.push(nodeData);
     }
@@ -246,7 +277,6 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     const gapLines     = gapEndLine - gapStartLine;
     const nodeCount    = nodes.length;
     log('nomod', `\n${path.basename(fsPath)}: ` +
-        `MIN_ID_GAP_LINES: ${MIN_ID_GAP_LINES}, \n` +
         `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
         `max gap start line: ${gapStartLine}, end line: ${gapEndLine}\n` +
         `gap lines avg: ${Math.floor(lineCount/(nodeCount + 1))}, ` +
