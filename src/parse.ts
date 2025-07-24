@@ -121,9 +121,11 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   }
 
   function idNodeName(node: SyntaxNode): string {
-    const  nameNode = node.childForFieldName('name');
-    if(!nameNode) return '';
-    return nameNode.text + "\x00" + node.type + "\x00";
+  if(node.grammarType === 'identifier') 
+    return node.text + "\x00";
+  else 
+    return node.text.replace(/\s+/g, '').slice(0, 10) + "\x00" + 
+                                     node.grammarType + "\x00";
   }
 
   let typeCounts: Map<string, number> = new Map();

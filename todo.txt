@@ -1,5 +1,6 @@
 bugs ...
   can't repeat ...
+    show nodes wrong places late in file
     ...functionTopMargin
     = err
     next broken in demo folder
@@ -8,14 +9,27 @@ bugs ...
       next broken
     cut/paste leaves mark behind
 
+  toggle key and menu broken
+
+  ts: export interface NodeData {
+        funcId: string;
+      }
+  c: struct RenameToken {
+       RenameToken *pNext; 
+     };
+    #ifdef SQLITE_DEBUG
+
+
+
 todo ...
   clnup languages
   find all syntax names and space them
+  select dbl-click name
+  next/prev leave selection at start of name
+
 
 low priority ...
-  foo.bar = 1;
   delete file leaves folder
-  fix rust
 
 unlikely ...
   multiple items in one line
