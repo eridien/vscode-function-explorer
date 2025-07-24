@@ -356,7 +356,6 @@ export class FuncItem extends Item {
   endName!:           number;
   end!:               number;
   funcId!:            string;
-  funcParents!:       [string, string][];
   stayVisible!:       boolean;
   private startLine: number | undefined;
   private endLine:   number | undefined;
@@ -386,7 +385,7 @@ export class FuncItem extends Item {
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
   isFunction(type: string = this.type): boolean {
-    return (type == 'function');
+    return (type == 'func');
   }
   clear() {
     this.startLine = undefined;
@@ -407,25 +406,25 @@ export class FuncItem extends Item {
   }
   getDescription() {
     let description   = '';
-    const prevParents = this.prevSibling?.funcParents ?? [];
-    let matches       = (this.funcParents.length == prevParents.length);
-    for(let idx = 0; idx < this.funcParents.length; idx++) {
-      const funcParent = this.funcParents[idx];
-      if(matches) {
-        const prevParent = prevParents[idx];
-        if(prevParent[0] === funcParent[0] &&
-           prevParent[1] === funcParent[1]) {
-          if(idx == this.funcParents.length-1) {
-            description = ' "';
-            break;
-          }
-        } else matches = false;
-      }
-      description = this.getFuncItemStr(funcParent) + description;
-    }
-    // for(const funcParent of this.funcParents) 
-    //   description += this.getFuncItemStr(funcParent);
-    if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
+    // const prevParents = this.prevSibling?.funcParents ?? [];
+    // let matches       = (this.funcParents.length == prevParents.length);
+    // for(let idx = 0; idx < this.funcParents.length; idx++) {
+    //   const funcParent = this.funcParents[idx];
+    //   if(matches) {
+    //     const prevParent = prevParents[idx];
+    //     if(prevParent[0] === funcParent[0] &&
+    //        prevParent[1] === funcParent[1]) {
+    //       if(idx == this.funcParents.length-1) {
+    //         description = ' "';
+    //         break;
+    //       }
+    //     } else matches = false;
+    //   }
+    //   description = this.getFuncItemStr(funcParent) + description;
+    // }
+    // // for(const funcParent of this.funcParents) 
+    // //   description += this.getFuncItemStr(funcParent);
+    // if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
     return description.slice(1).trim();
   }
   getIconPath() {

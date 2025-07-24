@@ -35,9 +35,8 @@ async function getLangFromWasm(lang:string) {
 }
 
 export interface NodeData {
-  funcId:       string;
-  funcParents:  [string, string][];
   name:         string;
+  funcId:       string;
   type:         string;
   start:        number;
   startName:    number;
@@ -112,7 +111,6 @@ function getParentFuncId(node: SyntaxNode): string {
   return parentFuncId;
 }
 
-
 let lastParseErrFsPath = '';
 
 export async function parseCode(lang: string, code: string, fsPath: string, 
@@ -153,31 +151,20 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     lastIdx = nodeData.endName;
   }
 
-  function capToNodeData(lang: string,
-                          nameCapture: QueryCapture,
-                          funcCapture: QueryCapture): NodeData | null {
+  function capToNodeData(
+           nameCapture: QueryCapture, capture: QueryCapture): NodeData {
     const nameNode  = nameCapture.node;
     const startName = nameNode.startIndex;
     const endName   = nameNode.endIndex;
-    const name      = code.slice(startName, endName);
-    if (!name) return null;
-    let type     = funcCapture.name;
-    let funcNode = funcCapture.node;
-    let start    = funcNode.startIndex;
-    let end      = funcNode.endIndex;
-    let parents  = getParentFuncId(funcNode);
-    const funcParents: [string, string][] = [];
-    let funcId = idNodeName(funcNode);
-    if( funcId === '') funcId = name + "\x00" + type + "\x00";
-    for(let parent of parents) {
-      funcId += idNodeName(parent);
-      const nameNode = parent.childForFieldName('name');
-      const name     = nameNode?.text;
-      if (name) funcParents.push([name, parent.type]);
-    }
+    const name      = nameNode.text;
+    const type      = capture.name;
+    const node      = capture.node;
+    const start     = node.startIndex;
+    const end       = node.endIndex;
+    let funcId      = idNodeName(node) + getParentFuncId(node);
     funcId += fsPath;
-    const nodeData: NodeData = { lang, name, funcParents, funcId, 
-                                 start, startName, endName, end, type };
+    const nodeData: NodeData = { name, funcId, 
+                                 start, startName, endName, end, type, lang};
     if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
     return nodeData;
   }
@@ -200,16 +187,16 @@ export async function parseCode(lang: string, code: string, fsPath: string,
       log('err', 'parser.parse failed again, giving up:', (e as any).message);
       return [];
     }
-    const middle    = utils.findMiddleOfText(code);
+    const middle = utils.findMiddleOfText(code);
     if(lastParseErrFsPath !== fsPath)
       log('err', 'parse exception, retrying in two halves split at', middle,
                                  (e as any).message, path.basename(fsPath));
     lastParseErrFsPath = fsPath;
     const firstHalf = code.slice(0, middle);
-    const res1      = await parseCode(lang, firstHalf, fsPath, doc, true);
+    const res1 = await parseCode(lang, firstHalf, fsPath, doc, marks, true);
     if(!res1) return [];
     const secondHalf = code.slice(middle);
-    const res2       = await parseCode(lang, secondHalf, fsPath, doc, true);
+    const res2 = await parseCode(lang, secondHalf, fsPath, doc, marks, true);
     if (!res2) return [];
     for (const node of res2) {
       node.start += middle;
@@ -224,44 +211,21 @@ export async function parseCode(lang: string, code: string, fsPath: string,
     const query   = new Query(language as any, sExpr);
     const matches = query.matches(tree.rootNode as any);
     for (const match of matches) {
+      let nameCapture: QueryCapture | null = null;
+      let funcCapture: QueryCapture | null = null;
+      let idCapture:   QueryCapture | null = null;
       for (const capture of match.captures) {
-        let name:        String       | undefined = undefined;
-        let funcCapture: QueryCapture | undefined = undefined;
-        let idCapture:   QueryCapture | undefined = undefined;
         switch(capture.name) {
-          case 'name':  name = capture.node.text;  break;
-          case 'function': funcCapture = capture; break;
-          case 'id':         idCapture = capture; break;
+          case 'name': nameCapture = capture; break;
+          case 'func': funcCapture = capture; break;
+          case 'id':     idCapture = capture; break;
         }
-        if (!name || !(funcCapture || idCapture)) continue;
-        if(funcCapture) {
-          let funcId = name + "\x00" + funcCapture.name + "\x00";
-          funcId += getParentFuncId(funcCapture.node);
-          capToNodeData(lang, funcId, funcCapture);
-
-        }
-        else if(idCapture) {
-
-        }
-          if(!idCapture.node) continue;
-          const node = idCapture.node;
-          if(node.grammarType !== 'identifier') {
-            log('err', 'id capture node is not identifier:', 
-                node.grammarType, path.basename(fsPath));
-            continue;
-          }
-          if(!marksSet.has(node.text)) continue; // skip unmarked nodes
-          const funcId = getParentFuncId(node);
-          if(!funcId) continue; // no parent functions
-
       }
-    }
-
-      const nodeData = capToNodeData(lang,
-                                      name as QueryCapture,
-                                      funcCapture as QueryCapture);
-      if(!nodeData) continue;
-      nodes.push(nodeData);
+      if (!nameCapture || !(funcCapture || idCapture) ||
+            (idCapture && !marksSet.has(nameCapture.node.text))) continue;
+      const funcIdCapture: QueryCapture = 
+            funcCapture as QueryCapture ?? idCapture as QueryCapture;
+      nodes.push(capToNodeData(nameCapture, funcIdCapture));
     }
   } catch (e) {
     log('err', 'S-expression query failed', (e as any).message);
