@@ -25,7 +25,8 @@ export const langs: Langs = {
                 (arrow_function)))
             (parenthesized_expression
               (arrow_function))
-          ])
+          ]
+        )
         (assignment_expression
           left: (identifier) @name
           right: [
@@ -36,6 +37,7 @@ export const langs: Langs = {
             (parenthesized_expression
               (arrow_function))
           ]
+        )
         (method_definition
             name: (property_identifier) @name
         )
