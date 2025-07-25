@@ -237,12 +237,13 @@ export class FileItem extends Item {
     let hasMark = false;
     const funcItems = [...this.children as FuncItem[]].filter( func => {
       if(noFilter) return true;
-      const marked = mrks.hasMark(func);
-      hasMark          ||= marked;
-      func.stayVisible ||= marked;
-      func.stayVisible &&= !this.filtered;
-      return marked || func.stayVisible ||
-                      (func.isFunction() && !this.filtered);
+      const marked  = mrks.hasMark(func);
+      let stayAlive = mrks.hasStayAlive(func);
+      hasMark       ||= marked;
+      stayAlive     ||= marked;
+      stayAlive     &&= !this.filtered;
+      if(stayAlive) mrks.addStayAlive(func);
+      return marked || stayAlive || (func.isFunction() && !this.filtered);
     });
     if(funcItems.length === 0) return [];
     if(this.filtered && !hasMark) {
@@ -350,7 +351,6 @@ export class FuncItem extends Item {
   endName!:           number;
   end!:               number;
   funcId!:            string;
-  stayVisible!:       boolean;
   private startLine: number | undefined;
   private endLine:   number | undefined;
   private startKey:  string | undefined;
@@ -368,7 +368,6 @@ export class FuncItem extends Item {
       arguments: [this]
     };
   }
-  clrStayVisible() { this.stayVisible = false; }
   getFsPath()    {return this.parent.document.uri.fsPath;}
   getStartLine() {return this.startLine ??= 
                          this.parent.document.positionAt(this.start).line;};

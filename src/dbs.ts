@@ -192,7 +192,8 @@ export const fils = new FilePaths();
 ////////////////////// mark data //////////////////////
 
 class Marks {
-  private static markIdSetByFspath: Map<string, Set<string>> = new Map();
+  private static markIdSetByFspath:    Map<string, Set<string>> = new Map();
+  private static stayAliveSetByFspath: Map<string, Set<string>> = new Map();
 
   clearAllMarks() {
     Marks.markIdSetByFspath.clear();
@@ -214,15 +215,41 @@ class Marks {
     if(!funcIdSet) return false;
     return funcIdSet.has(funcId);
   }
+  hasStayAlive(funcItem: FuncItem): boolean {
+    const fsPath = funcItem.getFsPath();
+    const funcId = funcItem.funcId;
+    const stayAliveSet = Marks.stayAliveSetByFspath.get(fsPath);
+    if(!stayAliveSet) return false;
+    return stayAliveSet.has(funcId);
+  }
+  namesByFsPath(fsPath: string): Set<string> {
+    const funcIdSet    = Marks.markIdSetByFspath.get(fsPath);
+    const stayAliveSet = Marks.stayAliveSetByFspath.get(fsPath);
+    const names = new Set<string>();
+    if(funcIdSet)
+       for(const funcId of [...funcIdSet]) names.add(funcId.split('\x00')[0]);
+    if(!stayAliveSet) return names;
+    for(const funcId of [...stayAliveSet]) names.add(funcId.split('\x00')[0]);
+    return names;
+  }
   addMark(fsPath: string, funcId: string) {
     let funcIdSet = Marks.markIdSetByFspath.get(fsPath);
     if(!funcIdSet) {
       funcIdSet = new Set<string>();
       Marks.markIdSetByFspath.set(fsPath, funcIdSet);
     }
-    // log('addMark', funcId);
     funcIdSet.add(funcId);
     saveMarks();
+  }
+  addStayAlive(funcItem: FuncItem) {
+    const fsPath  = funcItem.getFsPath();
+    const funcId  = funcItem.funcId;
+    let funcIdSet = Marks.stayAliveSetByFspath.get(fsPath);
+    if(!funcIdSet) {
+      funcIdSet = new Set<string>();
+      Marks.stayAliveSetByFspath.set(fsPath, funcIdSet);
+    }
+    funcIdSet.add(funcId);
   }
   delMark(funcItem: FuncItem) {
     const fsPath    = funcItem.getFsPath();
@@ -230,6 +257,9 @@ class Marks {
     if(!funcIdSet) return;
     funcIdSet.delete(funcItem.funcId);
     saveMarks();
+  }
+  clrStayAlive(fsPath: string) {
+    Marks.stayAliveSetByFspath.delete(fsPath);
   }
 }
 export const mrks = new Marks();

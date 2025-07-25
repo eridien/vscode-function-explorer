@@ -85,7 +85,7 @@ export async function toggleItemMarkCmd(funcItem: FuncItem) {
   await disp.revealFuncInEditor(funcItem, red);
 }
 
-async function prevNext(next: boolean, fromToggle = false) {
+async function prevNext(next: boolean) {
   let editor = vscode.window.activeTextEditor;
   if(!editor || editor.document.uri.scheme !== 'file' ||
                      !sett.includeFile(editor.document.uri.fsPath)) {
@@ -108,8 +108,8 @@ async function prevNext(next: boolean, fromToggle = false) {
       editor.document.uri.scheme !== 'file' ||
       !sett.includeFile(editor.document.uri.fsPath)) return;
   const fsPath   = editor.document.uri.fsPath;
-  const fileWrap = settings.fileWrap && !fromToggle;
-  const filtered = !fromToggle && !NEXT_DEBUG;
+  const fileWrap = settings.fileWrap;
+  const filtered = !NEXT_DEBUG;
   const funcs = await itmc.getSortedFuncs(fsPath, fileWrap, filtered);
   if(funcs.length == 0) {
     const fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem;
@@ -126,14 +126,12 @@ async function prevNext(next: boolean, fromToggle = false) {
       const funcFsPath = (fileWrap ? func.getFsPath() : '');
       if(funcFsPath < selFsPath) continue;
       if(funcFsPath > selFsPath) {
-        if(fromToggle) return;
         break;
       }
       const funcKey = utils.createSortKey(
                                 funcFsPath, func.getStartLine());
       if(funcKey > selKey) break;
       else if(i == funcs.length-1) {  
-        if(fromToggle) return;
         func = funcs[0];
         break;
       }
@@ -145,14 +143,12 @@ async function prevNext(next: boolean, fromToggle = false) {
       const funcFsPath = (fileWrap ? func.getFsPath() : '');
       if(funcFsPath > selFsPath) continue;
       if(funcFsPath < selFsPath) {
-        if(fromToggle) return;
         break;
       }
       const funcKey = utils.createSortKey(
                                 funcFsPath, func.getStartLine());
       if(funcKey < selKey) break;
       else if(i == 0) {
-        if(fromToggle) return;
         func = funcs[funcs.length-1];
         break;
       }
@@ -160,16 +156,7 @@ async function prevNext(next: boolean, fromToggle = false) {
   }
   if(!func) return;
   sbar.revealItemByFunc(func);
-  if(fromToggle) {
-    if(editor.visibleRanges.length > 0) {
-      const lastRange = editor
-              .visibleRanges[editor.visibleRanges.length - 1];
-      const lastVisibleLine = lastRange.end.line;
-      if(func.getStartLine() >= lastVisibleLine) return;
-    }
-  }
   await disp.revealFuncInEditor(func, false, true);
-  if(fromToggle) await disp.setMark(func, true);
 }
 
 export async function prev() { await prevNext(false); }
@@ -312,7 +299,7 @@ export async function selectionChg(
       }
       if(treeView.visible && selStart === func.startName && 
                              selEnd   === func.endName) {
-        func.stayVisible = true;
+        mrks.addStayAlive(func);
         sbar.revealItemByFunc(func);
         if(func.parent) sbar.updateItemInTree(func.parent);
         return;

@@ -155,9 +155,7 @@ export async function parseCode(code: string, fsPath: string,
   if (!language) return [];
   const {sExpr}      = langs[lang];
   const haveParseIdx = parseIdx !== null;
-  let markArr = [...mrks.getMarkSet(fsPath)]
-                        .map(mark => mark.split('\x00')[0]);
-  const marks  = new Set(markArr);
+  let keepNames = mrks.namesByFsPath(fsPath);
   const parser = new Parser();
   parser.setLanguage(language);
   let tree: Tree | null;
@@ -214,7 +212,7 @@ export async function parseCode(code: string, fsPath: string,
       }
       if (!nameCapture || !(funcCapture || idCapture)) continue;
       if(!haveParseIdx) {
-        if (idCapture && !marks.has(nameCapture.node.text)) continue;
+        if (idCapture && !keepNames.has(nameCapture.node.text)) continue;
         const funcIdCapture: QueryCapture = 
               funcCapture as QueryCapture ?? idCapture as QueryCapture;
         nodes.push(capToNodeData(lang, fsPath, nameCapture, funcIdCapture));

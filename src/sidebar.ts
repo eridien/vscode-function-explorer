@@ -213,7 +213,6 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
   return {structChg, funcItems};
 }
 
-
 let blockChg = false;
 export function blockExpChg() { blockChg = true; }
 let blockChgTimeout: NodeJS.Timeout | undefined;
@@ -235,11 +234,10 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
     let haveMark = false;
     for(const funcItem of funcItems) {
       if(mrks.hasMark(funcItem)) haveMark = true;
-      if(funcItem.stayVisible) {
-        filesChanged.add(funcItem.parent);
-        funcItem.clrStayVisible();
-      }
+      if(mrks.hasStayAlive(funcItem))
+         filesChanged.add(funcItem.parent);
     }
+    mrks.clrStayAlive(item.document.uri.fsPath);
     if(!haveMark && item.filtered) {
       filesChanged.add(item);
       item.filtered = false;
