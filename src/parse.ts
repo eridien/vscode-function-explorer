@@ -124,19 +124,20 @@ function collectParseStats(nodeData: NodeData) {
 }
 
 function capToNodeData(lang: string, fsPath: string,
-          nameCapture: QueryCapture, capture: QueryCapture): NodeData {
+          nameCapture: QueryCapture, 
+          funcCapture: QueryCapture | null): NodeData {
   const nameNode  = nameCapture.node;
   const startName = nameNode.startIndex;
   const endName   = nameNode.endIndex;
   const name      = nameNode.text;
-  const type      = capture.name;
-  const node      = capture.node;
+  const type      = funcCapture ? funcCapture.name : 'id';
+  const node      = funcCapture ? funcCapture.node : nameNode;
   const start     = node.startIndex;
   const end       = node.endIndex;
   let funcId      = idNodeName(node) + getParentFuncId(node);
   funcId += fsPath;
   const nodeData: NodeData = { name, funcId, 
-                                start, startName, endName, end, type, lang};
+                               start, startName, endName, end, type, lang};
   if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
   return nodeData;
 }
@@ -197,37 +198,31 @@ export async function parseCode(code: string, fsPath: string,
   try {
     const query   = new Query(language as any, sExpr);
     const matches = query.matches(tree.rootNode as any);
-    let lastNameCapture:   QueryCapture | null = null;
-    let lastfuncIdCapture: QueryCapture | null = null;
+    let lastNameCapture: QueryCapture | null = null;
+    let lastFuncCapture: QueryCapture | null = null;
     for (const match of matches) {
       let nameCapture: QueryCapture | null = null;
       let funcCapture: QueryCapture | null = null;
-      let idCapture:   QueryCapture | null = null;
       for (const capture of match.captures) {
         switch(capture.name) {
           case 'name': nameCapture = capture; break;
           case 'func': funcCapture = capture; break;
-          case 'id':     idCapture = capture; break;
         }
       }
-      if (!nameCapture || !(funcCapture || idCapture)) continue;
+      if (!nameCapture) continue;
       if(!haveParseIdx) {
-        if (idCapture && !keepNames.has(nameCapture.node.text)) continue;
-        const funcIdCapture: QueryCapture = 
-              funcCapture as QueryCapture ?? idCapture as QueryCapture;
-        nodes.push(capToNodeData(lang, fsPath, nameCapture, funcIdCapture));
+        if (!funcCapture && !keepNames.has(nameCapture.node.text)) continue;
+        nodes.push(capToNodeData(lang, fsPath, nameCapture, funcCapture));
       }
       else {
         if(lastNameCapture && (nameCapture.node.startIndex ?? 0) > parseIdx) {
-          const funcIdCapture: QueryCapture = 
-                funcCapture ?? idCapture as QueryCapture;
-          nodes.push(capToNodeData(lang, fsPath, lastNameCapture, 
-                                                 lastfuncIdCapture!));
-          nodes.push(capToNodeData(lang, fsPath, nameCapture, funcIdCapture));
+          nodes.push(capToNodeData(lang, fsPath, lastNameCapture!, 
+                                                 lastFuncCapture!));
+          nodes.push(capToNodeData(lang, fsPath, nameCapture, funcCapture));
           break nodesLoop;
         }
-        lastNameCapture   = nameCapture;
-        lastfuncIdCapture = funcCapture ?? idCapture;
+        lastNameCapture = nameCapture;
+        lastFuncCapture = funcCapture;
       }
     }
   } catch (e) {
@@ -239,10 +234,10 @@ export async function parseCode(code: string, fsPath: string,
   if(PARSE_DEBUG_STATS) {
     const lineCount = doc.positionAt(code.length).line;
     const nodeCount = nodes.length;
-    log('nomod', `\n${path.basename(fsPath)}, parseIdx: ${parseIdx} ` +
+    log(`${path.basename(fsPath)}, parseIdx: ${parseIdx} ` +
         `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
         [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`)
-                                 .join('\n'), '\n');
+                                 .join('\n'));
   }
   end('parseCode', false);
   return nodes;

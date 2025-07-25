@@ -42,7 +42,8 @@ export const langs: Langs = {
             name: (property_identifier) @name
         )
       ] @func
-      (((identifier) @name) @id)        
+
+      (identifier) @name      
     ]`,
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
@@ -53,7 +54,8 @@ export const langs: Langs = {
       (function_definition
         name: (identifier) @name
        ) @func
-      (((identifier) @name) @id)        
+      
+      (identifier) @name      
     ]`,
     suffixes: new Set(['.py'])
   },
@@ -65,7 +67,8 @@ export const langs: Langs = {
         declarator: (function_declarator
           declarator: (identifier) @name)
        ) @func
-      (((identifier) @name) @id)        
+      
+      (identifier) @name      
     ]`,
     suffixes: new Set(['.c','.cpp'])
   },
@@ -76,7 +79,8 @@ export const langs: Langs = {
       (method_declaration
            (identifier) @name
        ) @func
-      (((identifier) @name) @id)
+      
+      (identifier) @name      
     ]`,
     suffixes:    new Set(['.java'])
   },
@@ -92,7 +96,8 @@ export const langs: Langs = {
           name: (identifier) @name
         )
       ] @func
-      (((identifier) @name) @id)
+      
+      (identifier) @name      
     ]`,
     suffixes:    new Set(['.cs'])
   },
@@ -105,7 +110,8 @@ export const langs: Langs = {
         (method_declaration
           name: (field_identifier) @name)
       ] @func
-      (((identifier) @name ) @id)
+      
+      (identifier) @name      
     ]`,
     suffixes: new Set(['.go'])
   },
@@ -116,7 +122,8 @@ export const langs: Langs = {
       (function_item
         name: (identifier) @name
       ) @func
-      (((identifier) @name) @id)                
+      
+      (identifier) @name      
     ]`,
     suffixes: new Set(['.rs'])
   },
