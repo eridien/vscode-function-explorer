@@ -9,7 +9,8 @@ bugs ...
       next broken
     cut/paste leaves mark behind
 
-  toggle key and menu broken
+  updateFileChildrenFromAst blows away stayalive
+    disp:82   side:160
 
   ts: export interface NodeData {
         funcId: string;
