@@ -213,13 +213,11 @@ export class FileItem extends Item {
   declare parent:   WsAndFolderItem | null;
   declare children: FuncItem[]      | null;
   document:         vscode.TextDocument;
-  lang:             string = '';
   expanded:         boolean = false;
   filtered:         boolean = false;
   alphaSorted:      boolean;
-  constructor(lang: string, document: vscode.TextDocument) {
+  constructor(document: vscode.TextDocument) {
     super(document.uri, vscode.TreeItemCollapsibleState.Collapsed);
-    this.lang     = lang;
     this.document = document;
     this.refresh();
     this.id            = getItemId();
@@ -309,12 +307,9 @@ export async function getOrMakeFileItemByFsPath(
   // log('getOrMakeFileItemByFsPath', path.basename(fsPath));
   let fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem | undefined;
   if (!fileItem) {
-    const lang = pars.getLangByFsPath(fsPath);
-    if(!lang) 
-      return null;
     const uri      = vscode.Uri.file(fsPath);
     const document = await vscode.workspace.openTextDocument(uri);
-    fileItem = new FileItem(lang, document);
+    fileItem = new FileItem(document);
   }
   return fileItem;
 }
@@ -341,7 +336,6 @@ interface FuncData {
   startName: number;
   endName:   number;
   end:       number;
-  lang:      string;
 }
 
 export class FuncItem extends Item {

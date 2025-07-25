@@ -1,13 +1,12 @@
 import * as vscode      from 'vscode';
 import * as path        from 'path';
 import * as disp        from './display';
-import * as dbs         from './dbs';
-import  {mrks}          from './dbs';
-import  {itms, fils}    from './dbs';
+import * as pars        from './parse';
+import  {itms, mrks}    from './dbs';
 import * as sbar        from './sidebar';
 import * as itmc        from './item-classes';
-import {Item, WsAndFolderItem, FolderItem, 
-        FileItem, FuncItem, itemDeleteCount} from './item-classes';
+import {Item, FolderItem, FileItem, 
+        FuncItem, itemDeleteCount} from './item-classes';
 import * as sett        from './settings';
 import {settings}       from './settings';
 import * as utils       from './utils';
@@ -25,29 +24,21 @@ export async function activate(treeViewIn: vscode.TreeView<Item>) {
 
 export async function toggleCmd() {
   // log('toggleCmd');
-  let aroundFuncItem = await disp.getFuncInAroundSelection();
-  if(!aroundFuncItem) {
-    await prevNext(true, true);
-    return;
-  }
   const activeEditor = vscode.window.activeTextEditor;
   if (!activeEditor) return;
-  const selFsPath = activeEditor.document.uri.fsPath;
-  const funcItems = await itmc.getSortedFuncs(selFsPath, false, false);
-  if(funcItems.length == 0) return;
-  const selLine = activeEditor.selection.active.line;
-  const nextFuncItem = funcItems.find(item => item.getStartLine() > selLine);
-  let funcItemToMark = (nextFuncItem as FuncItem);
-  if(!nextFuncItem)
-    funcItemToMark = aroundFuncItem;
-  else if(nextFuncItem.getStartLine() > aroundFuncItem.getEndLine())
-    funcItemToMark = aroundFuncItem;
-  else {
-    const distFromSelToAround = selLine - aroundFuncItem.getStartLine();
-    const distFromSelToNext   = nextFuncItem.getStartLine() - selLine;
-    if(distFromSelToAround <= distFromSelToNext)
-      funcItemToMark = aroundFuncItem;
-  }
+  const document = activeEditor.document;
+  const fsPath = document.uri.fsPath;
+  const selIdx = document.offsetAt(activeEditor.selection.active);
+  const beforeAfter = 
+     await pars.parseCode(document.getText(), fsPath, document, false, selIdx);
+  const beforeIdx = beforeAfter[0].start;
+  const afterIdx  = beforeAfter[1].start;
+  const midIdx    = (beforeIdx + afterIdx) / 2;
+  const fileItem  = itms.getFldrFileByFsPath(fsPath) as FileItem;
+  const funcItem  = new FuncItem(
+             (selIdx < midIdx) ? {...beforeAfter[0], parent:fileItem} :
+                                 {...beforeAfter[1], parent:fileItem});
+  await disp.setMark(funcItem, false, true);                  
 }
 
 let nodesDecorationType: vscode.TextEditorDecorationType | undefined;

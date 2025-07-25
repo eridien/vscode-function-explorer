@@ -151,6 +151,7 @@ export async function refreshTree(updateFuncs = false) {
 }
 
 export function revealItemByFunc(func: FuncItem) {
+  // if(!treeView.visible) return;
   treeView.reveal(func, {expand: true, select: true, focus: false});
 }
 
@@ -172,8 +173,7 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
   };
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
-  const nodeData = await parse.parseCode(
-                                   fileItem.lang, docText, fsPath, document);
+  const nodeData = await parse.parseCode(docText, fsPath, document);
   if(!nodeData || nodeData.length === 0) return empty();
   let matchCount              = 0;
   let structChg               = false;

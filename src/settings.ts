@@ -127,12 +127,7 @@ export async function setScroll(editor: vscode.TextEditor,
 }
 
 export function includeFile(fsPath: string, folder = false): boolean {
-  if(!folder) {
-    const ext     = path.extname(fsPath).toLowerCase();
-    const hasLang = Object.values(langs).some(lang => lang.suffixes.has(ext));
-    if(!hasLang) return false;
-  }
-  else {
+  if(folder) {
     for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
       if(fsPath === wsFolder.uri.fsPath) return true;
     }

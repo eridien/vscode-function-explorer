@@ -4,6 +4,7 @@ import {langs}                             from './languages';
 import { Tree, QueryCapture, 
          Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
+import { mrks } from './dbs';
 const {log, start, end} = utils.getLog('pars');
 
 const PARSE_DUMP_TYPE: string = '';  
@@ -111,46 +112,47 @@ function getParentFuncId(node: SyntaxNode): string {
   return parentFuncId;
 }
 
+let typeCounts: Map<string, number> = new Map();
+
+function collectParseStats(nodeData: NodeData) {
+  typeCounts.set(nodeData.type, 
+                (typeCounts.get(nodeData.type) ?? 0) + 1);
+}
+
+function capToNodeData(lang: string, fsPath: string,
+          nameCapture: QueryCapture, capture: QueryCapture): NodeData {
+  const nameNode  = nameCapture.node;
+  const startName = nameNode.startIndex;
+  const endName   = nameNode.endIndex;
+  const name      = nameNode.text;
+  const type      = capture.name;
+  const node      = capture.node;
+  const start     = node.startIndex;
+  const end       = node.endIndex;
+  let funcId      = idNodeName(node) + getParentFuncId(node);
+  funcId += fsPath;
+  const nodeData: NodeData = { name, funcId, 
+                                start, startName, endName, end, type, lang};
+  if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
+  return nodeData;
+}
+
 let lastParseErrFsPath = '';
 
-export async function parseCode(lang: string, code: string, fsPath: string, 
-                                doc: vscode.TextDocument, marks: String[] = [],
-                                retrying = false, parseIdIdx: number | null = null): 
-                                               Promise<NodeData[] | null> {
+export async function parseCode(code: string, fsPath: string, 
+                                doc: vscode.TextDocument, 
+                                retrying = false, 
+                                parseIdx: number | null = null): 
+                                               Promise<NodeData[]> {
   start('parseCode', true);
+  const lang  = getLangByFsPath(fsPath);
+  if(!lang) return [];
   const language = await getLangFromWasm(lang);
   if (!language) return [];
-  const {sExpr} = langs[lang];
+  const {sExpr}      = langs[lang];
+  const haveParseIdx = parseIdx !== null;
+  const marks        = mrks.getMarkSet(fsPath);
 
-  const marksSet = new Set();
-  for (const mark of marks) marksSet.add(mark.split('\x00')[0]);
-
-  let typeCounts: Map<string, number> = new Map();
-
-  function collectParseStats(nodeData: NodeData) {
-    typeCounts.set(nodeData.type, 
-                  (typeCounts.get(nodeData.type) ?? 0) + 1);
-  }
-
-  function capToNodeData(
-           nameCapture: QueryCapture, capture: QueryCapture): NodeData {
-    const nameNode  = nameCapture.node;
-    const startName = nameNode.startIndex;
-    const endName   = nameNode.endIndex;
-    const name      = nameNode.text;
-    const type      = capture.name;
-    const node      = capture.node;
-    const start     = node.startIndex;
-    const end       = node.endIndex;
-    let funcId      = idNodeName(node) + getParentFuncId(node);
-    funcId += fsPath;
-    const nodeData: NodeData = { name, funcId, 
-                                 start, startName, endName, end, type, lang};
-    if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
-    return nodeData;
-  }
-  
-  // start('parseCode', true);
   const parser = new Parser();
   parser.setLanguage(language);
   let tree: Tree | null;
@@ -174,10 +176,10 @@ export async function parseCode(lang: string, code: string, fsPath: string,
                                  (e as any).message, path.basename(fsPath));
     lastParseErrFsPath = fsPath;
     const firstHalf = code.slice(0, middle);
-    const res1 = await parseCode(lang, firstHalf, fsPath, doc, marks, true);
+    const res1 = await parseCode(firstHalf,  fsPath, doc, true, parseIdx);
     if(!res1) return [];
     const secondHalf = code.slice(middle);
-    const res2 = await parseCode(lang, secondHalf, fsPath, doc, marks, true);
+    const res2 = await parseCode(secondHalf, fsPath, doc, true, parseIdx);
     if (!res2) return [];
     for (const node of res2) {
       node.start += middle;
@@ -188,9 +190,12 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   if(PARSE_DUMP_NAME !== '' || PARSE_DUMP_TYPE !== '')   
     parseDebug(tree.rootNode);
   const nodes: NodeData[] = [];
+  nodesLoop:
   try {
     const query   = new Query(language as any, sExpr);
     const matches = query.matches(tree.rootNode as any);
+    let lastNameCapture:   QueryCapture | null = null;
+    let lastfuncIdCapture: QueryCapture | null = null;
     for (const match of matches) {
       let nameCapture: QueryCapture | null = null;
       let funcCapture: QueryCapture | null = null;
@@ -202,11 +207,25 @@ export async function parseCode(lang: string, code: string, fsPath: string,
           case 'id':     idCapture = capture; break;
         }
       }
-      if (!nameCapture || !(funcCapture || idCapture) ||
-            (idCapture && !marksSet.has(nameCapture.node.text))) continue;
-      const funcIdCapture: QueryCapture = 
-            funcCapture as QueryCapture ?? idCapture as QueryCapture;
-      nodes.push(capToNodeData(nameCapture, funcIdCapture));
+      if (!nameCapture || !(funcCapture || idCapture)) continue;
+      if(!haveParseIdx) {
+        if (idCapture && !marks.has(nameCapture.node.text)) continue;
+        const funcIdCapture: QueryCapture = 
+              funcCapture as QueryCapture ?? idCapture as QueryCapture;
+        nodes.push(capToNodeData(lang, fsPath, nameCapture, funcIdCapture));
+      }
+      else {
+        if(lastNameCapture && (nameCapture.node.startIndex ?? 0) > parseIdx) {
+          const funcIdCapture: QueryCapture = 
+                funcCapture ?? idCapture as QueryCapture;
+          nodes.push(capToNodeData(lang, fsPath, lastNameCapture, 
+                                                 lastfuncIdCapture!));
+          nodes.push(capToNodeData(lang, fsPath, nameCapture, funcIdCapture));
+          break nodesLoop;
+        }
+        lastNameCapture   = nameCapture;
+        lastfuncIdCapture = funcCapture ?? idCapture;
+      }
     }
   } catch (e) {
     log('err', 'S-expression query failed', (e as any).message);
@@ -217,7 +236,7 @@ export async function parseCode(lang: string, code: string, fsPath: string,
   if(PARSE_DEBUG_STATS) {
     const lineCount = doc.positionAt(code.length).line;
     const nodeCount = nodes.length;
-    log('nomod', `\n${path.basename(fsPath)}: ` +
+    log('nomod', `\n${path.basename(fsPath)}, parseIdx: ${parseIdx} ` +
         `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
         [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`)
                                  .join('\n'), '\n');
