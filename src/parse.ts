@@ -93,22 +93,20 @@ export function getLangByFsPath(fsPath: string): string | null {
 
 function idNodeName(node: SyntaxNode): string {
   if(node.grammarType === 'identifier') {
-    return node.text + "\x00id\x00";
+    return node.text + "\x01id\x00";
   }
   else {
     const nameNode = node.childForFieldName('name');
-    const name     = nameNode ? nameNode.text + "\x00" : '';
+    const name     = nameNode ? nameNode.text : '';
     let context    = node.text.slice(name.length, CONTEXT_LENGTH)
                               .replace(/\s+/g, '');
-    return name + "\x00" +
-           node.grammarType + "\x00" + 
-           context + "\x00";
+    return name + "\x01" + node.grammarType + "\x00" + context + "\x00";
   }
 }
 
 function getParentFuncId(node: SyntaxNode): string {
   let parentFuncId = '';
-  let parent       = node.parent;
+  let parent = node.parent;
   while (parent) {
     parentFuncId += idNodeName(parent);
     parent = parent.parent;
@@ -135,6 +133,7 @@ function capToNodeData(lang: string, fsPath: string,
   const start     = node.startIndex;
   const end       = node.endIndex;
   let funcId      = idNodeName(node) + getParentFuncId(node);
+  log(`funcId -> ${funcId.replace(/\x01/g, '-').replace(/\x00/g, '|')}`);
   funcId += fsPath;
   const nodeData: NodeData = { name, funcId, 
                                start, startName, endName, end, type, lang};
@@ -210,8 +209,10 @@ export async function parseCode(code: string, fsPath: string,
         }
       }
       if (!nameCapture) continue;
+      const name = nameCapture.node.text + '\0x01' + 
+                   nameCapture.node.grammarType;
       if(!haveParseIdx) {
-        if (!funcCapture && !keepNames.has(nameCapture.node.text)) continue;
+        if (!funcCapture && !keepNames.has(name)) continue;
         nodes.push(capToNodeData(lang, fsPath, nameCapture, funcCapture));
       }
       else {

@@ -223,7 +223,7 @@ class Marks {
     return stayAliveSet.has(funcId);
   }
   namesByFsPath(fsPath: string): Set<string> {
-    const funcIdSet    = Marks.markIdSetByFspath.get(fsPath);
+    const funcIdSet    = Marks.markIdSetByFspath   .get(fsPath);
     const stayAliveSet = Marks.stayAliveSetByFspath.get(fsPath);
     const names = new Set<string>();
     if(funcIdSet)

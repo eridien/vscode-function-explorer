@@ -42,8 +42,10 @@ export const langs: Langs = {
             name: (property_identifier) @name
         )
       ] @func
-
-      (identifier) @name      
+      [
+        (declaration)  
+        (identifier)
+      ] @name
     ]`,
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },

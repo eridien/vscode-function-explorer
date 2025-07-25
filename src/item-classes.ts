@@ -9,8 +9,8 @@ import { parse } from '@babel/parser';
 import { prev } from './commands';
 const {log, start, end} = utils.getLog('itms');
 
-const DEBUG_FUNC_TYPE = false;
-// const DEBUG_FUNC_TYPE = true;
+// const DEBUG_FUNC_TYPE = false;
+const DEBUG_FUNC_TYPE = true;
 
 let treeView: vscode.TreeView<Item>;
 export function activate(treeViewIn: vscode.TreeView<Item>) {
@@ -398,13 +398,24 @@ export class FuncItem extends Item {
     return label.trim();
   }
   getDescription() {
-    let description   = '';
-    // const prevParents = this.prevSibling?.funcParents ?? [];
-    // let matches       = (this.funcParents.length == prevParents.length);
+    // let description  = '';
+    // const prevDescription = this.prevSibling?.description ?? '';
+    // const thisDescription = this.description              ?? '';
+    // let matches     = (thisDescription.length == prevDescription.length);
+    // let funcIdParts = this.funcId.split('\x00');
+    // for(const part of funcIdParts) {
+    //   if(part.length === 0) continue;
+    //   let name = '';
+    //   let type = '';
+    //   if(     part.endsWith('id\x01')) name = part.slice(0, -1);
+    //   else if(part.endsWith('id\x02')) type = part.slice(0, -1);
+    //   else continue;
+
+
     // for(let idx = 0; idx < this.funcParents.length; idx++) {
     //   const funcParent = this.funcParents[idx];
     //   if(matches) {
-    //     const prevParent = prevParents[idx];
+    //     const prevParent = prevDescription[idx];
     //     if(prevParent[0] === funcParent[0] &&
     //        prevParent[1] === funcParent[1]) {
     //       if(idx == this.funcParents.length-1) {
@@ -418,7 +429,8 @@ export class FuncItem extends Item {
     // // for(const funcParent of this.funcParents) 
     // //   description += this.getFuncItemStr(funcParent);
     // if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
-    return description.slice(1).trim();
+    // return description.slice(1).trim();
+    return '';
   }
   getIconPath() {
      return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;
