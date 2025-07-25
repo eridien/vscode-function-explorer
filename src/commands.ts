@@ -27,18 +27,28 @@ export async function toggleCmd() {
   const activeEditor = vscode.window.activeTextEditor;
   if (!activeEditor) return;
   const document = activeEditor.document;
-  const fsPath = document.uri.fsPath;
+  const fsPath   = document.uri.fsPath;
+  const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
+  if (!fileItem) return;
   const selIdx = document.offsetAt(activeEditor.selection.active);
   const beforeAfter = 
      await pars.parseCode(document.getText(), fsPath, document, false, selIdx);
   const beforeIdx = beforeAfter[0].start;
   const afterIdx  = beforeAfter[1].start;
   const midIdx    = (beforeIdx + afterIdx) / 2;
-  const fileItem  = itms.getFldrFileByFsPath(fsPath) as FileItem;
-  const funcItem  = new FuncItem(
-             (selIdx < midIdx) ? {...beforeAfter[0], parent:fileItem} :
-                                 {...beforeAfter[1], parent:fileItem});
-  await disp.setMark(funcItem, false, true);                  
+  let beforeAfterIdx = (selIdx < midIdx) ? 0 : 1;
+  let funcId = beforeAfter[beforeAfterIdx]?.funcId;
+  if(!funcId) {
+    beforeAfterIdx = 1-beforeAfterIdx;
+    funcId = beforeAfter[beforeAfterIdx]?.funcId;
+  }
+  if(!funcId) return;
+  const funcItems = itms.getFuncItemsByFsPath(fsPath);
+  let funcItem    = funcItems.find(item => item.funcId === funcId);
+  if (!funcItem) funcItem = new FuncItem(
+                 {...beforeAfter[beforeAfterIdx], parent:fileItem});
+  itms.setFunc(funcItem);
+  await disp.setMark(funcItem, true);
 }
 
 let nodesDecorationType: vscode.TextEditorDecorationType | undefined;

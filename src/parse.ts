@@ -92,13 +92,17 @@ export function getLangByFsPath(fsPath: string): string | null {
 }
 
 function idNodeName(node: SyntaxNode): string {
-  const context  = node.text.slice(0, CONTEXT_LENGTH).replace(/\s+/g, '');
-  if(node.grammarType === 'identifier') 
-    return node.text + "\x00id\x00" + context + "\x00";
+  if(node.grammarType === 'identifier') {
+    return node.text + "\x00id\x00";
+  }
   else {
     const nameNode = node.childForFieldName('name');
     const name     = nameNode ? nameNode.text + "\x00" : '';
-    return name + node.grammarType + "\x00" + context + "\x00";
+    let context    = node.text.slice(name.length, CONTEXT_LENGTH)
+                              .replace(/\s+/g, '');
+    return name + "\x00" +
+           node.grammarType + "\x00" + 
+           context + "\x00";
   }
 }
 
@@ -151,8 +155,9 @@ export async function parseCode(code: string, fsPath: string,
   if (!language) return [];
   const {sExpr}      = langs[lang];
   const haveParseIdx = parseIdx !== null;
-  const marks        = mrks.getMarkSet(fsPath);
-
+  let markArr = [...mrks.getMarkSet(fsPath)]
+                        .map(mark => mark.split('\x00')[0]);
+  const marks  = new Set(markArr);
   const parser = new Parser();
   parser.setLanguage(language);
   let tree: Tree | null;

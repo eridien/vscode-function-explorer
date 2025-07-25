@@ -11,7 +11,7 @@ const {log, start, end} = utils.getLog('dbss');
 
 let context: vscode.ExtensionContext;
 
-const CLEAR_MARKS_ON_STARTUP = false;
+const CLEAR_MARKS_ON_STARTUP = true;
 
 export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;

@@ -68,11 +68,16 @@ export async function updateGutter(editor: vscode.TextEditor,
 
 export async function setMark(funcItem: FuncItem, 
           toggle = false, mark:boolean = false): Promise<boolean | undefined> {
-  // log('setMark', funcItem.name, toggle, mark);
+          
+  log('setMark', funcItem.name, toggle, mark);
+
   const fsPath = funcItem.getFsPath();
   if(!fsPath) return;
   const funcId  = funcItem.funcId;
   const markSet = mrks.getMarkSet(fsPath);
+
+  log(Array.from(markSet));
+
   let marked    = markSet.has(funcId);
   let wasMarked = marked;
   if (toggle) marked = !marked;
@@ -80,6 +85,10 @@ export async function setMark(funcItem: FuncItem,
   if(marked === wasMarked)  return;
   if(marked) mrks.addMark(fsPath, funcId);
   else       mrks.delMark(funcItem);
+
+  const allMarks = mrks.getAllMarks();
+  log(Array.from(allMarks));
+  funcItem.parent.children = null;  
   sbar.updateItemInTree(funcItem.parent);
   const activeEditor = vscode.window.activeTextEditor;
   if(!activeEditor || activeEditor.document.uri.fsPath !== fsPath) return;
