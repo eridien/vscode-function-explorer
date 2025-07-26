@@ -93,7 +93,7 @@ export function getLangByFsPath(fsPath: string): string | null {
 
 function idNodeName(node: SyntaxNode): string {
   if(node.grammarType === 'identifier') {
-    return node.text + "\x01id\x00";
+    return node.text + "\x01identifier\x00";
   }
   else {
     const nameNode = node.childForFieldName('name');
@@ -209,7 +209,7 @@ export async function parseCode(code: string, fsPath: string,
         }
       }
       if (!nameCapture) continue;
-      const name = nameCapture.node.text + '\0x01' + 
+      const name = nameCapture.node.text + '\x01' + 
                    nameCapture.node.grammarType;
       if(!haveParseIdx) {
         if (!funcCapture && !keepNames.has(name)) continue;
