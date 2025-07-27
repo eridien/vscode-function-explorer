@@ -64,19 +64,14 @@ function parseDebug(rootNode: SyntaxNode) {
     }
   }
   walkTree(rootNode, node => {
-    let name = '';
-    if(node.grammarType === 'identifier') 
-      name = node.text + ", ";
-    else 
-      name = node.text.replace(/\s+/g, '').slice(0, 10) + ", " + 
-                                       node.grammarType + ", ";
     if(!dumping) {
       firstDepth = depth;
       dumping    = true;
     }
     if(dumping && !done) {
       log('nomod', `${'    '.repeat(depth-firstDepth)}${node.type} `+
-                   `(${node.startIndex},${node.endIndex}) ${name}`);
+                   `(${node.startIndex},${
+                       node.endIndex}) ${idNodeName(node)}`);
       if(lineCount++ > 1000) done = true;
     }
   });
@@ -92,16 +87,19 @@ export function getLangByFsPath(fsPath: string): string | null {
 }
 
 function idNodeName(node: SyntaxNode): string {
-  if(node.grammarType === 'identifier') {
-    return node.text + "\x01identifier\x00";
+  if(!node.isNamed) return '';
+  let name = '';
+  let type = node.type;
+  if(type in [ "identifier", "dotted_name", "lifetime", "metavariable",
+               "property_identifier", "shorthand_property_identifier",
+               "variable_name"]) {
+    name = node.text;
   }
   else {
     const nameNode = node.childForFieldName('name');
-    const name     = nameNode ? nameNode.text : '';
-    let context    = node.text.slice(name.length, CONTEXT_LENGTH)
-                              .replace(/\s+/g, '');
-    return name + "\x01" + node.grammarType + "\x00" + context + "\x00";
+    name = nameNode ? nameNode.text : '';
   }
+  return name + "\x01" + type + "\x00";
 }
 
 function getParentFuncId(node: SyntaxNode): string {
@@ -111,7 +109,9 @@ function getParentFuncId(node: SyntaxNode): string {
     parentFuncId += idNodeName(parent);
     parent = parent.parent;
   }
-  return parentFuncId;
+  let context = node.text.slice(CONTEXT_LENGTH)
+                         .replace(/\s+/g, '~') + "\x00";
+  return parentFuncId + context;
 }
 
 let typeCounts: Map<string, number> = new Map();
@@ -209,7 +209,7 @@ export async function parseCode(code: string, fsPath: string,
       if (!nameCapture) continue;
       if(!haveParseIdx) {
         const name = nameCapture.node.text + '\x01' + 
-                     nameCapture.node.grammarType;
+                     nameCapture.node.type;
         if (!otherCapture && !keepNames.has(name)) continue;
         nodes.push(capToNodeData(lang, fsPath, nameCapture, otherCapture));
       }
