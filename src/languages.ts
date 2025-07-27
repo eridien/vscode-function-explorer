@@ -42,6 +42,21 @@ export const langs: Langs = {
             name: (property_identifier) @name
         )
       ] @func
+
+      (class
+        [
+          (type_identifier)
+          (identifier)
+        ] @name
+      ) @class
+
+      (class_declaration
+        [
+          (type_identifier)
+          (identifier)
+        ] @name
+      ) @class
+
       [
         (declaration)  
         (identifier)

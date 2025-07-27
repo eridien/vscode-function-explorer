@@ -361,7 +361,7 @@ export class FuncItem extends Item {
     Object.assign(this, funcData);
     this.id           = getItemId();
     this.contextValue = 'func';
-    this.description  = this.getDescription();
+    this.description  = this.getDescription() as string;
     this.command = {
       command: 'vscode-function-explorer.funcClickCmd',
       title:   'Item Clicked',
@@ -397,40 +397,25 @@ export class FuncItem extends Item {
       label = this.getFuncItemStr([label, this.type]);
     return label.trim();
   }
-  getDescription() {
-    // let description  = '';
-    // const prevDescription = this.prevSibling?.description ?? '';
-    // const thisDescription = this.description              ?? '';
-    // let matches     = (thisDescription.length == prevDescription.length);
-    // let funcIdParts = this.funcId.split('\x00');
-    // for(const part of funcIdParts) {
-    //   if(part.length === 0) continue;
-    //   let name = '';
-    //   let type = '';
-    //   if(     part.endsWith('id\x01')) name = part.slice(0, -1);
-    //   else if(part.endsWith('id\x02')) type = part.slice(0, -1);
-    //   else continue;
-
-
-    // for(let idx = 0; idx < this.funcParents.length; idx++) {
-    //   const funcParent = this.funcParents[idx];
-    //   if(matches) {
-    //     const prevParent = prevDescription[idx];
-    //     if(prevParent[0] === funcParent[0] &&
-    //        prevParent[1] === funcParent[1]) {
-    //       if(idx == this.funcParents.length-1) {
-    //         description = ' "';
-    //         break;
-    //       }
-    //     } else matches = false;
-    //   }
-    //   description = this.getFuncItemStr(funcParent) + description;
-    // }
-    // // for(const funcParent of this.funcParents) 
-    // //   description += this.getFuncItemStr(funcParent);
-    // if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
-    // return description.slice(1).trim();
-    return '';
+  getDescription(): string {
+    let description  = '';
+    const prevfuncId      = this.prevSibling?.funcId ?? '';
+    let   prevFuncIdParts = prevfuncId.split('\x00').slice(2,-3);
+    const prevFuncParents = prevFuncIdParts.join('\x00');
+    let   thisFuncIdParts = this.funcId.split('\x00').slice(2,-3);
+    const thisFuncParents = thisFuncIdParts.join('\x00');
+    if(prevFuncParents !== '' && 
+       prevFuncParents === thisFuncParents) return ' "';
+    for(const part of thisFuncIdParts) {
+      if(part.length === 0) continue;
+      const nameType = part.split('\x01');
+      let name = nameType[0];
+      let type = nameType[1];
+      if(!name || name === '' || !type || type === '') continue;
+      description = this.getFuncItemStr([name, type]) + description;
+    }
+    if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
+    return description.slice(1).trim();
   }
   getIconPath() {
      return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;

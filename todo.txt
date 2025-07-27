@@ -17,8 +17,6 @@ bugs ...
      };
     #ifdef SQLITE_DEBUG
 
-
-
 todo ...
   clnup languages
   find all syntax names and space them

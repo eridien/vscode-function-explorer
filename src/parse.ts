@@ -122,14 +122,14 @@ function collectParseStats(nodeData: NodeData) {
 }
 
 function capToNodeData(lang: string, fsPath: string,
-          nameCapture: QueryCapture, 
-          funcCapture: QueryCapture | null): NodeData {
+          nameCapture:  QueryCapture, 
+          otherCapture: QueryCapture | null): NodeData {
   const nameNode  = nameCapture.node;
   const startName = nameNode.startIndex;
   const endName   = nameNode.endIndex;
   const name      = nameNode.text;
-  const type      = funcCapture ? funcCapture.name : 'id';
-  const node      = funcCapture ? funcCapture.node : nameNode;
+  const type      = otherCapture ? otherCapture.name : 'id';
+  const node      = otherCapture ? otherCapture.node : nameNode;
   const start     = node.startIndex;
   const end       = node.endIndex;
   let funcId      = idNodeName(node) + getParentFuncId(node);
@@ -197,33 +197,31 @@ export async function parseCode(code: string, fsPath: string,
   try {
     const query   = new Query(language as any, sExpr);
     const matches = query.matches(tree.rootNode as any);
-    let lastNameCapture: QueryCapture | null = null;
-    let lastFuncCapture: QueryCapture | null = null;
+    let lastNameCapture:  QueryCapture | null = null;
+    let lastOtherCapture: QueryCapture | null = null;
     for (const match of matches) {
-      let nameCapture: QueryCapture | null = null;
-      let funcCapture: QueryCapture | null = null;
+      let nameCapture:  QueryCapture | null = null;
+      let otherCapture: QueryCapture | null = null;
       for (const capture of match.captures) {
-        switch(capture.name) {
-          case 'name': nameCapture = capture; break;
-          case 'func': funcCapture = capture; break;
-        }
+        if(capture.name == 'name') nameCapture = capture;
+        else                      otherCapture = capture;
       }
       if (!nameCapture) continue;
-      const name = nameCapture.node.text + '\x01' + 
-                   nameCapture.node.grammarType;
       if(!haveParseIdx) {
-        if (!funcCapture && !keepNames.has(name)) continue;
-        nodes.push(capToNodeData(lang, fsPath, nameCapture, funcCapture));
+        const name = nameCapture.node.text + '\x01' + 
+                     nameCapture.node.grammarType;
+        if (!otherCapture && !keepNames.has(name)) continue;
+        nodes.push(capToNodeData(lang, fsPath, nameCapture, otherCapture));
       }
       else {
         if(lastNameCapture && (nameCapture.node.startIndex ?? 0) > parseIdx) {
           nodes.push(capToNodeData(lang, fsPath, lastNameCapture!, 
-                                                 lastFuncCapture!));
-          nodes.push(capToNodeData(lang, fsPath, nameCapture, funcCapture));
+                                                 lastOtherCapture!));
+          nodes.push(capToNodeData(lang, fsPath, nameCapture, otherCapture));
           break nodesLoop;
         }
-        lastNameCapture = nameCapture;
-        lastFuncCapture = funcCapture;
+        lastNameCapture  = nameCapture;
+        lastOtherCapture = otherCapture;
       }
     }
   } catch (e) {
