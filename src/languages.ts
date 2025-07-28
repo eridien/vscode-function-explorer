@@ -14,23 +14,27 @@ export const langs: Langs = {
   typescript: {
     sExpr: `[
       (identifier)  @identifier
-      
+
       (function_declaration
-        (identifier) @function
+        (identifier) @function_declaration
       )
 
       (variable_declarator
-        (identifier)    @function
+        (identifier)    @arrow_function
         (arrow_function)
       )
 
       (assignment_expression
-        (identifier)    @function
+        (identifier)    @arrow_function
         (arrow_function)
       )
 
+      (assignment_expression
+        (identifier)    @assignment_expression
+      )
+
       (method_definition
-          name: (property_identifier) @function
+          name: (property_identifier) @method_definition
       )
 
       (class
@@ -42,12 +46,21 @@ export const langs: Langs = {
 
       (class_declaration
         [
-          (type_identifier) @class
-          (identifier)      @class
+          (type_identifier) @class_declaration
+          (identifier)      @class_declaration
         ]
       )
 
     ]`,
+    symbols: new Map<string, string>([
+      ['identifier',            '?'],
+      ['assignment_expression', '='],
+      ['class',                 '©'],
+      ['class_declaration',     '©'],
+      ['method_definition',     'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['function_declaration',  'ƒ'],
+    ]),
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
 

@@ -89,17 +89,17 @@ export function getLangByFsPath(fsPath: string): string | null {
 function idNodeName(node: SyntaxNode): string {
   if(!node.isNamed) return '';
   let name = '';
-  let type = node.type;
-  if(type in [ "identifier", "dotted_name", "lifetime", "metavariable",
-               "property_identifier", "shorthand_property_identifier",
-               "variable_name"]) {
+  let grammarType = node.type;
+  if(grammarType in [ "identifier", "dotted_name", "lifetime", "metavariable",
+                      "property_identifier", "shorthand_property_identifier",
+                      "variable_name"]) {
     name = node.text;
   }
   else {
     const nameNode = node.childForFieldName('name');
     name = nameNode ? nameNode.text : '';
   }
-  return name + "\x01" + type + "\x00";
+  return name + "\x01" + grammarType + "\x00";
 }
 
 function getParentFuncId(node: SyntaxNode): string {
@@ -109,8 +109,7 @@ function getParentFuncId(node: SyntaxNode): string {
     parentFuncId += idNodeName(parent);
     parent = parent.parent;
   }
-  let context = node.text.slice(0, CONTEXT_LENGTH)
-                         .replace(/\s+/g, '~') + "\x00";
+  let context = node.text.slice(0, CONTEXT_LENGTH) + "\x00";
   return parentFuncId + context;
 }
 
@@ -122,21 +121,11 @@ function collectParseStats(nodeData: NodeData) {
 }
 
 function capToNodeData(lang: string, fsPath: string,
-          nameCapture:  QueryCapture, 
-          otherCapture: QueryCapture | null): NodeData {
-  const nameNode  = nameCapture.node;
-  const startName = nameNode.startIndex;
-  const endName   = nameNode.endIndex;
-  const name      = nameNode.text;
-  const type      = otherCapture ? otherCapture.name : 'id';
-  const node      = otherCapture ? otherCapture.node : nameNode;
-  const start     = node.startIndex;
-  const end       = node.endIndex;
-  let funcId      = idNodeName(node) + getParentFuncId(node);
-  // log(`funcId -> ${funcId.replace(/\x01/g, '-').replace(/\x00/g, '|')}`);
+          type, node, name, startIndex, endIndex): NodeData {
+  let funcId = idNodeName(node) + getParentFuncId(node);
   funcId += fsPath;
-  const nodeData: NodeData = { name, funcId, 
-                               start, startName, endName, end, type, lang};
+  const nodeData: NodeData = { 
+    lang, type, name, funcId, startIndex, endIndex};
   if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
   return nodeData;
 }
@@ -195,23 +184,38 @@ export async function parseCode(code: string, fsPath: string,
   const nodes: NodeData[] = [];
   nodesLoop:
   try {
-    const query   = new Query(language as any, sExpr);
-    const matches = query.matches(tree.rootNode as any);
-    let lastNameCapture:  QueryCapture | null = null;
-    let lastOtherCapture: QueryCapture | null = null;
+    let bestCapture: QueryCapture | null = null;
+    let lastType     = '';
+    let lastName     = '';
+    let lastStartIdx = -1;
+    let lastEndIdx   = -1;
+    const query      = new Query(language as any, sExpr);
+    const matches    = query.matches(tree.rootNode as any);
     for (const match of matches) {
-      let nameCapture:  QueryCapture | null = null;
-      let otherCapture: QueryCapture | null = null;
-      // console.log(`\nmatch`);
-      for (const capture of match.captures) {
-        // console.log(`capture: ${capture.name}:  ${
-        //                         capture.node.text} (${capture.node.startIndex},${
-        //                         capture.node.endIndex})`);
-        // if(capture.node.type == 'class_declaration') debugger
-        if(capture.name == 'name') nameCapture = capture;
-        else                      otherCapture = capture;
+      const capture  = match.captures[0];
+      const type     = capture.name;
+      const name     = capture.node.text;
+      const startIdx = capture.node.startIndex;
+      const endIdx   = capture.node.endIndex;
+      if(name     === lastName     && 
+         startIdx === lastStartIdx && 
+         endIdx   === lastEndIdx) {
+        if(typePriorty(type) > typePriorty(lastType))
+          bestCapture = capture;
+        continue;
       }
-      if (!nameCapture) continue;
+      if (bestCapture) 
+        nodes.push(capToNodeData(lang, fsPath, bestCapture));
+      bestCapture = capture;
+      lastType     = type;
+      lastName     = name;
+      lastStartIdx = startIdx;
+      lastEndIdx   = endIdx;
+    }
+    if (bestCapture) {
+      nodes.push(capToNodeData(lang, fsPath, bestCapture));
+
+
       if(!haveParseIdx) {
         const name = nameCapture.node.text + '\x01' + 
                      nameCapture.node.type;
