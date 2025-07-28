@@ -202,7 +202,12 @@ export async function parseCode(code: string, fsPath: string,
     for (const match of matches) {
       let nameCapture:  QueryCapture | null = null;
       let otherCapture: QueryCapture | null = null;
+      // console.log(`\nmatch`);
       for (const capture of match.captures) {
+        // console.log(`capture: ${capture.name}:  ${
+        //                         capture.node.text} (${capture.node.startIndex},${
+        //                         capture.node.endIndex})`);
+        // if(capture.node.type == 'class_declaration') debugger
         if(capture.name == 'name') nameCapture = capture;
         else                      otherCapture = capture;
       }

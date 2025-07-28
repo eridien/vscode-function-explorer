@@ -13,40 +13,40 @@ export const langs: Langs = {
 ///////////////////////////// typescript ///////////////////////////
   typescript: {
     sExpr: `[
+      (identifier)  @identifier
+      
       (function_declaration
-        (identifier) @name
-      ) @func
+        (identifier) @function
+      )
 
       (variable_declarator
-        (identifier)     @name
-        (arrow_function) @type
+        (identifier)    @function
+        (arrow_function)
       )
 
       (assignment_expression
-        (identifier)     @name
-        (arrow_function) @type
+        (identifier)    @function
+        (arrow_function)
       )
 
       (method_definition
-          name: (property_identifier) @name
+          name: (property_identifier) @function
       )
 
       (class
         [
-          (type_identifier)
-          (identifier)
-        ] @name
-      ) @type
+          (type_identifier) @class
+          (identifier)      @class
+        ]
+      )
 
       (class_declaration
         [
-          (type_identifier) @name
-          (identifier)      @name
+          (type_identifier) @class
+          (identifier)      @class
         ]
-      ) @type
+      )
 
-      (declaration) @name
-      (identifier)  @name
     ]`,
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
