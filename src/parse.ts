@@ -209,7 +209,6 @@ export async function parseCode(code: string, fsPath: string,
   let lastStartName = -1;
   let lastName      = '';
   let lastType      = '';
-  let newMatch    = true;
   for(let matchIdx = 0; matchIdx < matches.length; matchIdx++) {
     const match = matches[matchIdx];
     if(match.captures.length !== 2) {
@@ -222,7 +221,7 @@ export async function parseCode(code: string, fsPath: string,
     const startName   = nameCapture.node.startIndex;
     const type        = nameCapture.name;
     const name        = nameCapture.node.text;
-    if(newMatch) {
+    if(!bestBodyCapture) {
       bestBodyCapture = bodyCapture;
       bestNameCapture = nameCapture;
       bestName        = name;
@@ -236,30 +235,30 @@ export async function parseCode(code: string, fsPath: string,
         bestName        = name;
         bestType        = type;
       }
-      newMatch = false;
       continue;
     }
-    if (bestBodyCapture) {
-      if(haveParseIdx) {
-        if(startName > parseIdx) {
-          nodes.push(capToNodeData(code, lang!, fsPath,
-                                   bestBodyCapture!, bestNameCapture!));
-          nodes.push(capToNodeData(code, lang!, fsPath,
-                                   bodyCapture!, nameCapture!));
-          break;
-        }
+    if(haveParseIdx) {
+      if(startName > parseIdx) {
+        nodes.push(capToNodeData(code, lang!, fsPath,
+                                  bestBodyCapture!, bestNameCapture!));
+        nodes.push(capToNodeData(code, lang!, fsPath,
+                                  bodyCapture!, nameCapture!));
+        break;
       }
-      else {
-        const nameId = bestName + '\x01' + bestType;
-        if(bestType !== 'identifier' || keepNames.has(nameId))
-          nodes.push(capToNodeData(code, lang!, fsPath, 
-                                   bestBodyCapture!, bestNameCapture!));
-      };
     }
+    else {
+      const nameId = bestName + '\x01' + bestType;
+      if(bestType !== 'identifier' || keepNames.has(nameId))
+        nodes.push(capToNodeData(code, lang!, fsPath, 
+                                  bestBodyCapture!, bestNameCapture!));
+    };
     lastStartName = startName;
     lastName      = name;
     lastType      = type;
-    newMatch      = true;
+    bestBodyCapture = bodyCapture;
+    bestNameCapture = nameCapture;
+    bestName        = name;
+    bestType        = type;
   }
   nodes.sort((a, b) => a.start - b.start);
 
