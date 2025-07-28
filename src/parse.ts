@@ -119,15 +119,19 @@ function collectParseStats(nodeData: NodeData) {
                 (typeCounts.get(nodeData.type) ?? 0) + 1);
 }
 
-function capToNodeData(lang: string, fsPath: string, 
-                       type: string, startName:number, name: string,
-                       start: number, end: number, 
-                       context: string, 
-                       capture: QueryCapture): NodeData {
-  const node      = capture.node;
+function capToNodeData(code: string, lang: string, fsPath: string,
+                       bodyCapture: QueryCapture, 
+                       nameCapture: QueryCapture): NodeData {
+  const start     = bodyCapture.node.startIndex;
+  const end       = bodyCapture.node.endIndex;
+  const type      = nameCapture.name;
+  const node      = nameCapture.node;
+  const name      = node.text;
+  const startName = node.startIndex;
   const endName   = node.endIndex;
-  let funcId = getParentFuncId(node) + context + '\x00' +fsPath;
-  const nodeData = {lang, name, type, funcId, start, startName, endName, end};
+  const context   = code.slice(start, start + CONTEXT_LENGTH);
+  let funcId      = getParentFuncId(node) + context + '\x00' +fsPath;
+  const nodeData  = {lang, name, type, funcId, start, startName, endName, end};
   if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
   return nodeData;
 }
@@ -150,6 +154,7 @@ export async function parseCode(code: string, fsPath: string,
   const typePriority  = new Map<string, number>();
   for(const [type, _] of symbolsByType)
     typePriority.set(type, typePriority.size);
+  typePriority.set('identifier', -1);
   let keepNames = mrks.namesByFsPath(fsPath);
   const parser = new Parser();
   parser.setLanguage(language);
@@ -197,63 +202,67 @@ export async function parseCode(code: string, fsPath: string,
     return [];
   }
   const nodes: NodeData[] = [];
-  let bestCapture: QueryCapture | null = null;
-  let lastType      = '';
+  let bestBodyCapture: QueryCapture | null = null;
+  let bestNameCapture: QueryCapture | null = null;
+  let bestName      = '';
+  let bestType      = '';
   let lastStartName = -1;
   let lastName      = '';
-  let lastStart     = -1;
-  let lastEnd       = -1;
-  let lastContext   = '';
+  let lastType      = '';
+  let firstMatch    = true;
   for(let matchIdx = 0; matchIdx < matches.length; matchIdx++) {
     const match = matches[matchIdx];
     if(match.captures.length !== 2) {
       log('err', `bad capture count ${match.captures.length} in ${lang}`);
       continue;
     }
-    const bodyIdx   = match.captures[0].name === 'body' ? 0 : 1;
-    const bodyNode  = match.captures[bodyIdx].node;
-    const start     = bodyNode.startIndex;
-    const end       = bodyNode.endIndex;
-    const context   = code.slice(start, start + CONTEXT_LENGTH);
-    const capture   = match.captures[1-bodyIdx];
-    const type      = capture.name;
-    const startName = capture.node.startIndex;
-    const name      = capture.node.text;
+    const bodyIdx     = match.captures[0].name === 'body' ? 0 : 1;
+    const bodyCapture = match.captures[bodyIdx];
+    const nameCapture = match.captures[1-bodyIdx];
+    const startName   = nameCapture.node.startIndex;
+    const type        = nameCapture.name;
+    const name        = nameCapture.node.text;
+    if(firstMatch) {
+      bestBodyCapture = bodyCapture;
+      bestNameCapture = nameCapture;
+      bestName        = name;
+      bestType        = type;
+    }
     if(name === lastName && startName === lastStartName) {
       if((typePriority.get(type)     ?? 0) > 
-         (typePriority.get(lastType) ?? 0))
-        bestCapture = capture;
+         (typePriority.get(lastType) ?? 0)) {
+        bestBodyCapture = bodyCapture;
+        bestNameCapture = nameCapture;
+        bestName        = name;
+        bestType        = type;
+      }
+      firstMatch = false;
       continue;
     }
-    function chkCapture(): boolean {
+    firstMatch = true;
+    function callCapToNodeData(): boolean {
       if(haveParseIdx) {
-        if(start > parseIdx) {
-          nodes.push(capToNodeData(
-                       lang!, fsPath, lastType, lastStartName, lastName,
-                       lastStart, lastEnd, lastContext, bestCapture!));
-          nodes.push(capToNodeData(lang!, fsPath, type, startName, name,
-                                   start, end, context, capture));
+        if(startName > parseIdx) {
+          nodes.push(capToNodeData(code, lang!, fsPath,
+                                   bestBodyCapture!, bestNameCapture!));
+          nodes.push(capToNodeData(code, lang!, fsPath,
+                                   bodyCapture!, nameCapture!));
           return true;
         }
       }
       else {
-        const nameId = lastName + '\x01' + lastType;
-        if(lastType !== 'identifier' || keepNames.has(nameId))
-          nodes.push(capToNodeData(
-                  lang!, fsPath, lastType, lastStartName, lastName,
-                  lastStart, lastEnd, lastContext, bestCapture!));
+        const nameId = bestName + '\x01' + bestType;
+        if(bestType !== 'identifier' || keepNames.has(nameId))
+          nodes.push(capToNodeData(code, lang!, fsPath, 
+                                   bestBodyCapture!, bestNameCapture!));
       }
       return false;
     }
-    if (bestCapture && chkCapture()) break;
-    bestCapture   = capture;
-    lastType      = type;
-    lastStartName = startName;
-    lastName      = name;
-    lastStart     = start;
-    lastEnd       = end;
-    lastContext   = context;
-    if(matchIdx == matches.length - 1) chkCapture();
+    if (bestBodyCapture && callCapToNodeData()) break;
+    lastStartName   = startName;
+    lastName        = name;
+    lastType        = type;
+    if(matchIdx == matches.length - 1) callCapToNodeData();
   }
   nodes.sort((a, b) => a.start - b.start);
 
