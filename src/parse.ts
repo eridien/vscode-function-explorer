@@ -120,12 +120,11 @@ function collectParseStats(nodeData: NodeData) {
 }
 
 function capToNodeData(lang: string, fsPath: string, 
-                       type: string, name: string,
+                       type: string, startName:number, name: string,
                        start: number, end: number, 
                        context: string, 
                        capture: QueryCapture): NodeData {
   const node      = capture.node;
-  const startName = node.startIndex;
   const endName   = node.endIndex;
   let funcId = getParentFuncId(node) + context + '\x00' +fsPath;
   const nodeData = {lang, name, type, funcId, start, startName, endName, end};
@@ -199,26 +198,28 @@ export async function parseCode(code: string, fsPath: string,
   }
   const nodes: NodeData[] = [];
   let bestCapture: QueryCapture | null = null;
-  let lastType     = '';
-  let lastName     = '';
-  let lastStart    = -1;
-  let lastEnd      = -1;
-  let lastContext  = '';
+  let lastType      = '';
+  let lastStartName = -1;
+  let lastName      = '';
+  let lastStart     = -1;
+  let lastEnd       = -1;
+  let lastContext   = '';
   for(let matchIdx = 0; matchIdx < matches.length; matchIdx++) {
     const match = matches[matchIdx];
     if(match.captures.length !== 2) {
       log('err', `bad capture count ${match.captures.length} in ${lang}`);
       continue;
     }
-    const bodyIdx  = match.captures[0].name === 'body' ? 0 : 1;
-    const bodyNode = match.captures[bodyIdx].node;
-    const start    = bodyNode.startIndex;
-    const end      = bodyNode.endIndex;
-    const context  = code.slice(start, start + CONTEXT_LENGTH);
-    const capture  = match.captures[1-bodyIdx];
-    const type     = capture.name;
-    const name     = capture.node.text;
-    if(start === lastStart && end === lastEnd && name === lastName) {
+    const bodyIdx   = match.captures[0].name === 'body' ? 0 : 1;
+    const bodyNode  = match.captures[bodyIdx].node;
+    const start     = bodyNode.startIndex;
+    const end       = bodyNode.endIndex;
+    const context   = code.slice(start, start + CONTEXT_LENGTH);
+    const capture   = match.captures[1-bodyIdx];
+    const type      = capture.name;
+    const startName = capture.node.startIndex;
+    const name      = capture.node.text;
+    if(name === lastName && startName === lastStartName) {
       if((typePriority.get(type)     ?? 0) > 
          (typePriority.get(lastType) ?? 0))
         bestCapture = capture;
@@ -227,9 +228,10 @@ export async function parseCode(code: string, fsPath: string,
     function chkCapture(): boolean {
       if(haveParseIdx) {
         if(start > parseIdx) {
-          nodes.push(capToNodeData(lang!, fsPath, lastType, lastName,
-                                   lastStart, lastEnd, lastContext, bestCapture!));
-          nodes.push(capToNodeData(lang!, fsPath, type, name,
+          nodes.push(capToNodeData(
+                       lang!, fsPath, lastType, lastStartName, lastName,
+                       lastStart, lastEnd, lastContext, bestCapture!));
+          nodes.push(capToNodeData(lang!, fsPath, type, startName, name,
                                    start, end, context, capture));
           return true;
         }
@@ -237,18 +239,20 @@ export async function parseCode(code: string, fsPath: string,
       else {
         const nameId = lastName + '\x01' + lastType;
         if(lastType !== 'identifier' || keepNames.has(nameId))
-          nodes.push(capToNodeData(lang!, fsPath, lastType, lastName,
-                                  lastStart, lastEnd, lastContext, bestCapture!));
+          nodes.push(capToNodeData(
+                  lang!, fsPath, lastType, lastStartName, lastName,
+                  lastStart, lastEnd, lastContext, bestCapture!));
       }
       return false;
     }
     if (bestCapture && chkCapture()) break;
-    bestCapture = capture;
-    lastType    = type;
-    lastName    = name;
-    lastStart   = start;
-    lastEnd     = end;
-    lastContext = context;
+    bestCapture   = capture;
+    lastType      = type;
+    lastStartName = startName;
+    lastName      = name;
+    lastStart     = start;
+    lastEnd       = end;
+    lastContext   = context;
     if(matchIdx == matches.length - 1) chkCapture();
   }
   nodes.sort((a, b) => a.start - b.start);
