@@ -109,7 +109,7 @@ function getParentFuncId(node: SyntaxNode): string {
     parentFuncId += idNodeName(parent);
     parent = parent.parent;
   }
-  let context = node.text.slice(CONTEXT_LENGTH)
+  let context = node.text.slice(0, CONTEXT_LENGTH)
                          .replace(/\s+/g, '~') + "\x00";
   return parentFuncId + context;
 }
@@ -133,7 +133,7 @@ function capToNodeData(lang: string, fsPath: string,
   const start     = node.startIndex;
   const end       = node.endIndex;
   let funcId      = idNodeName(node) + getParentFuncId(node);
-  log(`funcId -> ${funcId.replace(/\x01/g, '-').replace(/\x00/g, '|')}`);
+  // log(`funcId -> ${funcId.replace(/\x01/g, '-').replace(/\x00/g, '|')}`);
   funcId += fsPath;
   const nodeData: NodeData = { name, funcId, 
                                start, startName, endName, end, type, lang};

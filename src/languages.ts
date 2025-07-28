@@ -13,54 +13,40 @@ export const langs: Langs = {
 ///////////////////////////// typescript ///////////////////////////
   typescript: {
     sExpr: `[
-      [ (function_declaration
-            name: (identifier) @name
-        )
-        (variable_declarator
-          name: (identifier) @name
-          value: [
-            (arrow_function)
-            (call_expression
-              arguments: (arguments
-                (arrow_function)))
-            (parenthesized_expression
-              (arrow_function))
-          ]
-        )
-        (assignment_expression
-          left: (identifier) @name
-          right: [
-            (arrow_function)
-            (call_expression
-              arguments: (arguments
-                (arrow_function)))
-            (parenthesized_expression
-              (arrow_function))
-          ]
-        )
-        (method_definition
-            name: (property_identifier) @name
-        )
-      ] @func
+      (function_declaration
+        (identifier) @name
+      ) @func
+
+      (variable_declarator
+        (identifier)     @name
+        (arrow_function) @type
+      )
+
+      (assignment_expression
+        (identifier)     @name
+        (arrow_function) @type
+      )
+
+      (method_definition
+          name: (property_identifier) @name
+      )
 
       (class
         [
           (type_identifier)
           (identifier)
         ] @name
-      ) @class
+      ) @type
 
       (class_declaration
         [
-          (type_identifier)
-          (identifier)
-        ] @name
-      ) @class
+          (type_identifier) @name
+          (identifier)      @name
+        ]
+      ) @type
 
-      [
-        (declaration)  
-        (identifier)
-      ] @name
+      (declaration) @name
+      (identifier)  @name
     ]`,
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
