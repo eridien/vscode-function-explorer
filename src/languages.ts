@@ -1,7 +1,8 @@
 
 type LangConfig = {
-  sExpr:    string;
-  suffixes: Set<string>;
+  sExpr:         string;
+  symbolsByType: Map<string, string>;
+  suffixes:      Set<string>;
 };
 
 export type Langs = {
@@ -13,8 +14,6 @@ export const langs: Langs = {
 ///////////////////////////// typescript ///////////////////////////
   typescript: {
     sExpr: `[
-      (identifier)  @identifier
-
       (function_declaration
         (identifier) @function_declaration
       )
@@ -50,9 +49,10 @@ export const langs: Langs = {
           (identifier)      @class_declaration
         ]
       )
+      (identifier)  @identifier
+    ] @body`,
 
-    ]`,
-    symbols: new Map<string, string>([
+    symbolsByType: new Map<string, string>([
       ['identifier',            '?'],
       ['assignment_expression', '='],
       ['class',                 '©'],
@@ -61,6 +61,7 @@ export const langs: Langs = {
       ['arrow_function',        'ƒ'],
       ['function_declaration',  'ƒ'],
     ]),
+
     suffixes: new Set(['.js', '.ts', '.tsx', '.jsx'])
   },
 
@@ -73,6 +74,17 @@ export const langs: Langs = {
       
       (identifier) @name      
     ]`,
+
+    symbolsByType: new Map<string, string>([
+      ['identifier',            '?'],
+      ['assignment_expression', '='],
+      ['class',                 '©'],
+      ['class_declaration',     '©'],
+      ['method_definition',     'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['function_declaration',  'ƒ'],
+    ]),
+
     suffixes: new Set(['.py'])
   },
 
@@ -86,6 +98,17 @@ export const langs: Langs = {
       
       (identifier) @name      
     ]`,
+
+    symbolsByType: new Map<string, string>([
+      ['identifier',            '?'],
+      ['assignment_expression', '='],
+      ['class',                 '©'],
+      ['class_declaration',     '©'],
+      ['method_definition',     'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['function_declaration',  'ƒ'],
+    ]),
+
     suffixes: new Set(['.c','.cpp'])
   },
 
@@ -98,6 +121,17 @@ export const langs: Langs = {
       
       (identifier) @name      
     ]`,
+
+    symbolsByType: new Map<string, string>([
+      ['identifier',            '?'],
+      ['assignment_expression', '='],
+      ['class',                 '©'],
+      ['class_declaration',     '©'],
+      ['method_definition',     'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['function_declaration',  'ƒ'],
+    ]),
+
     suffixes:    new Set(['.java'])
   },
 
@@ -115,6 +149,17 @@ export const langs: Langs = {
       
       (identifier) @name      
     ]`,
+
+    symbolsByType: new Map<string, string>([
+      ['identifier',            '?'],
+      ['assignment_expression', '='],
+      ['class',                 '©'],
+      ['class_declaration',     '©'],
+      ['method_definition',     'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['function_declaration',  'ƒ'],
+    ]),
+
     suffixes:    new Set(['.cs'])
   },
 
@@ -129,6 +174,17 @@ export const langs: Langs = {
       
       (identifier) @name      
     ]`,
+
+    symbolsByType: new Map<string, string>([
+      ['identifier',            '?'],
+      ['assignment_expression', '='],
+      ['class',                 '©'],
+      ['class_declaration',     '©'],
+      ['method_definition',     'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['function_declaration',  'ƒ'],
+    ]),
+
     suffixes: new Set(['.go'])
   },
 
@@ -141,6 +197,17 @@ export const langs: Langs = {
       
       (identifier) @name      
     ]`,
+
+    symbolsByType: new Map<string, string>([
+      ['identifier',            '?'],
+      ['assignment_expression', '='],
+      ['class',                 '©'],
+      ['class_declaration',     '©'],
+      ['method_definition',     'ƒ'],
+      ['arrow_function',        'ƒ'],
+      ['function_declaration',  'ƒ'],
+    ]),
+
     suffixes: new Set(['.rs'])
   },
 };

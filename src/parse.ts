@@ -1,7 +1,7 @@
 import * as vscode                         from 'vscode';
 import path                                from 'path';
 import {langs}                             from './languages';
-import { Tree, QueryCapture, 
+import { Tree, QueryCapture, QueryMatch,
          Parser, Language, Query }         from 'web-tree-sitter';
 import * as utils                          from './utils';
 import { mrks } from './dbs';
@@ -120,12 +120,16 @@ function collectParseStats(nodeData: NodeData) {
                 (typeCounts.get(nodeData.type) ?? 0) + 1);
 }
 
-function capToNodeData(lang: string, fsPath: string,
-          type, node, name, startIndex, endIndex): NodeData {
+function capToNodeData(lang: string, fsPath: string, 
+                       type: string, name: string,
+                       start: number, end: number, 
+                       capture: QueryCapture): NodeData {
+  const node      = capture.node;
+  const startName = node.startIndex;
+  const endName   = node.endIndex;
   let funcId = idNodeName(node) + getParentFuncId(node);
   funcId += fsPath;
-  const nodeData: NodeData = { 
-    lang, type, name, funcId, startIndex, endIndex};
+  const nodeData = {lang, name, type, funcId, start, startName, endName, end};
   if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
   return nodeData;
 }
@@ -138,12 +142,16 @@ export async function parseCode(code: string, fsPath: string,
                                 parseIdx: number | null = null): 
                                                Promise<NodeData[]> {
   start('parseCode', true);
-  const lang  = getLangByFsPath(fsPath);
-  if(!lang) return [];
+  const lang = getLangByFsPath(fsPath);
+  if(lang === null) return [];
   const language = await getLangFromWasm(lang);
   if (!language) return [];
-  const {sExpr}      = langs[lang];
-  const haveParseIdx = parseIdx !== null;
+  const haveParseIdx  = parseIdx !== null;
+  const {sExpr}       = langs[lang];
+  const symbolsByType = langs[lang].symbolsByType;
+  const typePriority  = new Map<string, number>();
+  for(const [type, _] of symbolsByType)
+    typePriority.set(type, typePriority.size);
   let keepNames = mrks.namesByFsPath(fsPath);
   const parser = new Parser();
   parser.setLanguage(language);
@@ -181,61 +189,64 @@ export async function parseCode(code: string, fsPath: string,
   }
   if(PARSE_DUMP_NAME !== '' || PARSE_DUMP_TYPE !== '')   
     parseDebug(tree.rootNode);
-  const nodes: NodeData[] = [];
-  nodesLoop:
+  let query:   Query;
+  let matches: QueryMatch[];
   try {
-    let bestCapture: QueryCapture | null = null;
-    let lastType     = '';
-    let lastName     = '';
-    let lastStartIdx = -1;
-    let lastEndIdx   = -1;
-    const query      = new Query(language as any, sExpr);
-    const matches    = query.matches(tree.rootNode as any);
-    for (const match of matches) {
-      const capture  = match.captures[0];
-      const type     = capture.name;
-      const name     = capture.node.text;
-      const startIdx = capture.node.startIndex;
-      const endIdx   = capture.node.endIndex;
-      if(name     === lastName     && 
-         startIdx === lastStartIdx && 
-         endIdx   === lastEndIdx) {
-        if(typePriorty(type) > typePriorty(lastType))
-          bestCapture = capture;
-        continue;
-      }
-      if (bestCapture) 
-        nodes.push(capToNodeData(lang, fsPath, bestCapture));
-      bestCapture = capture;
-      lastType     = type;
-      lastName     = name;
-      lastStartIdx = startIdx;
-      lastEndIdx   = endIdx;
-    }
-    if (bestCapture) {
-      nodes.push(capToNodeData(lang, fsPath, bestCapture));
-
-
-      if(!haveParseIdx) {
-        const name = nameCapture.node.text + '\x01' + 
-                     nameCapture.node.type;
-        if (!otherCapture && !keepNames.has(name)) continue;
-        nodes.push(capToNodeData(lang, fsPath, nameCapture, otherCapture));
-      }
-      else {
-        if(lastNameCapture && (nameCapture.node.startIndex ?? 0) > parseIdx) {
-          nodes.push(capToNodeData(lang, fsPath, lastNameCapture!, 
-                                                 lastOtherCapture!));
-          nodes.push(capToNodeData(lang, fsPath, nameCapture, otherCapture));
-          break nodesLoop;
-        }
-        lastNameCapture  = nameCapture;
-        lastOtherCapture = otherCapture;
-      }
-    }
+    query   = new Query(language as any, sExpr);
+    matches = query.matches(tree.rootNode as any);
   } catch (e) {
     log('err', 'S-expression query failed', (e as any).message);
     return [];
+  }
+  const nodes: NodeData[] = [];
+  let bestCapture: QueryCapture | null = null;
+  let lastType     = '';
+  let lastName     = '';
+  let lastStart = -1;
+  let lastEnd   = -1;
+  for(let matchIdx = 0; matchIdx < matches.length; matchIdx++) {
+    const match = matches[matchIdx];
+    if(match.captures.length !== 2) {
+      log('err', `bad capture count ${match.captures.length} in ${lang}`);
+      continue;
+    }
+    const bodyIdx = match.captures[0].name === 'body' ? 0 : 1;
+    const start   = match.captures[bodyIdx].node.startIndex;
+    const end     = match.captures[bodyIdx].node.endIndex;
+    const capture = match.captures[1-bodyIdx];
+    const type    = capture.name;
+    const name    = capture.node.text;
+    if(start === lastStart && end === lastEnd && name === lastName) {
+      if((typePriority.get(type)     ?? 0) > 
+         (typePriority.get(lastType) ?? 0))
+        bestCapture = capture;
+      continue;
+    }
+    function chkCapture(): boolean {
+      if(haveParseIdx) {
+        if(start > parseIdx) {
+          nodes.push(capToNodeData(lang!, fsPath, lastType, lastName,
+                                   lastStart, lastEnd, bestCapture!));
+          nodes.push(capToNodeData(lang!, fsPath, type, name,
+                                   start, end, capture));
+          return true;
+        }
+      }
+      else {
+        const nameId = lastName + '\x01' + lastType;
+        if(lastType !== 'identifier' || keepNames.has(nameId))
+          nodes.push(capToNodeData(lang!, fsPath, lastType, lastName,
+                                  lastStart, lastEnd, bestCapture!));
+      }
+      return false;
+    }
+    if (bestCapture && chkCapture()) break;
+    bestCapture = capture;
+    lastType    = type;
+    lastName    = name;
+    lastStart   = start;
+    lastEnd     = end;
+    if(matchIdx == matches.length - 1) chkCapture();
   }
   nodes.sort((a, b) => a.start - b.start);
 
