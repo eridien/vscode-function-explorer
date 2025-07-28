@@ -209,6 +209,7 @@ export async function parseCode(code: string, fsPath: string,
   let lastStartName = -1;
   let lastName      = '';
   let lastType      = '';
+  let firstMatch   = true;
   for(let matchIdx = 0; matchIdx < matches.length; matchIdx++) {
     const match = matches[matchIdx];
     if(match.captures.length !== 2) {
@@ -221,13 +222,8 @@ export async function parseCode(code: string, fsPath: string,
     const startName   = nameCapture.node.startIndex;
     const type        = nameCapture.name;
     const name        = nameCapture.node.text;
-    if(!bestBodyCapture) {
-      bestBodyCapture = bodyCapture;
-      bestNameCapture = nameCapture;
-      bestName        = name;
-      bestType        = type;
-    }
-    if(name === lastName && startName === lastStartName) {
+    if(firstMatch || (name === lastName && startName === lastStartName)) {
+      firstMatch = false;
       if((typePriority.get(type)     ?? 0) > 
          (typePriority.get(lastType) ?? 0)) {
         bestBodyCapture = bodyCapture;
