@@ -167,7 +167,7 @@ export async function parseCode(code: string, fsPath: string,
       log('err', 'parser.parse returned null tree for', path.basename(fsPath));
       return [];
     }
-  } 
+  }
   catch (e) {
     if(retrying) {
       log('err', 'parser.parse failed again, giving up:', (e as any).message);
@@ -198,7 +198,7 @@ export async function parseCode(code: string, fsPath: string,
     query   = new Query(language as any, sExpr);
     matches = query.matches(tree.rootNode as any);
   } catch (e) {
-    log('err', 'S-expression query failed', (e as any).message);
+    log('err', 's-expression query failed', (e as any).message);
     return [];
   }
   const nodes: NodeData[] = [];
@@ -209,7 +209,7 @@ export async function parseCode(code: string, fsPath: string,
   let lastStartName = -1;
   let lastName      = '';
   let lastType      = '';
-  let firstMatch    = true;
+  let newMatch    = true;
   for(let matchIdx = 0; matchIdx < matches.length; matchIdx++) {
     const match = matches[matchIdx];
     if(match.captures.length !== 2) {
@@ -222,7 +222,7 @@ export async function parseCode(code: string, fsPath: string,
     const startName   = nameCapture.node.startIndex;
     const type        = nameCapture.name;
     const name        = nameCapture.node.text;
-    if(firstMatch) {
+    if(newMatch) {
       bestBodyCapture = bodyCapture;
       bestNameCapture = nameCapture;
       bestName        = name;
@@ -236,18 +236,17 @@ export async function parseCode(code: string, fsPath: string,
         bestName        = name;
         bestType        = type;
       }
-      firstMatch = false;
+      newMatch = false;
       continue;
     }
-    firstMatch = true;
-    function callCapToNodeData(): boolean {
+    if (bestBodyCapture) {
       if(haveParseIdx) {
         if(startName > parseIdx) {
           nodes.push(capToNodeData(code, lang!, fsPath,
                                    bestBodyCapture!, bestNameCapture!));
           nodes.push(capToNodeData(code, lang!, fsPath,
                                    bodyCapture!, nameCapture!));
-          return true;
+          break;
         }
       }
       else {
@@ -255,14 +254,12 @@ export async function parseCode(code: string, fsPath: string,
         if(bestType !== 'identifier' || keepNames.has(nameId))
           nodes.push(capToNodeData(code, lang!, fsPath, 
                                    bestBodyCapture!, bestNameCapture!));
-      }
-      return false;
+      };
     }
-    if (bestBodyCapture && callCapToNodeData()) break;
-    lastStartName   = startName;
-    lastName        = name;
-    lastType        = type;
-    if(matchIdx == matches.length - 1) callCapToNodeData();
+    lastStartName = startName;
+    lastName      = name;
+    lastType      = type;
+    newMatch      = true;
   }
   nodes.sort((a, b) => a.start - b.start);
 
