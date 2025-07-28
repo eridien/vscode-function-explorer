@@ -90,9 +90,9 @@ function idNodeName(node: SyntaxNode): string {
   if(!node.isNamed) return '';
   let name = '';
   let grammarType = node.type;
-  if(grammarType in [ "identifier", "dotted_name", "lifetime", "metavariable",
-                      "property_identifier", "shorthand_property_identifier",
-                      "variable_name"]) {
+  if(["identifier", "dotted_name", "lifetime", "metavariable",
+      "property_identifier", "shorthand_property_identifier",
+      "variable_name"].includes(grammarType)) {
     name = node.text;
   }
   else {
@@ -109,8 +109,7 @@ function getParentFuncId(node: SyntaxNode): string {
     parentFuncId += idNodeName(parent);
     parent = parent.parent;
   }
-  let context = node.text.slice(0, CONTEXT_LENGTH) + "\x00";
-  return parentFuncId + context;
+  return parentFuncId;
 }
 
 let typeCounts: Map<string, number> = new Map();
@@ -123,12 +122,12 @@ function collectParseStats(nodeData: NodeData) {
 function capToNodeData(lang: string, fsPath: string, 
                        type: string, name: string,
                        start: number, end: number, 
+                       context: string, 
                        capture: QueryCapture): NodeData {
   const node      = capture.node;
   const startName = node.startIndex;
   const endName   = node.endIndex;
-  let funcId = idNodeName(node) + getParentFuncId(node);
-  funcId += fsPath;
+  let funcId = getParentFuncId(node) + context + '\x00' +fsPath;
   const nodeData = {lang, name, type, funcId, start, startName, endName, end};
   if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
   return nodeData;
@@ -202,20 +201,23 @@ export async function parseCode(code: string, fsPath: string,
   let bestCapture: QueryCapture | null = null;
   let lastType     = '';
   let lastName     = '';
-  let lastStart = -1;
-  let lastEnd   = -1;
+  let lastStart    = -1;
+  let lastEnd      = -1;
+  let lastContext  = '';
   for(let matchIdx = 0; matchIdx < matches.length; matchIdx++) {
     const match = matches[matchIdx];
     if(match.captures.length !== 2) {
       log('err', `bad capture count ${match.captures.length} in ${lang}`);
       continue;
     }
-    const bodyIdx = match.captures[0].name === 'body' ? 0 : 1;
-    const start   = match.captures[bodyIdx].node.startIndex;
-    const end     = match.captures[bodyIdx].node.endIndex;
-    const capture = match.captures[1-bodyIdx];
-    const type    = capture.name;
-    const name    = capture.node.text;
+    const bodyIdx  = match.captures[0].name === 'body' ? 0 : 1;
+    const bodyNode = match.captures[bodyIdx].node;
+    const start    = bodyNode.startIndex;
+    const end      = bodyNode.endIndex;
+    const context  = code.slice(start, start + CONTEXT_LENGTH);
+    const capture  = match.captures[1-bodyIdx];
+    const type     = capture.name;
+    const name     = capture.node.text;
     if(start === lastStart && end === lastEnd && name === lastName) {
       if((typePriority.get(type)     ?? 0) > 
          (typePriority.get(lastType) ?? 0))
@@ -226,9 +228,9 @@ export async function parseCode(code: string, fsPath: string,
       if(haveParseIdx) {
         if(start > parseIdx) {
           nodes.push(capToNodeData(lang!, fsPath, lastType, lastName,
-                                   lastStart, lastEnd, bestCapture!));
+                                   lastStart, lastEnd, lastContext, bestCapture!));
           nodes.push(capToNodeData(lang!, fsPath, type, name,
-                                   start, end, capture));
+                                   start, end, context, capture));
           return true;
         }
       }
@@ -236,7 +238,7 @@ export async function parseCode(code: string, fsPath: string,
         const nameId = lastName + '\x01' + lastType;
         if(lastType !== 'identifier' || keepNames.has(nameId))
           nodes.push(capToNodeData(lang!, fsPath, lastType, lastName,
-                                  lastStart, lastEnd, bestCapture!));
+                                  lastStart, lastEnd, lastContext, bestCapture!));
       }
       return false;
     }
@@ -246,6 +248,7 @@ export async function parseCode(code: string, fsPath: string,
     lastName    = name;
     lastStart   = start;
     lastEnd     = end;
+    lastContext = context;
     if(matchIdx == matches.length - 1) chkCapture();
   }
   nodes.sort((a, b) => a.start - b.start);
