@@ -16,14 +16,15 @@ bugs ...
        RenameToken *pNext; 
      };
     #ifdef SQLITE_DEBUG
+    
+  showNodeHighlightsCmd
 
 todo ...
-  flash entire name
+  handle beforeAfter at beg/end
+  flash entire name on selection
   clnup languages
   find all syntax names and space them
   select dbl-click name
-  next/prev leave selection at start of name
-  handle beforeAfter at beg/end
   funcitem getDescription
 
 low priority ...

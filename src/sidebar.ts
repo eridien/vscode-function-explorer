@@ -159,7 +159,6 @@ export function revealItemByFunc(func: FuncItem) {
 
 export async function updateFileChildrenFromAst(fileItem: FileItem): 
                Promise<{ structChg: boolean; funcItems: FuncItem[]; } | null> {
-  // start('updateFileChildrenFromAst', true);
   const document = fileItem.document;
   const uri      = document.uri;
   const fsPath   = uri.fsPath;
@@ -168,7 +167,6 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
     const structChg = (!!fileItem.children && fileItem.children.length > 0);
     fileItem.children = null;
     log(`no funcs in ${path.basename(fsPath)}`);
-    // end('updateFileChildrenFromAst', true);
     return {structChg, funcItems:[]};
   };
   const docText = document.getText();

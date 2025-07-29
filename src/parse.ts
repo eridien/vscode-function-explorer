@@ -147,16 +147,15 @@ let lastParseErrFsPath = '';
 export async function parseCode(code: string, fsPath: string, 
                                 doc: vscode.TextDocument, 
                                 retrying = false, 
-                                parseIdx: number | null = null): 
+                                selectIdx: number | null = null): 
                                                Promise<NodeData[]> {
   start('parseCode', true);
   const lang = getLangByFsPath(fsPath);
   if(lang === null) return [];
   const language = await getLangFromWasm(lang);
   if (!language) return [];
-  const haveParseIdx  = parseIdx !== null;
-  const {sExpr}       = langs[lang];
-  const symbolsByType = langs[lang].symbolsByType;
+  let needBeforeAfter = (selectIdx !== null);
+  const {sExpr, symbolsByType} = langs[lang];
   function isFunction(type: string): boolean {
     return symbolsByType.get(type) === 'ƒ';
   }
@@ -189,10 +188,10 @@ export async function parseCode(code: string, fsPath: string,
                                  (e as any).message, path.basename(fsPath));
     lastParseErrFsPath = fsPath;
     const firstHalf = code.slice(0, middle);
-    const res1 = await parseCode(firstHalf,  fsPath, doc, true, parseIdx);
+    const res1 = await parseCode(firstHalf,  fsPath, doc, true, selectIdx);
     if(!res1) return [];
     const secondHalf = code.slice(middle);
-    const res2 = await parseCode(secondHalf, fsPath, doc, true, parseIdx);
+    const res2 = await parseCode(secondHalf, fsPath, doc, true, selectIdx);
     if (!res2) return [];
     for (const node of res2) {
       node.start += middle;
@@ -232,6 +231,8 @@ export async function parseCode(code: string, fsPath: string,
     const startName   = nameCapture.node.startIndex;
     const type        = nameCapture.name;
     const name        = nameCapture.node.text;
+    // log('nomod', `match ${matchIdx}: type=${type}, name=${name}, `+
+    //              `startName=${startName}`);
     if(firstMatch || (name === lastName && startName === lastStartName)) {
       if(firstMatch || ((typePriority.get(type)     ?? 0) > 
                         (typePriority.get(lastType) ?? 0))) {
@@ -243,12 +244,13 @@ export async function parseCode(code: string, fsPath: string,
       firstMatch = false;
       continue;
     }
-    if(haveParseIdx) {
-      if(startName > parseIdx) {
+    if(needBeforeAfter) {
+      if(startName > selectIdx!) {
         nodes.push(capToNodeData(code, lang!, fsPath, isFunction(bestType),
                        symbolsByType!, bestBodyCapture!, bestNameCapture!));
         nodes.push(capToNodeData(code, lang!, fsPath, isFunction(type),
                        symbolsByType!, bodyCapture!, nameCapture!));
+        needBeforeAfter = false;
         break;
       }
     }
@@ -266,12 +268,19 @@ export async function parseCode(code: string, fsPath: string,
     bestName        = name;
     bestType        = type;
   }
+  if(needBeforeAfter) {
+    if(!bestBodyCapture) return [];
+    nodes.push(capToNodeData(code, lang!, fsPath, isFunction(bestType),
+                    symbolsByType!, bestBodyCapture!, bestNameCapture!));
+    nodes.push(capToNodeData(code, lang!, fsPath, isFunction(bestType),
+                    symbolsByType!, bestBodyCapture!, bestNameCapture!));
+  }
   nodes.sort((a, b) => a.start - b.start);
 
   if(PARSE_DEBUG_STATS) {
     const lineCount = doc.positionAt(code.length).line;
     const nodeCount = nodes.length;
-    log(`${path.basename(fsPath)}, parseIdx: ${parseIdx} ` +
+    log(`${path.basename(fsPath)}, parseIdx: ${selectIdx} ` +
         `parsed ${nodeCount} nodes in ${lineCount} lines\n` +
         [...typeCounts.entries()].map(([t,c]) => `${t}: ${c}`)
                                  .join('\n'));

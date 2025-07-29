@@ -33,6 +33,7 @@ export async function toggleCmd() {
   const selIdx = document.offsetAt(activeEditor.selection.active);
   const beforeAfter = 
      await pars.parseCode(document.getText(), fsPath, document, false, selIdx);
+  if(beforeAfter.length == 0) return;
   const beforeIdx = beforeAfter[0].start;
   const afterIdx  = beforeAfter[1].start;
   const midIdx    = (beforeIdx + afterIdx) / 2;
@@ -62,11 +63,11 @@ export async function showNodeHighlightsCmd() {
   const doc       = editor.document;
   const fileItem  = itms.getFldrFileByFsPath(editor.document.uri.fsPath);
   if (fileItem) await sbar.updateFileChildrenFromAst(fileItem as any);
-  const funcItems = itms.getFuncItemsByFsPath(editor.document.uri.fsPath);
+  if(!fileItem?.children) return;
   const ranges: vscode.Range[] = [];
-  for(const funcItem of funcItems) {
-    const startPos = doc.positionAt(funcItem.startName);
-    const endPos   = doc.positionAt(funcItem.endName);
+  for(const funcItem of fileItem?.children ?? []) {
+    const startPos = doc.positionAt((funcItem as FuncItem).startName);
+    const endPos   = doc.positionAt((funcItem as FuncItem).endName);
     const range    = new vscode.Range(startPos, endPos);
     ranges.push(range);
   }
