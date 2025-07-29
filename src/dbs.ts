@@ -59,6 +59,11 @@ class Items {
     return result;
   }
 
+  getFuncItemsByFuncId(funcId: string): FuncItem[] {
+    const funcSet = Items.funcItemsByFuncId.get(funcId);
+    return funcSet ? Array.from(funcSet) : [];
+  }
+
   getById(id: string): Item  | undefined {
     return Items.itemsById.get(id);
   }
@@ -213,6 +218,8 @@ class Marks {
     const funcId    = funcItem.funcId;
     const funcIdSet = Marks.markIdSetByFspath.get(fsPath);
     if(!funcIdSet) return false;
+    const x = [...funcIdSet.entries()][0];
+    log(funcId.length, x[0].length);
     return funcIdSet.has(funcId);
   }
   hasStayAlive(funcItem: FuncItem): boolean {

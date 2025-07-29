@@ -171,36 +171,36 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
   };
   const docText = document.getText();
   if (!docText || docText.length === 0) return empty();
-  const nodeData = await parse.parseCode(docText, fsPath, document);
-  if(!nodeData || nodeData.length === 0) return empty();
-  let matchCount              = 0;
-  let structChg               = false;
-  const children              = fileItem.children as FuncItem[] | undefined;
-  let   childIdx              = 0;
-  const funcItemsInList       = new Set<FuncItem>();
+  const funcDataArr = await parse.parseCode(docText, fsPath, document);
+  if(!funcDataArr || funcDataArr.length === 0) return empty();
+  let matchCount = 0;
+  let structChg  = false;
+  const children = fileItem.children as FuncItem[] | undefined;
+  let   childIdx = 0;
+  const funcItemsInList = new Set<FuncItem>();
   const funcItems: FuncItem[] = [];
-  for(const node of nodeData) {
-    let funcItem: FuncItem | undefined = undefined;
-    if(!structChg) funcItem = children?.[childIdx++];
-    if(funcItem?.funcId !== node.funcId) {
+  for(const funcDataFromAst of funcDataArr) {
+    let childFuncItem: FuncItem | undefined = undefined;
+    if(!structChg) childFuncItem = children?.[childIdx++];
+    if(childFuncItem?.funcId !== funcDataFromAst.funcId) {
       structChg = true;
-      const funcSet = itms.getFuncSetByFuncId(node.funcId);
+      const funcSet = itms.getFuncSetByFuncId(funcDataFromAst.funcId);
       if(funcSet) {
-        for(const funcFromSet of funcSet.values()) {
-          if(!funcItemsInList.has(funcFromSet)) {
-            funcItem = funcFromSet;
-            funcSet.delete(funcItem);
+        for(const funcItem of funcSet.values()) {
+          if(!funcItemsInList.has(funcItem)) {
+            childFuncItem = funcItem;
+            funcSet.delete(childFuncItem);
             break;
           }
         }
       }
-      funcItem ??= new FuncItem({...node, parent:fileItem});
+      childFuncItem ??= new FuncItem(funcDataFromAst, fileItem);
     }
     else matchCount++;
-    Object.assign(funcItem, node);
-    funcItem.clear();
-    funcItems.push(funcItem);
-    funcItemsInList.add(funcItem);
+    Object.assign(childFuncItem, funcDataFromAst);
+    childFuncItem.clear();
+    funcItems.push(childFuncItem);
+    funcItemsInList.add(childFuncItem);
   }
   for(const funcItem of funcItems) itms.setFunc(funcItem);
   fileItem.children = funcItems;

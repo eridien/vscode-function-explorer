@@ -1,7 +1,7 @@
 import * as vscode     from 'vscode';
 import * as path       from 'path';
 import * as fs         from 'fs/promises';
-import * as pars       from './parse';
+import {FuncData}      from './parse';
 import * as sett       from './settings';
 import {settings}      from './settings';
 import * as utils      from './utils';
@@ -326,19 +326,7 @@ export function toggleAlphaSort(fileItem: FileItem) {
  updateItemInTree(fileItem);
 }
 
-
 ////////////////// FuncItem //////////////////////
-
-interface FuncData {
-  parent:     FileItem;
-  name:       string;
-  type:       string;
-  start:      number;
-  startName:  number;
-  endName:    number;
-  end:        number;
-  isFunction: boolean;
-}
 
 export class FuncItem extends Item {
   declare parent: FileItem;
@@ -358,10 +346,11 @@ export class FuncItem extends Item {
   private startKey:  string | undefined;
   private endKey:    string | undefined;
 
-  constructor(funcData: FuncData) {
+  constructor(funcData: FuncData, parent: FileItem) {
     super('', vscode.TreeItemCollapsibleState.None);
     Object.assign(this, funcData);
     this.id           = getItemId();
+    this.parent       = parent;
     this.contextValue = 'func';
     this.description  = this.getDescription() as string;
     this.command = {

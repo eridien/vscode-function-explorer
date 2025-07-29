@@ -28,10 +28,6 @@ export const langs: Langs = {
         (arrow_function)
       )
 
-      (assignment_expression
-        (identifier)    @assignment_expression
-      )
-
       (method_definition
           name: (property_identifier) @method_definition
       )
@@ -49,7 +45,12 @@ export const langs: Langs = {
           (identifier)      @class_declaration
         ]
       )
-      (identifier)  @identifier
+
+      (assignment_expression
+        (identifier) @assignment_expression
+      )
+
+      (identifier)   @identifier
     ] @body`,
 
     symbolsByType: new Map<string, string>([

@@ -30,26 +30,48 @@ export async function toggleCmd() {
   const fsPath   = document.uri.fsPath;
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   if (!fileItem) return;
-  const selIdx = document.offsetAt(activeEditor.selection.active);
+  const selOfs = document.offsetAt(activeEditor.selection.active);
   const beforeAfter = 
-     await pars.parseCode(document.getText(), fsPath, document, false, selIdx);
+     await pars.parseCode(document.getText(), fsPath, document, false, selOfs);
   if(beforeAfter.length == 0) return;
-  const beforeIdx    = beforeAfter[0].start;
-  const afterIdx     = beforeAfter[1].start;
-  const midIdx       = (beforeIdx + afterIdx) / 2;
-  let beforeAfterIdx = (selIdx < midIdx) ? 0 : 1;
-  let funcId         = beforeAfter[beforeAfterIdx]?.funcId;
-  if(!funcId) {
-    beforeAfterIdx = 1-beforeAfterIdx;
+  let beforeAfterIdx;
+  let funcId;
+  if(beforeAfter.length == 1) {
+    beforeAfterIdx = 0;
+    funcId = beforeAfter[0].funcId;
+  }
+  else {
+    const beforeOfs = beforeAfter[0].end;
+    const afterOfs  = beforeAfter[1].start;
+    const midOfs    = (beforeOfs + afterOfs) / 2;
+    beforeAfterIdx = (selOfs < midOfs) ? 0 : 1;
     funcId = beforeAfter[beforeAfterIdx]?.funcId;
+    if(!funcId) {
+      beforeAfterIdx = 1-beforeAfterIdx;
+      funcId = beforeAfter[beforeAfterIdx]?.funcId;
+    }
   }
   if(!funcId) return;
-  const funcItems = itms.getFuncItemsByFsPath(fsPath);
-  let funcItem    = funcItems.find(item => item.funcId === funcId);
-  if (!funcItem) funcItem = new FuncItem(
-          {...beforeAfter[beforeAfterIdx], parent:fileItem});
-  itms.setFunc(funcItem);
-  await disp.setMark(funcItem, true);
+  const beforeAfterData = beforeAfter[beforeAfterIdx];
+  const funcItems = itms.getFuncItemsByFuncId(funcId);
+  let funcItem: FuncItem | undefined;
+  for(const item of funcItems) {
+    if(item.getFsPath() === fsPath && 
+             item.start === beforeAfterData.start) {
+      funcItem = item;
+      break;
+    }
+  }
+  if(!funcItem)
+      funcItem = new FuncItem(beforeAfterData, fileItem);
+  if(funcItem) {
+    itms.setFunc(funcItem);
+    await disp.setMark(funcItem, true);
+  }
+  else {
+    log('err', 'toggleCmd, funcItem not found for funcId:', funcId, 
+                'beforeAfterData:', beforeAfterData);
+  }
 }
 
 let nodesDecorationType: vscode.TextEditorDecorationType | undefined;
