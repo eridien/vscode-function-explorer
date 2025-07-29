@@ -153,6 +153,10 @@ export async function parseCode(code: string, fsPath: string,
   const haveParseIdx  = parseIdx !== null;
   const {sExpr}       = langs[lang];
   const symbolsByType = langs[lang].symbolsByType;
+  function isFunction(type: string): boolean {
+    return symbolsByType.get(type) === 'ƒ';
+  }
+  if(PARSE_DEBUG_STATS) typeCounts = new Map<string, number>();
   const typePriority  = new Map<string, number>();
   for(const [type, _] of symbolsByType)
     typePriority.set(type, typePriority.size);
@@ -246,7 +250,7 @@ export async function parseCode(code: string, fsPath: string,
     }
     else {
       const nameId = bestName + '\x01' + bestType;
-      if(bestType !== 'identifier' || keepNames.has(nameId))
+      if(isFunction(bestType) || keepNames.has(nameId))
         nodes.push(capToNodeData(code, lang!, fsPath, 
                                   bestBodyCapture!, bestNameCapture!));
     };
