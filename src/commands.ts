@@ -34,16 +34,14 @@ export async function toggleCmd() {
   const beforeAfter = 
      await pars.parseCode(document.getText(), fsPath, document, false, selIdx);
   if(beforeAfter.length == 0) return;
-  const beforeIdx = beforeAfter[0].start;
-  const afterIdx  = beforeAfter[1].start;
-  const midIdx    = (beforeIdx + afterIdx) / 2;
+  const beforeIdx    = beforeAfter[0].start;
+  const afterIdx     = beforeAfter[1].start;
+  const midIdx       = (beforeIdx + afterIdx) / 2;
   let beforeAfterIdx = (selIdx < midIdx) ? 0 : 1;
-  let funcId     = beforeAfter[beforeAfterIdx]?.funcId;
-  let isFunction = beforeAfter[beforeAfterIdx]?.isFunction;
+  let funcId         = beforeAfter[beforeAfterIdx]?.funcId;
   if(!funcId) {
     beforeAfterIdx = 1-beforeAfterIdx;
     funcId = beforeAfter[beforeAfterIdx]?.funcId;
-    isFunction = beforeAfter[beforeAfterIdx]?.isFunction;
   }
   if(!funcId) return;
   const funcItems = itms.getFuncItemsByFsPath(fsPath);

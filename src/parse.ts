@@ -70,9 +70,9 @@ function parseDebug(rootNode: SyntaxNode) {
       dumping    = true;
     }
     if(dumping && !done) {
-      log('nomod', `${'    '.repeat(depth-firstDepth)}${node.type} `+
-                   `(${node.startIndex},${
-                       node.endIndex}) ${idNodeName(node)}`);
+      log(`${'    '.repeat(depth-firstDepth)}${node.type} `+
+          `(${node.startIndex},${
+              node.endIndex}) ${idNodeName(node)}`);
       if(lineCount++ > 1000) done = true;
     }
   });
@@ -160,7 +160,7 @@ export async function parseCode(code: string, fsPath: string,
     return symbolsByType.get(type) === 'ƒ';
   }
   if(PARSE_DEBUG_STATS) typeCounts = new Map<string, number>();
-  const typePriority  = new Map<string, number>();
+  const typePriority = new Map<string, number>();
   for(const [type, _] of symbolsByType)
     typePriority.set(type, typePriority.size);
   typePriority.set('identifier', -1);

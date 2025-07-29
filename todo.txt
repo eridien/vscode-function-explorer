@@ -17,9 +17,8 @@ bugs ...
      };
     #ifdef SQLITE_DEBUG
     
-  showNodeHighlightsCmd
-
 todo ...
+  update symbols when loading marks
   handle beforeAfter at beg/end
   flash entire name on selection
   clnup languages

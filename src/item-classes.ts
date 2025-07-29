@@ -9,8 +9,8 @@ import { parse } from '@babel/parser';
 import { prev } from './commands';
 const {log, start, end} = utils.getLog('itms');
 
-// const DEBUG_FUNC_TYPE = false;
-const DEBUG_FUNC_TYPE = true;
+const DEBUG_FUNC_TYPE = false;
+// const DEBUG_FUNC_TYPE = true;
 
 let treeView: vscode.TreeView<Item>;
 export function activate(treeViewIn: vscode.TreeView<Item>) {
@@ -242,7 +242,7 @@ export class FileItem extends Item {
       hasMark       ||= marked;
       stayAlive     ||= marked;
       stayAlive     &&= !this.filtered;
-      if(stayAlive) mrks.addStayAlive(func);
+      if(stayAlive && !func.isFunction) mrks.addStayAlive(func);
       return marked || stayAlive || (func.isFunction && !this.filtered);
     });
     if(funcItems.length === 0) return [];

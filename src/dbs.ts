@@ -226,10 +226,15 @@ class Marks {
     const funcIdSet    = Marks.markIdSetByFspath   .get(fsPath);
     const stayAliveSet = Marks.stayAliveSetByFspath.get(fsPath);
     const names = new Set<string>();
+    function addName(funcId: string) {
+      const nameType = funcId.split('\x00')[0] ?? '';
+      const [name, type] = nameType.split('\x01');
+      names.add(name + '\x01' + type.slice(1));
+    }
     if(funcIdSet)
-       for(const funcId of [...funcIdSet]) names.add(funcId.split('\x00')[0]);
+       for(const funcId of [...funcIdSet]) addName(funcId);
     if(!stayAliveSet) return names;
-    for(const funcId of [...stayAliveSet]) names.add(funcId.split('\x00')[0]);
+    for(const funcId of [...stayAliveSet]) addName(funcId);
     return names;
   }
   addMark(fsPath: string, funcId: string) {
