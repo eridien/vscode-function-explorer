@@ -130,7 +130,9 @@ function capToNodeData(code: string, lang: string, fsPath: string,
   const startName = node.startIndex;
   const endName   = node.endIndex;
   const context   = code.slice(start, start + CONTEXT_LENGTH);
-  let funcId      = getParentFuncId(node) + context + '\x00' +fsPath;
+  let funcId      = name + '\x01' + type + '\x00'   +
+                    getParentFuncId(bodyCapture.node) + 
+                    context + '\x00' +fsPath;
   const nodeData  = {lang, name, type, funcId, start, startName, endName, end};
   if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
   return nodeData;
@@ -223,14 +225,14 @@ export async function parseCode(code: string, fsPath: string,
     const type        = nameCapture.name;
     const name        = nameCapture.node.text;
     if(firstMatch || (name === lastName && startName === lastStartName)) {
-      firstMatch = false;
-      if((typePriority.get(type)     ?? 0) > 
-         (typePriority.get(lastType) ?? 0)) {
+      if(firstMatch || ((typePriority.get(type)     ?? 0) > 
+                        (typePriority.get(lastType) ?? 0))) {
         bestBodyCapture = bodyCapture;
         bestNameCapture = nameCapture;
         bestName        = name;
         bestType        = type;
       }
+      firstMatch = false;
       continue;
     }
     if(haveParseIdx) {
@@ -269,3 +271,4 @@ export async function parseCode(code: string, fsPath: string,
   end('parseCode', false);
   return nodes;
 }
+// funcid bad in assignment_expression
