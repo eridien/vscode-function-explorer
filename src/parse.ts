@@ -44,6 +44,7 @@ export interface NodeData {
   endName:      number;
   end:          number;
   lang:         string;
+  isFunction:   boolean;
 }
 
 function parseDebug(rootNode: SyntaxNode) {
@@ -86,10 +87,18 @@ export function getLangByFsPath(fsPath: string): string | null {
   return null;
 }
 
-function idNodeName(node: SyntaxNode): string {
+let typeCounts: Map<string, number> = new Map();
+
+function collectParseStats(nodeData: NodeData) {
+  typeCounts.set(nodeData.type, 
+                (typeCounts.get(nodeData.type) ?? 0) + 1);
+}
+function idNodeName(node: SyntaxNode, 
+                    symbolsByType: Map<string, string> | null = null): string {
   if(!node.isNamed) return '';
-  let name = '';
+  let name        = '';
   let grammarType = node.type;
+  const symbol    = symbolsByType?.get(grammarType) ?? '?';
   if(["identifier", "dotted_name", "lifetime", "metavariable",
       "property_identifier", "shorthand_property_identifier",
       "variable_name"].includes(grammarType)) {
@@ -99,27 +108,20 @@ function idNodeName(node: SyntaxNode): string {
     const nameNode = node.childForFieldName('name');
     name = nameNode ? nameNode.text : '';
   }
-  return name + "\x01" + grammarType + "\x00";
+  return name + "\x01" + symbol + grammarType + "\x00";
 }
-
-function getParentFuncId(node: SyntaxNode): string {
+function getParentFuncId(node: SyntaxNode, 
+                         symbolsByType: Map<string, string>): string {
   let parentFuncId = '';
   let parent = node.parent;
   while (parent) {
-    parentFuncId += idNodeName(parent);
+    parentFuncId += idNodeName(parent, symbolsByType);
     parent = parent.parent;
   }
   return parentFuncId;
 }
-
-let typeCounts: Map<string, number> = new Map();
-
-function collectParseStats(nodeData: NodeData) {
-  typeCounts.set(nodeData.type, 
-                (typeCounts.get(nodeData.type) ?? 0) + 1);
-}
-
-function capToNodeData(code: string, lang: string, fsPath: string,
+function capToNodeData(code: string, lang: string, fsPath: string, 
+                       isFunction: boolean, symbolsByType: Map<string, string>,
                        bodyCapture: QueryCapture, 
                        nameCapture: QueryCapture): NodeData {
   const start     = bodyCapture.node.startIndex;
@@ -129,11 +131,13 @@ function capToNodeData(code: string, lang: string, fsPath: string,
   const name      = node.text;
   const startName = node.startIndex;
   const endName   = node.endIndex;
+  const symbol    = symbolsByType.get(type) ?? '?';
   const context   = code.slice(start, start + CONTEXT_LENGTH);
-  let funcId      = name + '\x01' + type + '\x00'   +
-                    getParentFuncId(bodyCapture.node) + 
+  let funcId      = name + '\x01' + symbol + type + '\x00'   +
+                    getParentFuncId(bodyCapture.node, symbolsByType) + 
                     context + '\x00' +fsPath;
-  const nodeData  = {lang, name, type, funcId, start, startName, endName, end};
+  const nodeData  = {lang, name, type, funcId, 
+                     start, startName, endName, end, isFunction};
   if(PARSE_DEBUG_STATS) collectParseStats(nodeData);
   return nodeData;
 }
@@ -241,18 +245,18 @@ export async function parseCode(code: string, fsPath: string,
     }
     if(haveParseIdx) {
       if(startName > parseIdx) {
-        nodes.push(capToNodeData(code, lang!, fsPath,
-                                  bestBodyCapture!, bestNameCapture!));
-        nodes.push(capToNodeData(code, lang!, fsPath,
-                                  bodyCapture!, nameCapture!));
+        nodes.push(capToNodeData(code, lang!, fsPath, isFunction(bestType),
+                       symbolsByType!, bestBodyCapture!, bestNameCapture!));
+        nodes.push(capToNodeData(code, lang!, fsPath, isFunction(type),
+                       symbolsByType!, bodyCapture!, nameCapture!));
         break;
       }
     }
     else {
       const nameId = bestName + '\x01' + bestType;
       if(isFunction(bestType) || keepNames.has(nameId))
-        nodes.push(capToNodeData(code, lang!, fsPath, 
-                                  bestBodyCapture!, bestNameCapture!));
+        nodes.push(capToNodeData(code, lang!, fsPath, isFunction(bestType),
+                       symbolsByType!, bestBodyCapture!, bestNameCapture!));
     };
     lastStartName = startName;
     lastName      = name;

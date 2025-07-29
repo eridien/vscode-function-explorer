@@ -18,6 +18,7 @@ bugs ...
     #ifdef SQLITE_DEBUG
 
 todo ...
+  flash entire name
   clnup languages
   find all syntax names and space them
   select dbl-click name

@@ -37,16 +37,18 @@ export async function toggleCmd() {
   const afterIdx  = beforeAfter[1].start;
   const midIdx    = (beforeIdx + afterIdx) / 2;
   let beforeAfterIdx = (selIdx < midIdx) ? 0 : 1;
-  let funcId = beforeAfter[beforeAfterIdx]?.funcId;
+  let funcId     = beforeAfter[beforeAfterIdx]?.funcId;
+  let isFunction = beforeAfter[beforeAfterIdx]?.isFunction;
   if(!funcId) {
     beforeAfterIdx = 1-beforeAfterIdx;
     funcId = beforeAfter[beforeAfterIdx]?.funcId;
+    isFunction = beforeAfter[beforeAfterIdx]?.isFunction;
   }
   if(!funcId) return;
   const funcItems = itms.getFuncItemsByFsPath(fsPath);
   let funcItem    = funcItems.find(item => item.funcId === funcId);
   if (!funcItem) funcItem = new FuncItem(
-                 {...beforeAfter[beforeAfterIdx], parent:fileItem});
+          {...beforeAfter[beforeAfterIdx], parent:fileItem});
   itms.setFunc(funcItem);
   await disp.setMark(funcItem, true);
 }

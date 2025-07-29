@@ -243,7 +243,7 @@ export class FileItem extends Item {
       stayAlive     ||= marked;
       stayAlive     &&= !this.filtered;
       if(stayAlive) mrks.addStayAlive(func);
-      return marked || stayAlive || (func.isFunction() && !this.filtered);
+      return marked || stayAlive || (func.isFunction && !this.filtered);
     });
     if(funcItems.length === 0) return [];
     if(this.filtered && !hasMark) {
@@ -330,27 +330,29 @@ export function toggleAlphaSort(fileItem: FileItem) {
 ////////////////// FuncItem //////////////////////
 
 interface FuncData {
-  parent:    FileItem;
-  name:      string;
-  type:      string;
-  start:     number;
-  startName: number;
-  endName:   number;
-  end:       number;
+  parent:     FileItem;
+  name:       string;
+  type:       string;
+  start:      number;
+  startName:  number;
+  endName:    number;
+  end:        number;
+  isFunction: boolean;
 }
 
 export class FuncItem extends Item {
-  declare parent:     FileItem;
-  prevSibling?:       FuncItem;
-  lang!:              string;
-  name!:              string;
-  decoration!:        string;
-  type!:              string;
-  start!:             number;
-  startName!:         number;
-  endName!:           number;
-  end!:               number;
-  funcId!:            string;
+  declare parent: FileItem;
+  prevSibling?:   FuncItem;
+  lang!:          string;
+  name!:          string;
+  decoration!:    string;
+  type!:          string;
+  start!:         number;
+  startName!:     number;
+  endName!:       number;
+  end!:           number;
+  funcId!:        string;
+  isFunction!:    boolean;
   private startLine: number | undefined;
   private endLine:   number | undefined;
   private startKey:  string | undefined;
@@ -377,25 +379,22 @@ export class FuncItem extends Item {
      utils.createSortKey(this.getFsPath(), this.getStartLine());};
   getEndKey()    {return this.endKey    ??= 
      utils.createSortKey(this.getFsPath(), this.getEndLine());};
-  isFunction(type: string = this.type): boolean {
-    return (type == 'func');
-  }
   clear() {
     this.startLine = undefined;
     this.endLine   = undefined;
     this.startKey  = undefined;
     this.endKey    = undefined;
   }
-  getFuncItemStr(nameType: [string, string]): string {
-    const [name, type] = nameType;
-    if(this.isFunction(type)) return ` ƒ ${name}`;
-    return ` ⋆ ${name}`;
+  getFuncItemStr(name: string, symType: string): string {
+    const symbol = symType[0];
+    return ` ${symbol} ${name}`;
   }
   getLabel() {
-    let label = this.name;
-    if(!this.isFunction())     
-      label = this.getFuncItemStr([label, this.type]);
-    return label.trim();
+    const nameType = this.funcId.split('\x00')[0];
+    const symType  = nameType.split('\x01')[1];
+    let label      = this.name;
+    return this.isFunction ? this.name 
+                           : this.getFuncItemStr(this.name, symType);
   }
   getDescription(): string {
     let description  = '';
@@ -408,11 +407,9 @@ export class FuncItem extends Item {
        prevFuncParents === thisFuncParents) return ' "';
     for(const part of thisFuncIdParts) {
       if(part.length === 0) continue;
-      const nameType = part.split('\x01');
-      let name = nameType[0];
-      let type = nameType[1];
-      if(!name || name === '' || !type || type === '') continue;
-      description = this.getFuncItemStr([name, type]) + description;
+      const [name, symType] = part.split('\x01');
+      if(!name || name === '' || !symType || symType === '') continue;
+      description = this.getFuncItemStr(name, symType) + description;
     }
     if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
     return description.slice(1).trim();
