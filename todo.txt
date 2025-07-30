@@ -1,5 +1,5 @@
 bugs ...
-  beforeAfter at end
+  funcIdSet has 2 entries
 
 todo ...
   update symbols when loading marks

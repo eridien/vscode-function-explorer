@@ -108,7 +108,7 @@ function idNodeName(node: SyntaxNode,
     const nameNode = node.childForFieldName('name');
     name = nameNode ? nameNode.text : '';
   }
-  return name + "\x01" + symbol + grammarType + "\x00";
+  return name + "\x02" + symbol + grammarType + "\x01";
 }
 function getParentFuncId(node: SyntaxNode, 
                          symbolsByType: Map<string, string>): string {
@@ -133,9 +133,9 @@ function capToFuncData(code: string, lang: string, fsPath: string,
   const endName   = node.endIndex;
   const symbol    = symbolsByType.get(type) ?? '?';
   const context   = code.slice(start, start + CONTEXT_LENGTH);
-  let funcId      = name + '\x01' + symbol + type + '\x00'   +
+  let funcId      = name + '\x02' + symbol + type + '\x01'   +
                     getParentFuncId(bodyCapture.node, symbolsByType) + 
-                    context + '\x00' +fsPath;
+                    context + '\x01' +fsPath;
   const funcData  = {lang, name, type, funcId, 
                      start, startName, endName, end, isFunction};
   if(PARSE_DEBUG_STATS) collectParseStats(funcData);
@@ -234,8 +234,8 @@ export async function parseCode(code: string, fsPath: string,
     startName         = nameCapture.node.startIndex;
     type              = nameCapture.name;
     name              = nameCapture.node.text;
-    // log('nomod', `match ${matchIdx}: type=${type}, name=${name}, `+
-    //              `startName=${startName}`);
+    log('nomod', `match ${matchIdx}: type=${type}, name=${name}, `+
+                 `startName=${startName}`);
     if(firstMatch || (name === lastName && startName === lastStartName)) {
       if(firstMatch || ((typePriority.get(type)     ?? 0) > 
                         (typePriority.get(lastType) ?? 0))) {
@@ -258,7 +258,7 @@ export async function parseCode(code: string, fsPath: string,
       }
     }
     else {
-      const nameId = bestName + '\x01' + bestType;
+      const nameId = bestName + '\x02' + bestType;
       if(isFunction(bestType) || keepNames.has(nameId))
         nodes.push(capToFuncData(code, lang!, fsPath, isFunction(bestType),
                        symbolsByType!, bestBodyCapture!, bestNameCapture!));
@@ -272,6 +272,13 @@ export async function parseCode(code: string, fsPath: string,
     if(!bestBodyCapture) return [];
     nodes.push(capToFuncData(code, lang!, fsPath, isFunction(bestType),
                     symbolsByType!, bestBodyCapture!, bestNameCapture!));
+  } else {
+    if(bestBodyCapture) {
+      const nameId = bestName + '\x02' + bestType;
+      if(isFunction(bestType) || keepNames.has(nameId))
+        nodes.push(capToFuncData(code, lang!, fsPath, isFunction(bestType),
+                       symbolsByType!, bestBodyCapture!, bestNameCapture!));
+    }
   }
   nodes.sort((a, b) => a.start - b.start);
 

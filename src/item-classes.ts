@@ -379,8 +379,8 @@ export class FuncItem extends Item {
     return ` ${symbol} ${name}`;
   }
   getLabel() {
-    const nameType = this.funcId.split('\x00')[0];
-    const symType  = nameType.split('\x01')[1];
+    const nameType = this.funcId.split('\x01')[0];
+    const symType  = nameType.split('\x02')[1];
     let label      = this.name;
     return this.isFunction ? this.name 
                            : this.getFuncItemStr(this.name, symType);
@@ -388,15 +388,15 @@ export class FuncItem extends Item {
   getDescription(): string {
     let description  = '';
     const prevfuncId      = this.prevSibling?.funcId ?? '';
-    let   prevFuncIdParts = prevfuncId.split('\x00').slice(2,-3);
-    const prevFuncParents = prevFuncIdParts.join('\x00');
-    let   thisFuncIdParts = this.funcId.split('\x00').slice(2,-3);
-    const thisFuncParents = thisFuncIdParts.join('\x00');
+    let   prevFuncIdParts = prevfuncId.split('\x01').slice(2,-3);
+    const prevFuncParents = prevFuncIdParts.join('\x01');
+    let   thisFuncIdParts = this.funcId.split('\x01').slice(2,-3);
+    const thisFuncParents = thisFuncIdParts.join('\x01');
     if(prevFuncParents !== '' && 
        prevFuncParents === thisFuncParents) return ' "';
     for(const part of thisFuncIdParts) {
       if(part.length === 0) continue;
-      const [name, symType] = part.split('\x01');
+      const [name, symType] = part.split('\x02');
       if(!name || name === '' || !symType || symType === '') continue;
       description = this.getFuncItemStr(name, symType) + description;
     }

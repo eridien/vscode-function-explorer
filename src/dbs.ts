@@ -7,6 +7,7 @@ import * as itmc       from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
         FileItem, FuncItem} from './item-classes';
 import * as utils      from './utils';
+import { toASCII } from 'punycode';
 const {log, start, end} = utils.getLog('dbss');
 
 let context: vscode.ExtensionContext;
@@ -218,8 +219,6 @@ class Marks {
     const funcId    = funcItem.funcId;
     const funcIdSet = Marks.markIdSetByFspath.get(fsPath);
     if(!funcIdSet) return false;
-    const x = [...funcIdSet.entries()][0];
-    log(funcId.length, x[0].length);
     return funcIdSet.has(funcId);
   }
   hasStayAlive(funcItem: FuncItem): boolean {
@@ -234,9 +233,9 @@ class Marks {
     const stayAliveSet = Marks.stayAliveSetByFspath.get(fsPath);
     const names = new Set<string>();
     function addName(funcId: string) {
-      const nameType = funcId.split('\x00')[0] ?? '';
-      const [name, type] = nameType.split('\x01');
-      names.add(name + '\x01' + type.slice(1));
+      const nameType = funcId.split('\x01')[0] ?? '';
+      const [name, type] = nameType.split('\x02');
+      names.add(name + '\x02' + type.slice(1));
     }
     if(funcIdSet)
        for(const funcId of [...funcIdSet]) addName(funcId);

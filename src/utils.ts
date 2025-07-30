@@ -2,7 +2,7 @@ import vscode from 'vscode';
 const { log, start, end } = getLog('util');
 
 export function createSortKey(fsPath: string, lineNumber: number): string {
-  return fsPath + "\x00" + lineNumber.toString().padStart(6, '0');
+  return fsPath + "\x01" + lineNumber.toString().padStart(6, '0');
 }
 
 export function flashRange(editor: vscode.TextEditor, 
