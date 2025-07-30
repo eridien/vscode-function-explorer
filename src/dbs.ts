@@ -30,6 +30,11 @@ class Items {
   private static fldrItemsByFspath: Map<string, AllButFuncItem> = new Map();
   private static funcItemsByFuncId: Map<string, Set<FuncItem>>  = new Map();
 
+  clear() {
+    Items.itemsById.clear();
+    Items.fldrItemsByFspath.clear();
+    Items.funcItemsByFuncId.clear();
+  }
   getAllFolderFileItems(): AllButFuncItem[] {
     return Array.from(Items.fldrItemsByFspath.values()); 
   }
@@ -139,6 +144,9 @@ export const itms = new Items();
 
 class FilePaths {
   private static includedfsPaths = new Set<string>();
+  clear() {
+    FilePaths.includedfsPaths.clear();
+  }
   async loadPaths(fsPath: string, clear = false) {
     if (clear) FilePaths.includedfsPaths.clear();
     async function findFuncFiles(fsPath: string) {

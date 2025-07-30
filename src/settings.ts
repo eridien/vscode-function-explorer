@@ -130,16 +130,16 @@ export function includeFile(fsPath: string, folder = false,
                             editor: vscode.TextEditor | null = null): boolean {
   if(fsPath === '' && !editor) return false;
   if (editor) {
+    if (editor.document.uri.scheme !== 'file') return false;
     fsPath = editor.document.uri.fsPath;
     folder = false;
-    if (editor.document.uri.scheme !== 'file' ||
-       !extensionsSupported.has(path.extname(fsPath))) return false;
   }
   if(folder) {
     for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
       if(fsPath === wsFolder.uri.fsPath) return true;
     }
   }
+  else if (!extensionsSupported.has(path.extname(fsPath))) return false;
   let filePath = vscode.workspace.asRelativePath(fsPath, true);
   filePath = filePath.replace(/\\/g, '/').split('/').slice(1).join('/');
   const relPath = folder ? filePath + '/' : filePath;

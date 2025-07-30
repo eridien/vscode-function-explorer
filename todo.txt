@@ -1,6 +1,6 @@
 bugs ...
-  showing lang not supported on every tab
-  flash name when marking
+  excluding file 
+  
 
 todo ...
 

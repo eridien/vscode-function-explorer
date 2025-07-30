@@ -1,15 +1,16 @@
-import * as vscode      from 'vscode';
-import * as path        from 'path';
-import * as disp        from './display';
-import * as pars        from './parse';
-import  {itms, mrks}    from './dbs';
-import * as sbar        from './sidebar';
-import * as itmc        from './item-classes';
-import {Item, FolderItem, FileItem, 
-        FuncItem, itemDeleteCount} from './item-classes';
-import * as sett        from './settings';
-import {settings}       from './settings';
-import * as utils       from './utils';
+import * as vscode         from 'vscode';
+import * as path           from 'path';
+import * as disp           from './display';
+import * as pars           from './parse';
+import  {itms, fils, mrks} from './dbs';
+import * as sbar           from './sidebar';
+import * as itmc           from './item-classes';
+import * as sett           from './settings';
+import {settings}          from './settings';
+import * as utils          from './utils';
+import {Item, FolderItem, FileItem, FuncItem, 
+        itemDeleteCount}   from './item-classes';
+
 const {log, start, end} = utils.getLog('cmds');
 
 const NEXT_DEBUG = false;
@@ -211,8 +212,10 @@ export function collapseAllItems() {
         'workbench.actions.treeView.sidebarView.collapseAll');
 }
 
-export async function refresh() {
-  await sbar.refreshTree(true);
+export function refresh() {
+  itms.clear();
+  fils.clear();
+  sbar.updateItemInTree();
 }
 
 export async function showFolders() {
