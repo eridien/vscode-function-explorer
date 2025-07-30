@@ -234,8 +234,8 @@ export async function parseCode(code: string, fsPath: string,
     startName         = nameCapture.node.startIndex;
     type              = nameCapture.name;
     name              = nameCapture.node.text;
-    log('nomod', `match ${matchIdx}: type=${type}, name=${name}, `+
-                 `startName=${startName}`);
+    // log('nomod', `match ${matchIdx}: type=${type}, name=${name}, `+
+    //              `startName=${startName}`);
     if(firstMatch || (name === lastName && startName === lastStartName)) {
       if(firstMatch || ((typePriority.get(type)     ?? 0) > 
                         (typePriority.get(lastType) ?? 0))) {

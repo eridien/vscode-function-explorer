@@ -1,11 +1,9 @@
 bugs ...
-  funcIdSet has 2 entries
 
 todo ...
   update symbols when loading marks
   flash entire name on selection
   clnup languages
-  find all syntax names and space them
   select dbl-click name
   funcitem getDescription
 
