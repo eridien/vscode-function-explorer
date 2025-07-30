@@ -1,9 +1,9 @@
 bugs ...  
 
 todo ...
+  reveal item in editor when marked 
 
 low priority ...
-  delete file leaves folder
 
 unlikely ...
   multiple items in one line
@@ -14,10 +14,10 @@ unlikely ...
   gutter highlight skips blank lines
 
 testing ...
-  settings changes
-  error test files
-  adding, deleting, moving, and copying funcs
-  changing files in other editor
+x settings changes
+x  error test files
+x  adding, deleting, moving, and copying funcs
+x  changing files in other editor
   multiple ws roots
   multiple selections
   mark persistence
