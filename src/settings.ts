@@ -128,6 +128,7 @@ export async function setScroll(editor: vscode.TextEditor,
 
 export function includeFile(fsPath: string, folder = false, 
                             editor: vscode.TextEditor | null = null): boolean {
+  if(fsPath === '' && !editor) return false;
   if (editor) {
     fsPath = editor.document.uri.fsPath;
     folder = false;
