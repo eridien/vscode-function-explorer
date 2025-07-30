@@ -1,7 +1,6 @@
 bugs ...
 
 todo ...
-  update symbols when loading marks
   flash entire name on selection
   clnup languages
   select dbl-click name

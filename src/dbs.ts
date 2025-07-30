@@ -3,11 +3,12 @@ import * as path       from 'path';
 import * as fs         from 'fs/promises';
 import * as sett       from './settings';
 import {settings}      from './settings';
+import {getLangByFsPath} from './parse';
+import {langs}         from './languages';
 import * as itmc       from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
         FileItem, FuncItem} from './item-classes';
 import * as utils      from './utils';
-import { toASCII } from 'punycode';
 const {log, start, end} = utils.getLog('dbss');
 
 let context: vscode.ExtensionContext;
@@ -284,7 +285,21 @@ function loadMarks() {
   }
   let markCount = 0;
   for(const [fsPath, markIds] of fsPathMarkIdArr) {
+    const lang = getLangByFsPath(fsPath);
+    if(lang === null) return [];
+    const {symbolsByType} = langs[lang];
     for(const funcId of markIds) {
+      const nameTypes = funcId.split('\x01');
+      nameTypes.pop();
+      const context = nameTypes.pop();
+      let fixedFuncId = '';
+      for(const nameType of nameTypes) {
+        let [name, type] = nameType.split('\x02');
+        type = type.slice(1);
+        const symbol = symbolsByType.get(type);
+        fixedFuncId += name + '\x02' + symbol + type + '\x01';
+      }
+      fixedFuncId += (context + '\x01' + fsPath);
       mrks.addMark(fsPath, funcId);
       markCount++;
     }
