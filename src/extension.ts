@@ -73,9 +73,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	const refresh = vscode.commands.registerCommand(
-       'vscode-function-explorer.refresh', async () => {
+       'vscode-function-explorer.refresh', () => {
       //  log('refresh');
-		await cmds.refresh();
+		cmds.refresh();
 	});
 
 	const showFolders = vscode.commands.registerCommand(
