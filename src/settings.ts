@@ -3,7 +3,7 @@ import {minimatch}   from 'minimatch';
 import * as fs       from 'fs/promises';
 import * as chokidar from 'chokidar';
 import path          from 'path';
-import {langs}       from './languages';
+import {extensionsSupported} from './languages';
 import * as utils    from './utils';
 const {log, start, end} = utils.getLog('sett');
 
@@ -126,7 +126,14 @@ export async function setScroll(editor: vscode.TextEditor,
                          vscode.TextEditorRevealType.AtTop);
 }
 
-export function includeFile(fsPath: string, folder = false): boolean {
+export function includeFile(fsPath: string, folder = false, 
+                            editor: vscode.TextEditor | null = null): boolean {
+  if (editor) {
+    fsPath = editor.document.uri.fsPath;
+    folder = false;
+    if (editor.document.uri.scheme !== 'file' ||
+       !extensionsSupported.has(path.extname(fsPath))) return false;
+  }
   if(folder) {
     for(const wsFolder of (vscode.workspace.workspaceFolders || [])) {
       if(fsPath === wsFolder.uri.fsPath) return true;

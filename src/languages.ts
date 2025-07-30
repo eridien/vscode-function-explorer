@@ -171,3 +171,10 @@ export const langs: Langs = {
     suffixes: new Set(['.rs'])
   },
 };
+
+export const extensionsSupported = new Set<string>();
+for (const [lang, {suffixes}] of Object.entries(langs) as any) {
+  for (const suffix of suffixes) {
+    extensionsSupported.add(suffix);
+  }
+}

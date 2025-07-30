@@ -94,8 +94,7 @@ export async function getFuncInAroundSelection() : Promise<FuncItem | null> {
   if (!editor) return null;
   const document = editor.document;
   const fsPath = document.uri.fsPath;
-  if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(fsPath)) return null;
+  if(!sett.includeFile('', false, editor)) return null;
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   if(!fileItem) return null;
   const children = await fileItem.getChildren(true);
@@ -147,8 +146,7 @@ export async function getFuncsOverlappingSelections(): Promise<FuncItem[]> {
   if (!editor) return [];
   const document = editor.document;
   const fsPath   = document.uri.fsPath;
-  if (document.uri.scheme !== 'file' ||
-     !sett.includeFile(fsPath)) return [];
+  if(!sett.includeFile('', false, editor)) return [];
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   if(!fileItem) return [];
   const children = await fileItem.getChildren();

@@ -110,8 +110,7 @@ export async function toggleItemMarkCmd(funcItem: FuncItem) {
 
 async function prevNext(next: boolean) {
   let editor = vscode.window.activeTextEditor;
-  if(!editor || editor.document.uri.scheme !== 'file' ||
-                     !sett.includeFile(editor.document.uri.fsPath)) {
+  if(!sett.includeFile('', false, editor)) {
     const fsPathMarkIds = mrks.getAllMarks();
     if(fsPathMarkIds.length == 0) return;
     const fsPaths = fsPathMarkIds.map(([fsPath]) => fsPath);
@@ -127,9 +126,8 @@ async function prevNext(next: boolean) {
                                                !settings.openEditorsAsPinned);
     if(!editor) return;
   }
-  if (!editor ||
-      editor.document.uri.scheme !== 'file' ||
-      !sett.includeFile(editor.document.uri.fsPath)) return;
+  if(!editor) return;
+  if(!sett.includeFile('', false, editor)) return;
   const fsPath   = editor.document.uri.fsPath;
   const fileWrap = settings.fileWrap;
   const filtered = !NEXT_DEBUG;
@@ -270,8 +268,7 @@ export async function editorOrTextChg(
     if(!editor) return;
   }
   const fsPath = editor.document.uri.fsPath;
-  if(editor.document.uri.scheme !== 'file' ||
-     !sett.includeFile(fsPath)) return;
+  if(!sett.includeFile('', false, editor)) return;
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   if(!fileItem) return;
   // log('editorOrTextChg start', fileItem.label, fileItem.id, 
@@ -296,10 +293,7 @@ export async function selectionChg(
                             event: vscode.TextEditorSelectionChangeEvent) {
   hideNodeHighlights();
   const {textEditor, selections} = event;
-  if (textEditor.document.uri.scheme !== 'file' ||
-     !sett.includeFile(textEditor.document.uri.fsPath)) {
-     return;
-  }
+  if(!sett.includeFile('', false, textEditor)) return;
   const selection = selections[0];
   const document  = textEditor.document;
   const fsPath    = document.uri.fsPath;
