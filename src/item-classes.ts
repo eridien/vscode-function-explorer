@@ -266,6 +266,7 @@ export class FileItem extends Item {
   }
   delete() {
     itemDeleteCount++;
+    fils.deleteByFsPath(this.document.uri.fsPath);
     itms.deleteFileById(this.id);
     if(this.children) {
       for(const child of this.children) child.delete();

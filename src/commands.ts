@@ -353,16 +353,16 @@ export function fileCreated(fsPath: string) {
 }
 
 const fileDeletedQueue: vscode.Uri[] = [];
-let tryCount = 0;
+// let tryCount = 0;
 
 export function fileDeleted(uri: vscode.Uri, retry = false) {
   start('fileDeleted');
-  if(++tryCount > 10) { // 1 sec
-    log('err', 'fileDeleted, too many tries:', fileDeletedQueue);
-    tryCount = 0;
-    fileDeletedQueue.length = 0;
-    return;
-  }
+  // if(++tryCount > 10) { // 1 sec
+  //   log('err', 'fileDeleted, too many tries:', fileDeletedQueue);
+  //   tryCount = 0;
+  //   fileDeletedQueue.length = 0;
+  //   return;
+  // }
   if(itemDeleteCount > 0) {
     if(!retry) fileDeletedQueue.push(uri);
     setTimeout(() => {
@@ -370,7 +370,7 @@ export function fileDeleted(uri: vscode.Uri, retry = false) {
          fileDeleted(fileDeletedQueue.shift()!, true);
     }, 100);
   }
-  tryCount = 0;
+  // tryCount = 0;
   const fldrFileItem = itms.getFldrFileByFsPath(uri.fsPath);
   if (fldrFileItem && (
       fldrFileItem instanceof FolderItem || 
