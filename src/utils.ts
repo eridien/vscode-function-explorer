@@ -6,11 +6,15 @@ export function createSortKey(fsPath: string, lineNumber: number): string {
 }
 
 export function flashRange(editor: vscode.TextEditor, 
-                           startLine: number, 
-                           endLine: number, red = false) {
+                           startLine: number, endLine: number, 
+                           startName: number, endName: number, red = false) {
+  const startNamePos = editor.document.positionAt(startName);
+  const endNamePos   = editor.document.positionAt(endName);
   const ranges: vscode.Range[] = [];
   for (let line = startLine; line <= endLine; line++) 
-    ranges.push(new vscode.Range(line, 0, line, 1));
+    ranges.push(new vscode.Range(line, 0, line, 2));
+  ranges.push(new vscode.Range(startLine, startNamePos.character, 
+                               startLine, endNamePos.character));
   const decorationType = vscode.window.createTextEditorDecorationType({
     backgroundColor: red ? 'rgba(255,   0, 0, 0.20)' 
                          : 'rgba(255, 255, 0, 0.30)',

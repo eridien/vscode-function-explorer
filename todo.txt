@@ -1,10 +1,6 @@
 bugs ...
 
 todo ...
-  flash entire name on selection
-  clnup languages
-  select dbl-click name
-  funcitem getDescription
 
 low priority ...
   delete file leaves folder
