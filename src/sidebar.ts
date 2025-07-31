@@ -220,10 +220,10 @@ export async function itemExpandChg(item: WsAndFolderItem | FileItem,
   if(!(item instanceof FileItem)) return;
   if (blockChg) {
     if(blockChgTimeout) clearTimeout(blockChgTimeout);
-    blockChgTimeout = setTimeout(() => {
+    blockChgTimeout   = setTimeout(() => {
       blockChg        = false;
       blockChgTimeout = undefined;
-    }, 200);
+    }, 2000);
     return undefined;
   }
   if(!expanded) {
