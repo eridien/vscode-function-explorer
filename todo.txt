@@ -18,14 +18,13 @@ unlikely ...
 
 testing ...
 x settings changes
-x  error test files
-x  adding, deleting, moving, and copying funcs
-x  changing files in other editor
+x error test files
+x adding, deleting, moving, and copying funcs
+x changing files in other editor
 x multiple ws roots
 x check all menus
-  multiple selections
-  mark persistence
-  dark theme
+x multiple selections
+x dark theme
 
 release checks ...
   package.json version
