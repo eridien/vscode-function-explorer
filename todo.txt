@@ -3,10 +3,9 @@ bugs ...
     bookmarks - extension.ts
     only set one mark per toggle
       option: use line number with marks
-  toggle mark in func menu
+  prev in f.java
 
 todo ...
-  reveal item in editor when marked 
 
 low priority ...
 
