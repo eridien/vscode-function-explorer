@@ -59,7 +59,7 @@ export async function updateGutter(editor: vscode.TextEditor,
   decRanges = [];
   for(const funcItem of [...children]) {
     if(!mrks.hasMark(funcItem)) continue;
-    const lineNumber = funcItem.getStartLine();
+    const lineNumber = funcItem.getNameLine();
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
     decRanges.push({range});
   }

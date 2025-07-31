@@ -149,7 +149,7 @@ async function prevNext(next: boolean) {
         break;
       }
       const funcKey = utils.createSortKey(
-                                funcFsPath, func.getStartLine());
+                                funcFsPath, func.getNameLine());
       if(funcKey > selKey) break;
       else if(i == funcs.length-1) {  
         func = funcs[0];
@@ -166,7 +166,7 @@ async function prevNext(next: boolean) {
         break;
       }
       const funcKey = utils.createSortKey(
-                                funcFsPath, func.getStartLine());
+                                funcFsPath, func.getNameLine());
       if(funcKey < selKey) break;
       else if(i == 0) {
         func = funcs[funcs.length-1];

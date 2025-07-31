@@ -344,6 +344,7 @@ export class FuncItem extends Item {
   isFunction!:    boolean;
   private startLine: number | undefined;
   private endLine:   number | undefined;
+  private nameLine:  number | undefined;
   private startKey:  string | undefined;
   private endKey:    string | undefined;
 
@@ -362,7 +363,9 @@ export class FuncItem extends Item {
   }
   getFsPath()    {return this.parent.document.uri.fsPath;}
   getStartLine() {return this.startLine ??= 
-                         this.parent.document.positionAt(this.start).line;};
+                        this.parent.document.positionAt(this.start).line;};
+  getNameLine()  {return this.nameLine  ??= 
+                        this.parent.document.positionAt(this.startName).line;};
   getEndLine()   {return this.endLine   ??= 
                          this.parent.document.positionAt(this.end).line;};
   getStartKey()  {return this.startKey  ??= 
