@@ -125,10 +125,8 @@ async function prevNext(next: boolean) {
     for (let idx = 0; !editor && idx < fsPaths.length; idx++) 
       editor = await utils.revealEditorByFspath(fsPaths[idx], 
                                                !settings.openEditorsAsPinned);
-    if(!editor) return;
   }
   if(!editor) return;
-  if(!sett.includeFile('', false, editor)) return;
   const fsPath   = editor.document.uri.fsPath;
   const fileWrap = settings.fileWrap;
   const filtered = !NEXT_DEBUG;
@@ -137,7 +135,7 @@ async function prevNext(next: boolean) {
     const fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem;
     treeView.reveal(fileItem, {expand: true});
     return;
-  }
+  } 
   const selFsPath = (fileWrap ? fsPath : '');
   const selKey = utils.createSortKey(
         selFsPath, editor.selection.active.line);
