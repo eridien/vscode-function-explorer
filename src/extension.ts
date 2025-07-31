@@ -162,6 +162,12 @@ export async function activate(context: vscode.ExtensionContext) {
   	await cmds.toggleItemMarkCmd(funcItem);
 	});
 
+	const toggleItemMarkMenu = vscode.commands.registerCommand(
+		'vscode-function-explorer.toggleItemMarkMenu', async (funcItem: FuncItem) => {
+	  // log('toggleItemMarkMenu');
+  	await cmds.toggleItemMarkCmd(funcItem);
+	});
+
 	const funcClickCmd = vscode.commands.registerCommand(
        'vscode-function-explorer.funcClickCmd', async (funcItem: FuncItem) => {
     // log('funcClickCmd');
@@ -223,7 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
     toggleCmd, prev, next, funcClickCmd, loadSettings,
-    editorChg, selectionChg, textChg, toggleItemMark,
+    editorChg, selectionChg, textChg, toggleItemMark, toggleItemMarkMenu,
     treeSelChg, itemExpandChg, itemCollapseChg,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,

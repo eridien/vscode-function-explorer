@@ -1,4 +1,9 @@
 bugs ...  
+  too many matches per mark
+    bookmarks - extension.ts
+    only set one mark per toggle
+      option: use line number with marks
+  toggle mark in func menu
 
 todo ...
   reveal item in editor when marked 
@@ -18,7 +23,8 @@ x settings changes
 x  error test files
 x  adding, deleting, moving, and copying funcs
 x  changing files in other editor
-  multiple ws roots
+x multiple ws roots
+x check all menus
   multiple selections
   mark persistence
   dark theme
