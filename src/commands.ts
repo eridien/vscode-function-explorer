@@ -14,7 +14,6 @@ import {Item, FolderItem, FileItem, FuncItem,
 const {log, start, end} = utils.getLog('cmds');
 
 const NEXT_DEBUG = false;
-// const NEXT_DEBUG = true;
 
 let treeView:  vscode.TreeView<Item>;
 
@@ -281,8 +280,7 @@ let gestureTimeout:  NodeJS.Timeout | undefined;
 let gestureFuncItem: FuncItem       | undefined;
 
 function clrGesture() {
-  // end('gesture', true, 'clrGesture');
-  log('clrGesture');
+  // log('clrGesture');
   clearTimeout(gestureTimeout);
   gestureTimeout  = undefined;
   gestureFuncItem = undefined;
@@ -334,7 +332,7 @@ export async function openFile(item: Item) {
 }
 
 export function fileCreated(fsPath: string) {
-  log(`File created: ${fsPath}`);
+  // log(`File created: ${fsPath}`);
   const fsPathSegs = fsPath.split(path.sep);
   while(fsPathSegs.length > 1) {
     const fsPath       = fsPathSegs.join(path.sep);

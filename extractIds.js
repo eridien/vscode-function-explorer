@@ -4,7 +4,6 @@ const args = process.argv.slice(2);
 
 const ids = new Set();
 
-
 for (const arg of ["js", "py", "c-sharp", "c",
                    "go", "java", "rust", "ts"]) {
     const grammarFile = 

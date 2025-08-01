@@ -20,15 +20,15 @@ unlikely ...
   gutter highlight skips blank lines
 
 testing ...
-x settings changes
-x error test files
-x adding, deleting, moving, and copying funcs
-x changing files in other editor
-x multiple ws roots
-x check all menus
-x multiple selections
-x dark theme
-  gesture
+  settings changes
+  error test files
+  adding, deleting, moving, and copying funcs
+  changing files in other editor
+  multiple ws roots
+  check all menus
+  multiple selections
+  dark theme
+   gesture
 
 release checks ...
   package.json version

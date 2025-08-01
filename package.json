@@ -7,9 +7,18 @@
   "engines": {
     "vscode": "^1.100.0"
   },
-  "categories": [
-    "Other"
-  ],
+"keywords": [
+    "function explorer",
+    "function list",
+    "function navigation",
+    "code outline",
+    "bookmark",
+    "code navigation",
+    "jump to function",
+    "sidebar explorer",
+    "function finder"
+  ],  
+  "categories": ["Other", "Programming Languages"],
   "repository": {
     "type": "git",
     "url": "https://github.com/eridien/vscode-function-explorer"

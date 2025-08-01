@@ -252,6 +252,6 @@ export async function activate(context: vscode.ExtensionContext) {
   end('activate');
 }
 
-export function deactivate() {
-  log('extension deactivated');
-}
+// export function deactivate() {
+//   log('extension deactivated');
+// }

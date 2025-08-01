@@ -1,9 +1,11 @@
-# Change Log
+### Change Log
 
-All notable changes to the "vscode-function-explorer" extension will be documented in this file.
+#### 0.1.2, August 1, 2025
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+- Added breadcrumb options.
+- Added jump between functions instead of marks
 
-## [Unreleased]
+#### 0.1.1, July 31, 2025
 
 - Initial release
+
