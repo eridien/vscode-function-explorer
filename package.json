@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -26,7 +26,7 @@
     "commands": [
       {
         "command": "vscode-function-explorer.toggle",
-        "title": "Toggle Function Mark(s)",
+        "title": "Toggle Function Mark",
         "category": "Function Explorer" 
       },
       {
@@ -37,6 +37,16 @@
       {
         "command": "vscode-function-explorer.next",
         "title": "Jump to next Function Mark",
+        "category": "Function Explorer"
+      },
+      {
+        "command": "vscode-function-explorer.prevFunction",
+        "title": "Jump to previous Function",
+        "category": "Function Explorer" 
+      },
+      {
+        "command": "vscode-function-explorer.nextFunction",
+        "title": "Jump to next Function",
         "category": "Function Explorer"
       },
       {
@@ -178,6 +188,15 @@
         "command": "vscode-function-explorer.next",
         "key": "ctrl+alt+]",
         "mac": "cmd+alt+]"
+      },
+      {
+        "command": "vscode-function-explorer.prevFunction",
+        "key": "ctrl+alt+shift+[",
+        "mac": "cmd+alt+shift+["
+      },{
+        "command": "vscode-function-explorer.nextFunction",
+        "key": "ctrl+alt+shift+]",
+        "mac": "cmd+alt+shift+]"
       },
       {
         "command": "vscode-function-explorer.showNodes",

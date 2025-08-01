@@ -58,6 +58,17 @@ export function findMiddleOfText(code: string): number {
   return closest;
 }
 
+export function getAllTabFsPaths() {
+  const fsPaths: string[] = [];
+  for (const group of vscode.window.tabGroups.all) {
+    for (const tab of group.tabs) {
+      if (tab.input instanceof vscode.TabInputText) 
+        fsPaths.push(tab.input.uri.fsPath);
+    }
+  }
+  return fsPaths;
+}
+
 export function fsPathHasTab(fsPath: string): boolean {
   const uri = vscode.Uri.file(fsPath);
   return vscode.window.tabGroups.all

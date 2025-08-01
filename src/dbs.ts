@@ -44,26 +44,44 @@ class Items {
     return allItems.filter(item => item instanceof FileItem);
   }
 
-  getAllFuncItems(): FuncItem[] {
-    const allFuncSets = Items.funcItemsByFuncId.values();
-    const result: FuncItem[] = [];
-    for(const funcSet of allFuncSets) {
-      for(const funcItem of funcSet) {
-        result.push(funcItem);
+  async getOrMakeFuncItemsByFsPath(fsPath: string): Promise<FuncItem[]> {
+    let funcItems = this.getFuncItemsByFsPath(fsPath);
+    if (funcItems.length > 0) return funcItems;
+    const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
+    if (!fileItem) return [];
+    const children = await fileItem.getChildren();
+    for (const funcItem of children) 
+      this.setFunc(funcItem);
+    return this.getFuncItemsByFsPath(fsPath);
+  }
+
+  async getAllFuncItems(allTabs = false): Promise<FuncItem[]> {
+    const funcItems: FuncItem[] = [];
+    if (allTabs) {
+      for (const fsPath of utils.getAllTabFsPaths()) {
+        const items = await this.getOrMakeFuncItemsByFsPath(fsPath);
+        funcItems.push(...items);
       }
     }
-    return result;
+    else {
+      const allFuncSets = Items.funcItemsByFuncId.values();
+      for(const funcSet of allFuncSets) {
+        for(const funcItem of funcSet) 
+          funcItems.push(funcItem);
+      }
+    }
+    return funcItems;
   }
 
   getFuncItemsByFsPath(fsPath: string): FuncItem[] {
     const allFuncSets = Items.funcItemsByFuncId.values();
-    const result: FuncItem[] = [];
+    const funcItems: FuncItem[] = [];
     for(const funcSet of allFuncSets) {
       for(const funcItem of funcSet) {
-        if(funcItem.getFsPath() === fsPath) result.push(funcItem);
+        if(funcItem.getFsPath() === fsPath) funcItems.push(funcItem);
       }
     }
-    return result;
+    return funcItems;
   }
 
   getFuncItemsByFuncId(funcId: string): FuncItem[] {

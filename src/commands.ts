@@ -109,7 +109,8 @@ export async function toggleItemMarkCmd(funcItem: FuncItem) {
   await disp.revealFuncInEditor(funcItem, red);
 }
 
-async function prevNext(next: boolean) {
+export async function prevNext(next: boolean, funcOnly = false) 
+                                 : Promise<FuncItem | undefined> {
   let editor = vscode.window.activeTextEditor;
   if(!sett.includeFile('', false, editor)) {
     const fsPathMarkIds = mrks.getAllMarks();
@@ -118,19 +119,20 @@ async function prevNext(next: boolean) {
     for(const fsPath of fsPaths) {
       if(utils.fsPathHasTab(fsPath)) {
         editor = await utils.revealEditorByFspath(fsPath, 
-                                              !settings.openEditorsAsPinned);
+                            !settings.openEditorsAsPinned);
         if(editor) break;
       }
     }
     for (let idx = 0; !editor && idx < fsPaths.length; idx++) 
       editor = await utils.revealEditorByFspath(fsPaths[idx], 
-                                               !settings.openEditorsAsPinned);
+                          !settings.openEditorsAsPinned);
   }
   if(!editor) return;
   const fsPath   = editor.document.uri.fsPath;
   const fileWrap = settings.fileWrap;
   const filtered = !NEXT_DEBUG;
-  const funcs = await itmc.getSortedFuncs(fsPath, fileWrap, filtered);
+  const funcs = await itmc.getSortedFuncs(
+                            fsPath, fileWrap, filtered, funcOnly, true);
   if(funcs.length == 0) {
     const fileItem = itms.getFldrFileByFsPath(fsPath) as FileItem;
     treeView.reveal(fileItem, {expand: true});
@@ -178,10 +180,6 @@ async function prevNext(next: boolean) {
   sbar.revealItemByFunc(func);
   await disp.revealFuncInEditor(func, false, true);
 }
-
-export async function prev() { await prevNext(false); }
-
-export async function next() { await prevNext(true); }
 
 export async function removeAllMarksMenu() {
   mrks.clearAllMarks();

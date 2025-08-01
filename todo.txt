@@ -1,14 +1,16 @@
-bugs ...  
+bugs ...
   too many matches per mark
     bookmarks - extension.ts
     only set one mark per toggle
       option: use line number with marks
-  
+
 todo ...
+  ditto option
+  changelog
 
 low priority ...
-  clnup show all marks
-  gesture on flakey
+  clnup show-all marks
+  gesture-on is flakey
 
 unlikely ...
   multiple items in one line

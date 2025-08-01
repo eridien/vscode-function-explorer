@@ -5,8 +5,6 @@ import {FuncData}      from './parse';
 import * as sett       from './settings';
 import {settings}      from './settings';
 import * as utils      from './utils';
-import { parse } from '@babel/parser';
-import { prev } from './commands';
 const {log, start, end} = utils.getLog('itms');
 
 const DEBUG_FUNC_TYPE = false;
@@ -425,16 +423,18 @@ export class FuncItem extends Item {
 }
 
 export async function getSortedFuncs(fsPath: string, fileWrap = true, 
-                                     filtered = true) : Promise<FuncItem[]> {
+                    filtered = true, funcOnly = false, allTabs = false) 
+                                                    :Promise<FuncItem[]> {
   let funcs: FuncItem[] = [];
   if(!fileWrap) {
     const fileItem = await getOrMakeFileItemByFsPath(fsPath);
     if(!fileItem) return [];
     funcs = await fileItem.getChildren(!filtered);
   }
-  else funcs = itms.getAllFuncItems();
+  else funcs = await itms.getAllFuncItems(allTabs);
   if(funcs.length === 0) return [];
-  if(filtered) funcs = funcs.filter(func => mrks.hasMark(func));
+  if(filtered && !funcOnly) funcs = funcs.filter(func => mrks.hasMark(func));
+  if(funcOnly)              funcs = funcs.filter(func => func.isFunction);
   if (fileWrap) {
     return funcs.sort((a, b) => {
       if (a.getStartKey() > b.getStartKey()) return +1;

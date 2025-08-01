@@ -42,12 +42,23 @@ export async function activate(context: vscode.ExtensionContext) {
 	const prev = vscode.commands.registerCommand(
                    'vscode-function-explorer.prev', async () => {
     // log('prev');
-		await cmds.prev();
+		await cmds.prevNext(false);
 	});
 
 	const next = vscode.commands.registerCommand(
                    'vscode-function-explorer.next', async () => {
-		await cmds.next();
+		await cmds.prevNext(true);
+	});
+
+	const prevFunction = vscode.commands.registerCommand(
+                   'vscode-function-explorer.prevFunction', async () => {
+    // log('prev');
+		await cmds.prevNext(false, true);
+	});
+
+	const nextFunction = vscode.commands.registerCommand(
+                   'vscode-function-explorer.nextFunction', async () => {
+		await cmds.prevNext(true, true);
 	});
 
 	const showNodes = vscode.commands.registerCommand(
@@ -228,9 +239,9 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
 	context.subscriptions.push(
-    toggleCmd, prev, next, funcClickCmd, loadSettings,
+    toggleCmd, prev, next, prevFunction, nextFunction, funcClickCmd,
     editorChg, selectionChg, textChg, toggleItemMark, toggleItemMarkMenu,
-    treeSelChg, itemExpandChg, itemCollapseChg,
+    treeSelChg, itemExpandChg, itemCollapseChg, loadSettings,
     toggleMarkedFilter, toggleAlphaSort, removeMarks,
     toggleMarkedFilterMenu, toggleAlphaSortMenu, removeMarksMenu,
     openFile, openFileMenu, settingsMenu, removeAllMarksMenu, 

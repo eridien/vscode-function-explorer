@@ -1,7 +1,3 @@
-<div style="display: flex; align-items: center;">
-  <img src="images/icon-48x48.png" alt="Extension Icon" width="48"/>
-  <span style="font-size:2em; margin-left: 12px;"><b>Function Explorer</b></span>
-</div>
 
 ### Overview
 
@@ -43,7 +39,7 @@ This is the second major feature which ties in with the first.  Functions can be
 
 ### Files Supported
 
-Currently only Javascript, Typescript, Python, C, C++, Java, C#, and Go are supported. Additional languages will be added frequently.  Put in your vote for languages to add in the repo issues.
+Currently only Javascript, Typescript, Python, C, C++, Java, C#, Go, and Rust are supported. Additional languages will be added frequently.  Put in your vote for languages to add in the repo issues.
 
 ### Functions
 
@@ -66,7 +62,7 @@ Just to keep things confusing, in this documentation the term function often ref
 
  #### Symbols indicate the type of syntax node.
 
- When a name appears in the explorer it is prefixed by a symbol indicating it's type. They are `ƒ` for a function, `▷` for imports, `©` for classes/structs/enums, `=` for assignments, `π` for const declarations, and `(` for calls. There may be more as languages are added.  If you wonder why I didn't use vscode codicons it is because they make little sense to me (sorry).
+ When a name appears in the explorer it is prefixed by a symbol indicating it's type. They are `ƒ` for a function, `▷` for imports, `©` for classes/structs/enums, `=` for assignments, `π` for const declarations, and `(` for calls. There may be more as languages are added.
 
  Function names at the beginning of labels have no `ƒ` in order to keep the function list clean.  All other type have their symbol prefixed and you can tell the functions by the lack of a symbol.
 
@@ -164,10 +160,28 @@ You can bring up the settings for the extension using the menu at the top of the
 
 - **Files To Exclude** Specifies files *and* folders to be ignored in the explorer. It contains glob patterns with commas. To exclude a directory end the glob pattern with a slash `/`, not `/**`.  A sample file is `**/*.js` and folder is `node_modules/`. Default: node_modules/
 
+### Language Improvements ...
+
+More languages and language improvements are always needed and are constantly being worked on. The language specifications needed to add a language are available in a single file `languages.ts`.  If you can help, look at that file to see what is involved. 
+
+To work on language support, development of tree-sitter queries is required, but IMHO they are fun to work with. If you want to test your queries I can add a feature to the extension to use a file stored in .vscode. Let me know in the repo issues.
+
+### Multiple Marks ...
+
+Currently there is an area that needs improving. One problem (feature) is a consequence of storing marks as syntax fingerprints.  While this provides some great features it has one disadvantage. 
+
+Adding a mark might show in multiple locations because they all match. This can look like a bug. This is rare in most languages like js/ts since multiple definitions at one nesting level are usually invalid. One could argue this is a feature.
+
+A fix would be to add additional information in a mark based on line numbers.  But this would have the same drifting problem that bookmarks and breakpoints have.  Comments are welcome in the repo issues.
+
 #### Author: Mark Hahn (eridien)
+
+#### Marketplace: https://marketplace.visualstudio.com/items?itemName=eridien.vscode-function-explorer
+
+#### Open VSX: https://open-vsx.org/extension/eridien/vscode-function-explorer
 
 #### Repo: https://github.com/eridien/vscode-function-explorer
 
-#### Original Release: July 2025
+#### Original Release: August 2025
 
 #### License: MIT
