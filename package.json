@@ -3,11 +3,11 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "engines": {
     "vscode": "^1.100.0"
   },
-"keywords": [
+  "keywords": [
     "function explorer",
     "function list",
     "function navigation",
@@ -17,8 +17,11 @@
     "jump to function",
     "sidebar explorer",
     "function finder"
-  ],  
-  "categories": ["Other", "Programming Languages"],
+  ],
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/eridien/vscode-function-explorer"
@@ -36,12 +39,12 @@
       {
         "command": "vscode-function-explorer.toggle",
         "title": "Toggle Function Mark",
-        "category": "Function Explorer" 
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.prev",
         "title": "Jump To Previous Mark",
-        "category": "Function Explorer" 
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.next",
@@ -51,7 +54,7 @@
       {
         "command": "vscode-function-explorer.prevFunction",
         "title": "Jump To Previous Function",
-        "category": "Function Explorer" 
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.nextFunction",
@@ -61,14 +64,15 @@
       {
         "command": "vscode-function-explorer.showNodes",
         "title": "Show Syntax Nodes",
-        "category": "Function Explorer" 
-      },{
+        "category": "Function Explorer"
+      },
+      {
         "​​‌‌‍​​‍‌": "======================",
         "​​‌‌‍‌​​‌": " Sidebar title menu   ",
         "​​‌‌‍‍​⁠‌": "......................",
         "command": "vscode-function-explorer.removeAllMarksMenu",
         "title": "Remove All Marks",
-        "category": "Function Explorer" 
+        "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.showOnlyMarks",
@@ -202,7 +206,8 @@
         "command": "vscode-function-explorer.prevFunction",
         "key": "ctrl+alt+shift+[",
         "mac": "cmd+alt+shift+["
-      },{
+      },
+      {
         "command": "vscode-function-explorer.nextFunction",
         "key": "ctrl+alt+shift+]",
         "mac": "cmd+alt+shift+]"
