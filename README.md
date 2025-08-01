@@ -25,9 +25,11 @@ This is the second major feature which ties in with the first.  Functions can be
 
 ![Marking Gif](images/marking.gif)
 
-- There are the three common mark commands: `Toggle Function Mark (ctrl-alt-\)`,  `Jump To Previous Function Mark (ctrl-alt-[)`, and `Jump To Next Function Mark (ctrl-alt-])`. You can navigate around the active file or all files.
+- There are the three common mark commands: `Toggle Function Mark (ctrl-alt-\)`,  `Jump To Previous Mark (ctrl-alt-[)`, and `Jump To Next Mark (ctrl-alt-])`. You can navigate around the active file or, if the `File Wrap` option is enabled, all files with marks.
 
-- When marked a symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function name in the explorer. 
+- There are also navigation commands to jump between all functions. The marks are ignored. If the `File Wrap` option is enabled then the jumps wrap to different files. The only files visited are the visible tabs. The tabs are visited in alphabetical order. The commands are `Jump To Previous Function (ctrl+alt+shift+[)` and `Jump To Next Function (ctrl+alt+shift+[)`.
+
+- When marked a symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function label in the explorer. 
 
  - You can also toggle a function mark by gesturing with the mouse. The guesture is to click in a function name, drag to anywhere outside the name, and go back and single-click on it.
 
@@ -58,21 +60,21 @@ Just to keep things confusing, in this documentation the term function often ref
 
  All syntax types can be marked the same way functions are. The marks appear in the gutter just like function marks and they are also used in navigation. 
  
- The explorer shows only actual functions by default but when another type of syntax is marked it also appears in the list until unmarked. This feature is important when using the marks like bookmarks. There need to be a lot of marks for navigation.
+ The explorer shows only actual functions by default but when another type of syntax node is marked it also appears in the list until unmarked. This feature is important when using the marks like bookmarks. There need to be a lot of marks for navigation.
 
  #### Symbols indicate the type of syntax node.
 
- When a name appears in the explorer it is prefixed by a symbol indicating it's type. They are `ƒ` for a function, `▷` for imports, `©` for classes/structs/enums, `=` for assignments, `π` for const declarations, and `(` for calls. There may be more as languages are added.
+ When a name appears in the explorer it is prefixed by a symbol indicating it's type. They are `ƒ` for a function, `▷` for imports, `©` for classes/structs/enums, `=` for assignments, `π` for const declarations, and `(` for calls. There may be more as languages are added. Identifiers that don't appear in one of these syntax node types have `?` as the symbol.
 
  Function names at the beginning of labels have no `ƒ` in order to keep the function list clean.  All other type have their symbol prefixed and you can tell the functions by the lack of a symbol.
 
  #### Breadcrumbs
 
- To the right of the name is a breadcrumb list showing the nesting in the syntax tree. This is the same as the breadcrumbs at the top of the editor except only recognized types are shown. 
+ To the right of the label is a optional breadcrumb list showing the nesting in the syntax tree. This is the same as the breadcrumbs at the top of an editor except only recognized nodes are shown. 
 
-When the breadcrumbs on the right are identical to the the function above, a ditto mark `"` is shown instead. This keeps the explorer from being covered with crumbs.
+When the breadcrumbs on the right are identical to the the breadcrumbs above, a ditto mark `"` is optionally shown instead. This keeps the explorer from being covered with crumbs.
 
- Here are js examples. To the right of each code line is the label seen in the explorer. 
+ Here are js examples. To the right of each code line is the label and its breadcrumbs as seen in the explorer. 
 
 ```
 function aaa(){};           aaa
@@ -91,7 +93,7 @@ class ccc {                 ©ccc
 
 The function marks have a lot in common with bookmarks but they are quite different. They are complementary and can be used together.
 
-- Bookmarks work in any text file. 
+- Bookmarks work in any file with text. 
 
 - Function marks are limited to a set of languages (see above).
 
@@ -103,9 +105,9 @@ The function marks have a lot in common with bookmarks but they are quite differ
 
 - In the bookmark explorer, bookmarks have labels that are parts of code on the line and often useless.  Also only marked lines are shown.
 
-- Function labels are always complete names often with breadcrumbs.  All the functions, marked or not, are visible.  You can mark and unmark functions in the explorer without looking at code. 
+- Function labels are always complete names, often with breadcrumbs.  All the functions, marked or not, are shown.  You can mark and unmark functions in the explorer without looking at code. 
 
-- You can browse down the function list and mark the functions you are currently interested in, and then show only those.  You can modify the list easily without visiting the code.
+- You can browse down the function list and mark the functions you are currently interested in, and then optionally show only those.  You can modify the list easily without visiting the code.
 
 ### File Icon Buttons In The Explorer.
 
@@ -115,7 +117,7 @@ The function marks have a lot in common with bookmarks but they are quite differ
 
 - `⨉` This removes all function marks from the file.  This icon is also available on every folder, removing all in the folder, and there is a selection in the top menu that removes all marks in all root folders in the workspace.
 
-- `▶` Since clicking on a file expands it showing its functions, you cannot click to open up an editor.  This button does that.  There is also a setting to bring up the editor whenever the file is expanded.
+- `▶` Since clicking on a file expands it showing its functions, the click doesn't open an editor as the File Explorer does.  This button does the equivalent opening.  There is also a setting to bring up the editor whenever the file is expanded.
 
 - Each of these functions are also available in a context menu when the file is right-clicked.
 
@@ -123,19 +125,31 @@ The function marks have a lot in common with bookmarks but they are quite differ
 
 You can bring up the settings for the extension using the menu at the top of the explorer.
 
-- **Hide Root Folders**. This hides the labels of root folders. It is only used when folders are visible. Default: enabled.
+- **Hide Root Folders**. This hides the labels of root folders. It is only used when folders are visible. Default: disabled.
 
 - **Hide All Folders**. This changes the explorer from a file tree to a list of files. This setting can be changed at any time in the explorer top menu.  Default: enabled.
 
 - **Open Editors As Pinned**.  When an editor is brought up it can be pinned, like a double-click in the file explorer, or in preview mode letting the next editor replace it. Default: enabled.
 
-- **Show File Paths**. When folders are hidden the path to the file is shown after the file name. Default: enabled.
+- **Show File Paths**. When folders are hidden, the path to the file is shown after the file label. Default: enabled.
+
+- **Breadcrumb Display**
+
+  - **Never Show Breadcrumbs**
+      The space to the right of explorer function labels will always be blank.
+
+  - **Show Breadcrumbs With Dittos**
+      Breadcrumbs, when available, will appear to the right of explorer function labels except for the breadcrumbs that are identical to the one above. Those matching will just show a ditto mark (quote character ` "`) reducing clutter. This is the default.
+
+  - **Always Show Complete Breadcrumbs**
+      Breadcrumbs, when available, will always appear to the right of explorer function labels.
 
 - **Open File When Expanded**.  Whenever a file is expanded to show its functions the file is shown in an editor. Default: disabled.
 
 - **File Wrap**.  When navigating by jumping between marks this option allows the jumps to wrap around all files instead of wrapping inside the active file. It even jumps between  files in different root folders. Default: enabled.
 
 - **Scroll Position**
+
   - **Function Top At Top**
       The top of the function, including the margin, is positioned at the top of the window.
 
@@ -158,7 +172,7 @@ You can bring up the settings for the extension using the menu at the top of the
 - **Alpha Sort Functions**
     This sets the initial value of the sort option, positional or alpha, for functions under the file. This setting can be changed at any time in the explorer top menu.  Default: Disabled.
 
-- **Files To Exclude** Specifies files *and* folders to be ignored in the explorer. It contains glob patterns with commas. To exclude a directory end the glob pattern with a slash `/`, not `/**`.  A sample file is `**/*.js` and folder is `node_modules/`. Default: node_modules/
+- **Files/Folders To Exclude** Specifies files *and* folders to be ignored in the explorer. It contains glob patterns with commas. To exclude a directory end the glob pattern with a slash `/`, not `/**`.  A sample file is `**/*.js` and folder is `node_modules/`. Default: node_modules/
 
 ### Language Improvements ...
 
@@ -172,7 +186,7 @@ Currently there is an area that needs improving. One problem (feature) is a cons
 
 Adding a mark might show in multiple locations because they all match. This can look like a bug. This is rare in most languages like js/ts since multiple definitions at one nesting level are usually invalid. One could argue this is a feature.
 
-A fix would be to add additional information in a mark based on line numbers.  But this would have the same drifting problem that bookmarks and breakpoints have.  Comments are welcome in the repo issues.
+A fix would be to add additional information to a mark based on line numbers.  But this would have the same drifting problem that bookmarks and breakpoints have.  Comments are welcome in the repo issues.
 
 #### Author: Mark Hahn (eridien)
 

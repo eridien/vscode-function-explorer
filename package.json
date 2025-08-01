@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -31,22 +31,22 @@
       },
       {
         "command": "vscode-function-explorer.prev",
-        "title": "Jump to previous Function Mark",
+        "title": "Jump To Previous Mark",
         "category": "Function Explorer" 
       },
       {
         "command": "vscode-function-explorer.next",
-        "title": "Jump to next Function Mark",
+        "title": "Jump To Next Mark",
         "category": "Function Explorer"
       },
       {
         "command": "vscode-function-explorer.prevFunction",
-        "title": "Jump to previous Function",
+        "title": "Jump To Previous Function",
         "category": "Function Explorer" 
       },
       {
         "command": "vscode-function-explorer.nextFunction",
-        "title": "Jump to next Function",
+        "title": "Jump To Next Function",
         "category": "Function Explorer"
       },
       {
@@ -201,7 +201,8 @@
       {
         "command": "vscode-function-explorer.showNodes",
         "key": "ctrl+alt+shift+\\",
-        "mac": "cmd+alt+shift+\\"
+        "mac": "cmd+alt+shift+\\",
+        "when": "editorTextFocus"
       }
     ],
     "viewsContainers": {
@@ -380,14 +381,14 @@
           "type": "boolean",
           "default": true,
           "order": 2,
-          "title": "Hide Folders",
+          "title": "Hide All Folders",
           "description": "Hide all folders from the tree and show only files and functions. This setting can also be toggled in the Function Explorer sidebar menu. This is useful to reduce indentation and save space."
         },
         "function-explorer.openEditorsAsPinned": {
           "type": "boolean",
           "default": true,
           "order": 3,
-          "title": "Show Pinned",
+          "title": "Open Editors As Pinned",
           "description": "Open editors in pinned mode, not preview mode. When pinned, files opened will stay open until closed manually. This setting can also be toggled in the Function Explorer sidebar menu."
         },
         "function-explorer.showFilePaths": {
@@ -411,8 +412,8 @@
             "Breadcrumbs, when available, will appear to the right of explorer function labels except for the breadcrumbs that are identical to the one above. Those matching will just show a ditto mark (quote character \"). This reduces clutter.",
             "Breadcrumbs, when available, will always appear to the right of explorer function labels."
           ],
-          "title": "Breadcrumb Display Options",
-          "description": "Controls the breadcrumb display after the explorer function labels."
+          "title": "Breadcrumb Display",
+          "description": "Controls the breadcrumb display shown after the explorer function labels."
         },
         "function-explorer.openFileWhenExpanded": {
           "type": "boolean",
