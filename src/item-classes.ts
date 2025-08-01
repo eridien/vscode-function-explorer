@@ -388,22 +388,26 @@ export class FuncItem extends Item {
                            : this.getFuncItemStr(this.name, symType);
   }
   getDescription(): string {
-    let description  = '';
-    const prevfuncId      = this.prevSibling?.funcId ?? '';
-    let   prevFuncIdParts = prevfuncId.split('\x01').slice(2,-3);
-    const prevFuncParents = prevFuncIdParts.join('\x01');
-    let   thisFuncIdParts = this.funcId.split('\x01').slice(2,-3);
-    const thisFuncParents = thisFuncIdParts.join('\x01');
-    if(prevFuncParents !== '' && 
-       prevFuncParents === thisFuncParents) return ' "';
-    for(const part of thisFuncIdParts) {
-      if(part.length === 0) continue;
-      const [name, symType] = part.split('\x02');
-      if(!name || name === '' || !symType || symType === '') continue;
-      description = this.getFuncItemStr(name, symType) + description;
+    if(settings.showBreadcrumbs === 'Never Show Breadcrumbs') return '';
+    else {
+      let description       = '';
+      const prevfuncId      = this.prevSibling?.funcId ?? '';
+      let   prevFuncIdParts = prevfuncId.split('\x01').slice(2,-3);
+      const prevFuncParents = prevFuncIdParts.join('\x01');
+      let   thisFuncIdParts = this.funcId.split('\x01').slice(2,-3);
+      const thisFuncParents = thisFuncIdParts.join('\x01');
+      if(settings.showBreadcrumbs === 'Show Breadcrumbs With Dittos' &&
+         prevFuncParents !== '' && 
+         prevFuncParents === thisFuncParents) return ' "';
+      for(const part of thisFuncIdParts) {
+        if(part.length === 0) continue;
+        const [name, symType] = part.split('\x02');
+        if(!name || name === '' || !symType || symType === '') continue;
+        description = this.getFuncItemStr(name, symType) + description;
+      }
+      if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
+      return description.slice(1).trim();
     }
-    if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
-    return description.slice(1).trim();
   }
   getIconPath() {
      return mrks.hasMark(this) ? new vscode.ThemeIcon('bookmark') : undefined;

@@ -12,6 +12,9 @@ interface FunctionExplorerSettings {
   hideFolders:          boolean;
   openEditorsAsPinned:  boolean;
   showFilePaths:        boolean;
+  showBreadcrumbs:     "Never Show Breadcrumbs"        | 
+                       "Show Breadcrumbs With Dittos"  | 
+                       "Always Show Complete Breadcrumbs",
   scrollPosition:      "Function Top At Top"           | 
                        "Function Center At Center"     |
                        "Function Bottom At Bottom"     | 
@@ -28,6 +31,7 @@ export let settings:  FunctionExplorerSettings = {
   hideFolders:          true,
   openEditorsAsPinned:  true,
   showFilePaths:        true,
+  showBreadcrumbs:      "Show Breadcrumbs With Dittos",
   scrollPosition:       "Function Center At Center If Needed",
   fileWrap:             true,
   alphaSortFunctions:   false,
@@ -221,8 +225,10 @@ async function setFileWatcher(filesToExclude: string) {
 export async function loadSettings() {
   const config = vscode.workspace.getConfiguration('function-explorer');
   settings = {
+    showBreadcrumbs:      config.get('showBreadcrumbs', 
+                             "Show Breadcrumbs With Dittos"),
     scrollPosition:       config.get('scrollPosition', 
-                            "Function Center At Center If Needed"),
+                             "Function Center At Center If Needed"),
     hideRootFolders:      config.get('hideRootFolders',      false),
     hideFolders:          config.get('hideFolders',           true),
     openEditorsAsPinned:  config.get('openEditorsAsPinned',   true),

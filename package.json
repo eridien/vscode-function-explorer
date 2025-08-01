@@ -386,34 +386,51 @@
         "function-explorer.openEditorsAsPinned": {
           "type": "boolean",
           "default": true,
-          "order": 2,
+          "order": 3,
           "title": "Show Pinned",
           "description": "Open editors in pinned mode, not preview mode. When pinned, files opened will stay open until closed manually. This setting can also be toggled in the Function Explorer sidebar menu."
         },
         "function-explorer.showFilePaths": {
           "type": "boolean",
           "default": true,
-          "order": 3,
+          "order": 4,
           "title": "Show File Paths",
           "description": "Show file path after filenames when folders are hidden."
+        },
+        "function-explorer.showBreadcrumbs": {
+          "type": "string",
+          "order": 5,
+          "default": "Show Breadcrumbs With Dittos",
+          "enum": [
+            "Never Show Breadcrumbs",
+            "Show Breadcrumbs With Dittos",
+            "Always Show Complete Breadcrumbs"
+          ],
+          "enumDescriptions": [
+            "The space to the right of explorer function labels will always be blank.",
+            "Breadcrumbs, when available, will appear to the right of explorer function labels except for the breadcrumbs that are identical to the one above. Those matching will just show a ditto mark (quote character \"). This reduces clutter.",
+            "Breadcrumbs, when available, will always appear to the right of explorer function labels."
+          ],
+          "title": "Breadcrumb Display Options",
+          "description": "Controls the breadcrumb display after the explorer function labels."
         },
         "function-explorer.openFileWhenExpanded": {
           "type": "boolean",
           "default": false,
-          "order": 4,
+          "order": 6,
           "title": "Open File When Expanded",
           "description": "When expanding a file item in the explorer, open that file in an editor. Files can also be opened by selecting 'Open File' in the file menu or clicking on ▶."
         },
         "function-explorer.fileWrap": {
           "type": "boolean",
           "default": true,
-          "order": 5,
+          "order": 7,
           "title": "File Wrap",
           "description": "Next and previous navigation will wrap around all files instead of just the active file."
         },
         "function-explorer.scrollPosition": {
           "type": "string",
-          "order": 6,
+          "order": 8,
           "default": "Function Center At Center If Needed",
           "enum": [
             "Function Top At Top",
@@ -437,21 +454,21 @@
           "default": 3,
           "minimum": 0,
           "maximum": 30,
-          "order": 7,
+          "order": 9,
           "title": "Top Margin",
           "description": "Number of margin lines above function when scrolling with \"Function Top At Top\"."
         },
         "function-explorer.alphaSortFunctions": {
           "type": "boolean",
           "default": false,
-          "order": 9,
+          "order": 10,
           "title": "Alpha Sort Functions",
           "description": "Sort functions in all files alphabetically instead of by position. This only applies when activating the extension. Then it can be toggled in the sidebar file \"A\" button separately for each file."
         },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/",
-          "order": 10,
+          "order": 11,
           "title": "Files/Folders To Exclude",
           "description": "Files/Folders to exclude in the explorer. Separate glob patterns with commas. To exclude a directory end the glob pattern with a slash (/), not /**.  A sample file is **/*.js and folder is node_modules/. Do a refresh in explorer top menu after changing this setting."
         }
