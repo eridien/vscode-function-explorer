@@ -1,11 +1,10 @@
-### Change Log
+### ChangeLog
 
-#### 0.1.2, August 1, 2025
+#### [0.1.3] - 2025-08-01
 
 - Added breadcrumb options.
 - Added jump between functions instead of marks
 
-#### 0.1.1, July 31, 2025
+#### [1.1.1] - 2025-07-31
 
 - Initial release
-
