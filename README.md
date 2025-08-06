@@ -27,9 +27,9 @@ This is the second major feature which ties in with the first.  Functions can be
 
 - There are the three common mark commands: `Toggle Function Mark (ctrl-alt-\)`,  `Jump To Previous Mark (ctrl-alt-[)`, and `Jump To Next Mark (ctrl-alt-])`. You can navigate around the active file or, if the `File Wrap` option is enabled, all files with marks.
 
-- There are also navigation commands to jump between all functions. The marks are ignored. If the `File Wrap` option is enabled then the jumps wrap to different files. The only files visited are the visible tabs. The tabs are visited in alphabetical order. The commands are `Jump To Previous Function (ctrl+alt+shift+[)` and `Jump To Next Function (ctrl+alt+shift+[)`.
+- There are also navigation commands to jump between all functions. The marks are ignored. If the `File Wrap` option is enabled then the jumps wrap to different files. The only files visited are the visible tabs. The tabs are visited in alphabetical order. The commands are `Jump To Previous Function (ctrl+alt+shift+[)` and `Jump To Next Function (ctrl+alt+shift+])`.
 
-- When marked a symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function label in the explorer. 
+- When marked, a symbol appears in the gutter by the first line of the function. Also a mark symbol appears next to the function label in the explorer. 
 
  - You can also toggle a function mark by gesturing with the mouse. The guesture is to click in a function name, drag to anywhere outside the name, and go back and single-click on it.
 
@@ -105,7 +105,7 @@ The function marks have a lot in common with bookmarks but they are quite differ
 
 - In the bookmark explorer, bookmarks have labels that are parts of code on the line and often useless.  Also only marked lines are shown.
 
-- Function labels are always complete names, often with breadcrumbs.  All the functions, marked or not, are shown.  You can mark and unmark functions in the explorer without looking at code. 
+- Explorer function labels are always complete names, often with breadcrumbs.  All the functions, marked or not, are shown.  You can mark and unmark functions in the explorer without looking at code. 
 
 - You can browse down the function list and mark the functions you are currently interested in, and then optionally show only those.  You can modify the list easily without visiting the code.
 

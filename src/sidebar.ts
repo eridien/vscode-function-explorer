@@ -8,6 +8,7 @@ import {Item, WsAndFolderItem,
 import * as sett            from './settings';
 import {settings}           from './settings';
 import * as utils           from './utils';
+import {extStatus}          from './utils';
 const {log, start, end} = utils.getLog('sbar');
 
 let treeView:  vscode.TreeView<Item>;
@@ -23,6 +24,7 @@ export function activate(treeViewIn: vscode.TreeView<Item>,
 ////////////////////// getTree //////////////////////
 
 export async function getTree() {
+  if(extStatus.isAborted()) return [];
   const wsFolders = vscode.workspace.workspaceFolders;
   if (!wsFolders || wsFolders.length === 0) {
     log('err', 'getTree, No folders in workspace');
@@ -63,6 +65,10 @@ export class SidebarProvider {
   constructor() {
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData  = this._onDidChangeTreeData.event;
+  }
+
+  refreshTree() {
+    this._onDidChangeTreeData.fire(undefined);
   }
 
   refresh(item:Item | undefined, tryAgain = false): void {

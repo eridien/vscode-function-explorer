@@ -1,5 +1,36 @@
 import vscode from 'vscode';
+import { SidebarProvider } from './sidebar';
 const { log, start, end } = getLog('util');
+
+let context: vscode.ExtensionContext | undefined;
+let sidebarProvider: SidebarProvider | undefined;
+
+export function activate(contextIn: vscode.ExtensionContext,
+                         sidebarProviderIn: SidebarProvider) {
+  context         = contextIn;
+  sidebarProvider = sidebarProviderIn;
+}
+
+class ExtStatus {
+  public  static aborted:     boolean = false;
+  private static disposables: vscode.Disposable[] = [];
+  constructor() {}
+  setDisposables(disposables: vscode.Disposable[]) {
+    ExtStatus.disposables .push(...disposables);
+    context?.subscriptions.push(...disposables);
+  }
+  abort(){
+    if (ExtStatus.aborted) return;
+    ExtStatus.aborted = true;
+    sidebarProvider?.refreshTree();
+    ExtStatus.disposables.forEach(d => d.dispose());
+  }
+  isAborted() {
+    return ExtStatus.aborted;
+  }
+}
+
+export const extStatus = new ExtStatus();
 
 export function createSortKey(fsPath: string, lineNumber: number): string {
   return fsPath + "\x01" + lineNumber.toString().padStart(6, '0');

@@ -9,6 +9,7 @@ import * as itmc       from './item-classes';
 import {Item, WsAndFolderItem, FolderItem, 
         FileItem, FuncItem} from './item-classes';
 import * as utils      from './utils';
+import {extStatus}     from './utils';
 const {log, start, end} = utils.getLog('dbss');
 
 let context: vscode.ExtensionContext;
@@ -166,21 +167,29 @@ class FilePaths {
     FilePaths.includedfsPaths.clear();
   }
   async loadPaths(fsPath: string, clear = false) {
+    // let pathCount = 0;
     if (clear) FilePaths.includedfsPaths.clear();
-    async function findFuncFiles(fsPath: string) {
+    async function findFuncFiles(fsPath: string): Promise<boolean> {
+    //   log('loadPaths', ++pathCount, path.basename(fsPath), 
+    //                       FilePaths.includedfsPaths.size);
+    //   if(FilePaths.includedfsPaths.size > 100) {
+    //     log('infoerr', 'Too many files, Function Explorer aborting');
+    //     extStatus.abort();
+    //     return true;
+    //   }
       // log('findFuncFiles', fsPath);
       let stat;
       try{
         stat = await fs.stat(fsPath);
         // log('loadPaths stat', fsPath);
         if (stat.isDirectory()) {
-          if(!sett.includeFile(fsPath, true)) return;
+          if(!sett.includeFile(fsPath, true)) return false;
           let entries: string[];
           entries = await fs.readdir(fsPath);
           // log('loadPaths readdir entries', fsPath, entries);
           for (const entry of entries) {
             const childPath = path.join(fsPath, entry);
-            await findFuncFiles(childPath);
+            if(await findFuncFiles(childPath)) return true;
           }
         }
         else if(sett.includeFile(fsPath)) {
@@ -196,8 +205,9 @@ class FilePaths {
       }
       catch (err) { 
         log('errmsg', err, 'loadPaths error', fsPath);
-        return; 
+        return true; 
       }
+      return false;
     }
     await findFuncFiles(fsPath);
     // log('loadPaths complete', [...FilePaths.includedfsPaths]);
