@@ -182,13 +182,6 @@ async function setFileWatcher(filesToExclude: string) {
   for (const wsFolder of wsFolders) {
     start('setFileWatcher' + watchReadyCountdown, false);
     const wsPath = wsFolder.uri.fsPath;
-    // const allowedPaths: string[] = [];
-    // const entries = await fs.readdir(wsPath, { withFileTypes: true });
-    // for (const entry of entries) {
-    //   const entryPath = path.join(wsPath, entry.name);
-    //   if (includeFile(entryPath, entry.isDirectory())) 
-    //     allowedPaths.push(entryPath);
-    // }
     const watcherInstance = chokidar.watch([wsPath], {
       cwd: wsPath,
       ignored: (filePath) => {
@@ -199,12 +192,16 @@ async function setFileWatcher(filesToExclude: string) {
       },
       usePolling:      false,
       ignoreInitial:   false,
-      persistent:       true,
       awaitWriteFinish: true,
     });
     watcherInstance.on('add', async (filePath) => {
       log('addFile:', filePath);
       if(allWatchersAborted) return;
+      if(watchReadyCountdown <= 0) {
+        const fsPath = path.join(wsPath, filePath);
+        fileCreated?.(fsPath);
+        return;
+      }
       if (!includeFile(filePath, false)) {
         watcherInstance.unwatch(filePath);
         log('ignoring file:', filePath);
@@ -220,10 +217,6 @@ async function setFileWatcher(filesToExclude: string) {
         end('setFileWatcher' + watchReadyCountdown);
         return;
       }
-      if(watchReadyCountdown <= 0) {
-        const fsPath = path.join(wsPath, filePath);
-        fileCreated?.(fsPath);
-      }
     });
     watcherInstance.on('addDir', (dirPath) => {
       log('addDir:', dirPath);
@@ -233,7 +226,7 @@ async function setFileWatcher(filesToExclude: string) {
         log('ignoring dir:', dirPath);
         return;
       }
-      watchedFileCount++;
+      ++watchedFileCount;
       const fsPath = path.join(wsPath, dirPath);
       fileCreated?.(fsPath);
     });
@@ -252,7 +245,7 @@ async function setFileWatcher(filesToExclude: string) {
       fileDeleted?.(uri);
     });
     watcherInstance.on('ready', () => {
-      log('ready');
+      log('ready,', watchedFileCount, 'files watched');
       end('setFileWatcher' + watchReadyCountdown, false);
       watchReadyCountdown--;
       setTimeout(() => {
@@ -261,8 +254,6 @@ async function setFileWatcher(filesToExclude: string) {
     });
     watchers.push(watcherInstance);
   }
-  // log(`Watching ${watchedFileCount} files, ${
-  //                 JSON.stringify(watchers[0].getWatched(), null, 2)}, ${filesToExclude}`);
 }
 
 export async function loadSettings() {
