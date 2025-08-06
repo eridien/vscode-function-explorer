@@ -160,35 +160,36 @@ export function setWatcherCallbacks(
   fileDeleted = fileDeletedIn;
 }
 
-const MAX_FILE_COUNT               = 5;
+const MAX_FILE_COUNT               = 200;
 let watchedFileCount               = 0;
 let allWatchersAborted             = false;
 let watchReadyCountdown            = 0;
 let watchers: chokidar.FSWatcher[] = [];
 
-function closeAllWatchers() {
-  watchers.forEach(watcher => watcher.close());
+async function closeAllWatchers() {
+  for (const watcher of watchers) await watcher.close();
   watchers = [];
 }
 
 async function setFileWatcher(filesToExclude: string) {
   if(allWatchersAborted) return;
-  start('setFileWatcher', true);
-  closeAllWatchers();
-  watchedFileCount = 0;
+  // start('setFileWatcher', true);
+  await closeAllWatchers();
   const excludePatterns = filesToExclude.split(',').map(p => p.trim());
-  const wsFolders = vscode.workspace.workspaceFolders || [];
-  watchReadyCountdown = wsFolders.length;
+  const wsFolders       = vscode.workspace.workspaceFolders || [];
+  watchReadyCountdown   = wsFolders.length;
+  watchedFileCount      = 0;
   for (const wsFolder of wsFolders) {
+    start('setFileWatcher' + watchReadyCountdown, false);
     const wsPath = wsFolder.uri.fsPath;
-    const allowedPaths: string[] = [];
-    const entries = await fs.readdir(wsPath, { withFileTypes: true });
-    for (const entry of entries) {
-      const entryPath = path.join(wsPath, entry.name);
-      if (includeFile(entryPath, entry.isDirectory())) 
-        allowedPaths.push(entryPath);
-    }
-    const watcherInstance = chokidar.watch(allowedPaths, {
+    // const allowedPaths: string[] = [];
+    // const entries = await fs.readdir(wsPath, { withFileTypes: true });
+    // for (const entry of entries) {
+    //   const entryPath = path.join(wsPath, entry.name);
+    //   if (includeFile(entryPath, entry.isDirectory())) 
+    //     allowedPaths.push(entryPath);
+    // }
+    const watcherInstance = chokidar.watch([wsPath], {
       cwd: wsPath,
       ignored: (filePath) => {
         const relPath = filePath.replace(/\\/g, '/');
@@ -196,60 +197,72 @@ async function setFileWatcher(filesToExclude: string) {
           pattern => minimatch(relPath, pattern, { dot: true })
         );
       },
-      usePolling: false,
-      interval: 100,
-      ignoreInitial: false,
-      persistent: true,
+      usePolling:      false,
+      ignoreInitial:   false,
+      persistent:       true,
       awaitWriteFinish: true,
     });
-    watcherInstance.on('add', (filePath) => {
-      log('addFile:', filePath, allowedPaths);
+    watcherInstance.on('add', async (filePath) => {
+      log('addFile:', filePath);
       if(allWatchersAborted) return;
+      if (!includeFile(filePath, false)) {
+        watcherInstance.unwatch(filePath);
+        log('ignoring file:', filePath);
+        return;
+      }
       if (++watchedFileCount > MAX_FILE_COUNT) {
         allWatchersAborted = true;
-        log('infoerr', 'Function Explorer: Maximum file watch limit exceeded. ' +
-                        'Aborting watcher. File changes will not be tracked. ' +
-                        'The maximum count can be changed in settings.');
-        closeAllWatchers();
+        await closeAllWatchers();
+        log('infoerr', `Function Explorer: ` + 
+                       `Maximum file watch count (${MAX_FILE_COUNT}) exceeded. ` +
+                       `Aborting watcher. File changes will not be tracked. ` +
+                       `The maximum count can be changed in settings.`);
+        end('setFileWatcher' + watchReadyCountdown);
         return;
       }
       if(watchReadyCountdown <= 0) {
         const fsPath = path.join(wsPath, filePath);
         fileCreated?.(fsPath);
       }
-      log(`add ${watchedFileCount} files, ${
-                JSON.stringify(watchers[0].getWatched(), null, 2)}`);
     });
     watcherInstance.on('addDir', (dirPath) => {
       log('addDir:', dirPath);
       if(allWatchersAborted) return;
+      if (!includeFile(dirPath, true)) {
+        watcherInstance.unwatch(dirPath);
+        log('ignoring dir:', dirPath);
+        return;
+      }
       watchedFileCount++;
       const fsPath = path.join(wsPath, dirPath);
       fileCreated?.(fsPath);
     });
     watcherInstance.on('unlink', (filePath) => {
-      // log('unlinkFile:', filePath);
+      log('unlinkFile:', filePath);
       if(allWatchersAborted) return;
       const fullPath = path.join(wsPath, filePath);
       const uri = vscode.Uri.file(fullPath);
       fileDeleted?.(uri);
     });
     watcherInstance.on('unlinkDir', (dirPath) => {
-      // log('unlinkDir:', dirPath);
+      log('unlinkDir:', dirPath);
       if(allWatchersAborted) return;
       const fullPath = path.join(wsPath, dirPath);
       const uri = vscode.Uri.file(fullPath);
       fileDeleted?.(uri);
     });
     watcherInstance.on('ready', () => {
-      log('ready:', watchReadyCountdown);
+      log('ready');
+      end('setFileWatcher' + watchReadyCountdown, false);
       watchReadyCountdown--;
+      setTimeout(() => {
+        log('delayed ready', JSON.stringify(watcherInstance.getWatched(), null, 2));
+      }, 300);
     });
     watchers.push(watcherInstance);
   }
-  log(`Watching ${watchedFileCount} files, ${
-                  JSON.stringify(watchers[0].getWatched(), null, 2)}, ${filesToExclude}`);
-  end('setFileWatcher');
+  // log(`Watching ${watchedFileCount} files, ${
+  //                 JSON.stringify(watchers[0].getWatched(), null, 2)}, ${filesToExclude}`);
 }
 
 export async function loadSettings() {

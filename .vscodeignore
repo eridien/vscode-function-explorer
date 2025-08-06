@@ -11,3 +11,4 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 notes/**
 pat.txt
+testroot/**
