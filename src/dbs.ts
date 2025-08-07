@@ -170,13 +170,6 @@ class FilePaths {
     // let pathCount = 0;
     if (clear) FilePaths.includedfsPaths.clear();
     async function findFuncFiles(fsPath: string): Promise<boolean> {
-    //   log('loadPaths', ++pathCount, path.basename(fsPath), 
-    //                       FilePaths.includedfsPaths.size);
-    //   if(FilePaths.includedfsPaths.size > 100) {
-    //     log('infoerr', 'Too many files, Function Explorer aborting');
-    //     extStatus.abort();
-    //     return true;
-    //   }
       // log('findFuncFiles', fsPath);
       let stat;
       try{
@@ -217,6 +210,18 @@ class FilePaths {
       if (includedPath.startsWith(fsPath)) return true;
     }
     return false;
+  }
+  includedPathsAndParents(wsPath: string): string[] {
+    const incPandP = new Set<string>();
+    for(const incPath of Array.from(FilePaths.includedfsPaths)) {
+      let parent = incPath;
+      while(!incPandP.has(parent)) {
+        if(parent === wsPath) break;
+        incPandP.add(parent);
+        parent = path.dirname(parent);
+      }
+    }
+    return Array.from(incPandP);
   }
   sortedFsPaths(): string[] {
     return Array.from(FilePaths.includedfsPaths).sort();

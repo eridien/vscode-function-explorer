@@ -22,11 +22,11 @@ export async function activate(context: vscode.ExtensionContext) {
     treeDataProvider: sidebarProvider,
   });
 
-        utils.activate(context, sidebarProvider);
+       utils.activate(context, sidebarProvider);
+         dbs.activate(context);
   await sett.loadSettings();
   await pars.activate(context);
         disp.activate(context, treeView);
-         dbs.activate(context);
         sbar.activate(treeView, sidebarProvider);
         itmc.activate(treeView);
   await cmds.activate(treeView);

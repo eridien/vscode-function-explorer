@@ -8,3 +8,4 @@ node_modules
 package-lock.json
 notes/
 pat.txt
+test-glob.js

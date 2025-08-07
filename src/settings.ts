@@ -4,6 +4,7 @@ import * as fs       from 'fs/promises';
 import * as chokidar from 'chokidar';
 import path          from 'path';
 import {extensionsSupported} from './languages';
+import {fils}        from './dbs';
 import * as utils    from './utils';
 const {log, start, end} = utils.getLog('sett');
 
@@ -143,11 +144,13 @@ export function includeFile(fsPath: string, folder = false,
       if(fsPath === wsFolder.uri.fsPath) return true;
     }
   }
-  else if (!extensionsSupported.has(path.extname(fsPath))) return false;
-  let filePath = vscode.workspace.asRelativePath(fsPath, true);
-  filePath = filePath.replace(/\\/g, '/').split('/').slice(1).join('/');
-  const relPath = folder ? filePath + '/' : filePath;
-  return !minimatch(relPath, excludeCfg, { dot: true });
+  else if (!extensionsSupported.has(path.extname(fsPath))) {
+    return false;
+  }
+  let relPath = vscode.workspace.asRelativePath(fsPath, true);
+  relPath = relPath.replace(/\\/g, '/').split('/').slice(1).join('/');
+  const matchPath = folder ? relPath + '/' : relPath;
+  return !minimatch(matchPath, excludeCfg, { dot: true });
 }
 
 let fileCreated: (fsPath: string) => void;
@@ -173,38 +176,38 @@ async function closeAllWatchers() {
 
 async function setFileWatcher(filesToExclude: string) {
   if(allWatchersAborted) return;
-  // start('setFileWatcher', true);
   await closeAllWatchers();
-  const excludePatterns = filesToExclude.split(',').map(p => p.trim());
-  const wsFolders       = vscode.workspace.workspaceFolders || [];
-  watchReadyCountdown   = wsFolders.length;
-  watchedFileCount      = 0;
+  // log('setFileWatcher, excludePatterns:', filesToExclude);
+  watchedFileCount    = 0;
+  const wsFolders     = vscode.workspace.workspaceFolders || [];
+  watchReadyCountdown = wsFolders.length;
   for (const wsFolder of wsFolders) {
     start('setFileWatcher' + watchReadyCountdown, false);
-    const wsPath = wsFolder.uri.fsPath;
-    const watcherInstance = chokidar.watch([wsPath], {
+    let wsPath = wsFolder.uri.fsPath;
+    await fils.loadPaths(wsPath, true);
+    const watchPaths = fils.includedPathsAndParents(wsPath);
+    const watcherInstance = chokidar.watch(watchPaths, {
       cwd: wsPath,
-      ignored: (filePath) => {
-        const relPath = filePath.replace(/\\/g, '/');
-        return excludePatterns.some(
-          pattern => minimatch(relPath, pattern, { dot: true })
-        );
-      },
+      // ignored: (filePath) => {
+      //   const relPath = filePath.replace(/\\/g, '/');
+      //   return minimatch(relPath, filesToExclude, { dot: true });
+      // },
       usePolling:      false,
       ignoreInitial:   false,
       awaitWriteFinish: true,
     });
     watcherInstance.on('add', async (filePath) => {
-      log('addFile:', filePath);
+      // log('addFile:', filePath, watchedFileCount);
       if(allWatchersAborted) return;
       if(watchReadyCountdown <= 0) {
         const fsPath = path.join(wsPath, filePath);
         fileCreated?.(fsPath);
+        watchedFileCount++;
         return;
       }
       if (!includeFile(filePath, false)) {
         watcherInstance.unwatch(filePath);
-        log('ignoring file:', filePath);
+        // log('ignoring file:', filePath);
         return;
       }
       if (++watchedFileCount > MAX_FILE_COUNT) {
@@ -219,16 +222,16 @@ async function setFileWatcher(filesToExclude: string) {
       }
     });
     watcherInstance.on('addDir', (dirPath) => {
-      log('addDir:', dirPath);
+      // log('addDir:', dirPath, watchedFileCount);
       if(allWatchersAborted) return;
       if (!includeFile(dirPath, true)) {
         watcherInstance.unwatch(dirPath);
-        log('ignoring dir:', dirPath);
+        // log('ignoring dir:', dirPath);
         return;
       }
-      ++watchedFileCount;
       const fsPath = path.join(wsPath, dirPath);
       fileCreated?.(fsPath);
+      ++watchedFileCount;
     });
     watcherInstance.on('unlink', (filePath) => {
       log('unlinkFile:', filePath);
@@ -248,9 +251,9 @@ async function setFileWatcher(filesToExclude: string) {
       log('ready,', watchedFileCount, 'files watched');
       end('setFileWatcher' + watchReadyCountdown, false);
       watchReadyCountdown--;
-      setTimeout(() => {
-        log('delayed ready', JSON.stringify(watcherInstance.getWatched(), null, 2));
-      }, 300);
+      // setTimeout(() => {
+      //   log('delayed ready', JSON.stringify(watcherInstance.getWatched(), null, 2));
+      // }, 300);
     });
     watchers.push(watcherInstance);
   }
@@ -278,9 +281,14 @@ export async function loadSettings() {
   vscode.commands.executeCommand(
                     'setContext', 'pinned', settings.openEditorsAsPinned);
   const excludeFoldersPattern = config.get('filesToExclude', 'node_modules/');
-  const excParts = excludeFoldersPattern .split(",").map(p => p.trim());
+  const excParts = excludeFoldersPattern.split(",").map(pattern => {
+    let part =pattern.trim();
+    part = part.replace(/\\/g, '/');
+    if(part.endsWith('/')) part += '**';
+    return part;
+  });
   if(excParts.length < 2) excludeCfg = excParts[0];
-  else                    excludeCfg = '{'+excParts.join(",")+'}';
+  else                    excludeCfg = '{'+excParts.join(",") +'}';
   await setFileWatcher(excludeFoldersPattern);
 }
 
