@@ -485,7 +485,7 @@
           "default": "node_modules/",
           "order": 11,
           "title": "Files/Folders To Exclude",
-          "description": "Files/Folders to exclude in the explorer. Separate glob patterns with commas. To exclude a directory end the glob pattern with a slash (/), not /**.  A sample file is **/*.js and folder is node_modules/. Do a refresh in explorer top menu after changing this setting."
+          "description": "Files/Folders to exclude in the explorer. Separate glob patterns with commas. To exclude a directory end the glob pattern with a slash (/), not /**. A sample file is **/*.js and a sample folder is node_modules/."
         }
       }
     }

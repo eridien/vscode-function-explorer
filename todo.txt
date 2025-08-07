@@ -3,6 +3,9 @@ bugs ...
     bookmarks - extension.ts
     only set one mark per toggle
       option: use line number with marks
+      
+  chg alpha sort -> no refresh
+  utils: const start = function
 
 todo ...
   filter addDir and add by include()
