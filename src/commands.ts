@@ -269,8 +269,6 @@ export async function editorOrTextChg(
   if(!sett.includeFile('', false, editor)) return;
   const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
   if(!fileItem) return;
-  // log('editorOrTextChg start', fileItem.label, fileItem.id, 
-  //                              fileItem?.children?.length);
   await sbar.updateFileChildrenFromAst(fileItem);
   await disp.updateGutter(editor, fileItem);
   sbar.updateItemInTree(fileItem);

@@ -166,7 +166,7 @@
         "​​​‍⁠​​​‌": " Sidebar function item icon buttons  ",
         "​​​‍⁠‌​⁠‌": ".....................................",
         "command": "vscode-function-explorer.toggleItemMark",
-        "title": " M ",
+        "title": " ◆ ",
         "category": "Function Explorer: Toggle Function Mark"
       },
       {
@@ -480,10 +480,19 @@
           "title": "Alpha Sort Functions",
           "description": "Sort functions in all files alphabetically instead of by position. This only applies when activating the extension. Then it can be toggled in the sidebar file \"A\" button separately for each file."
         },
+        "function-explorer.maxWatchers": {
+          "type": "number",
+          "default": 300,
+          "minimum": 10,
+          "maximum": 1000,
+          "order": 11,
+          "title": "Maximum Number Of File Watchers",
+          "description": "Maximum number of file watchers. If there are more files than this number, all watching will cease. This only affects watching for file creation, deletion, and modification. Add more file exclusions to reduce the number of watched files."
+        },
         "function-explorer.filesToExclude": {
           "type": "string",
           "default": "node_modules/",
-          "order": 11,
+          "order": 12,
           "title": "Files/Folders To Exclude",
           "description": "Files/Folders to exclude in the explorer. Separate glob patterns with commas. To exclude a directory end the glob pattern with a slash (/), not /**. A sample file is **/*.js and a sample folder is node_modules/."
         }

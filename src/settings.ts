@@ -25,11 +25,13 @@ interface FunctionExplorerSettings {
   alphaSortFunctions:   boolean;
   topMargin:            number;
   openFileWhenExpanded: boolean;
+  maxWatchers:          number;
 }
 
 export let settings:  FunctionExplorerSettings = {
   hideRootFolders:      false,
   hideFolders:          true,
+  maxWatchers:          300,
   openEditorsAsPinned:  true,
   showFilePaths:        true,
   showBreadcrumbs:      "Show Breadcrumbs With Dittos",
@@ -210,13 +212,13 @@ async function setFileWatcher(filesToExclude: string) {
         // log('ignoring file:', filePath);
         return;
       }
-      if (++watchedFileCount > MAX_FILE_COUNT) {
+      if (++watchedFileCount > settings.maxWatchers) {
         allWatchersAborted = true;
         await closeAllWatchers();
         log('infoerr', `Function Explorer: ` + 
-                       `Maximum file watch count (${MAX_FILE_COUNT}) exceeded. ` +
+                       `Maximum file watch count (${settings.maxWatchers}) exceeded. ` +
                        `Aborting watcher. File changes will not be tracked. ` +
-                       `The maximum count can be changed in settings.`);
+                       `This maximum count can be changed in settings.`);
         end('setFileWatcher' + watchReadyCountdown);
         return;
       }
@@ -274,6 +276,7 @@ export async function loadSettings() {
     fileWrap:             config.get('fileWrap',              true),
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
     topMargin:            config.get('topMargin',                3),
+    maxWatchers:          config.get('maxWatchers',            300)
   };
   // log('loadSettings', settings);
   vscode.commands.executeCommand(

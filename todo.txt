@@ -1,10 +1,15 @@
+release changes ...
+  limit number of folders/files watched for changes
+  changed bookmark toggle button to ◆
+  fixed copy/paste with bookmark
+  fixed toggling near node
+
 bugs ...
   too many matches per mark
     bookmarks - extension.ts
     only set one mark per toggle
       option: use line number with marks
-  move function no gutter update
-  
+
 low priority ...
   chg alpha sort -> no refresh
 
@@ -28,13 +33,14 @@ unlikely ...
 testing ...
 x settings changes
 x  error test files
+  languages
   adding, deleting, moving, and copying funcs
   changing files in other editor
   multiple ws roots
   check all menus
   multiple selections
   dark theme
-   gesture
+  gesture
 
 release checks ...
   package.json version

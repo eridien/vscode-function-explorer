@@ -372,6 +372,7 @@ export class FuncItem extends Item {
   clear() {
     this.startLine = undefined;
     this.endLine   = undefined;
+    this.nameLine  = undefined;
     this.startKey  = undefined;
     this.endKey    = undefined;
   }

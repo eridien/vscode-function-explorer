@@ -154,7 +154,8 @@ export async function parseCode(code: string, fsPath: string,
   if(lang === null) return [];
   const language = await getLangFromWasm(lang);
   if (!language) return [];
-  let needBeforeAfter = (selectIdx !== null);
+  let getBeforeAfter = (selectIdx !== null);
+  let gotBeforeAfter = false;
   const {sExpr, symbolsByType} = langs[lang];
   function isFunction(type: string): boolean {
     return symbolsByType.get(type) === 'ƒ';
@@ -247,13 +248,13 @@ export async function parseCode(code: string, fsPath: string,
       firstMatch = false;
       continue;
     }
-    if(needBeforeAfter) {
+    if(getBeforeAfter && !gotBeforeAfter) {
       if(startName > selectIdx!) {
         nodes.push(capToFuncData(code, lang!, fsPath, isFunction(bestType),
                        symbolsByType!, bestBodyCapture!, bestNameCapture!));
         nodes.push(capToFuncData(code, lang!, fsPath, isFunction(type),
                        symbolsByType!, bodyCapture!, nameCapture!));
-        needBeforeAfter = false;
+        gotBeforeAfter = true;
         break;
       }
     }
@@ -268,10 +269,12 @@ export async function parseCode(code: string, fsPath: string,
     bestName        = name;
     bestType        = type;
   }
-  if(needBeforeAfter) {
-    if(!bestBodyCapture) return [];
-    nodes.push(capToFuncData(code, lang!, fsPath, isFunction(bestType),
-                    symbolsByType!, bestBodyCapture!, bestNameCapture!));
+  if(getBeforeAfter) {
+    if(!gotBeforeAfter) {
+      if(!bestBodyCapture) return [];
+      nodes.push(capToFuncData(code, lang!, fsPath, isFunction(bestType),
+                      symbolsByType!, bestBodyCapture!, bestNameCapture!));
+    }
   } else {
     if(bestBodyCapture) {
       const nameId = bestName + '\x02' + bestType;
