@@ -12,7 +12,7 @@
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-        "--folder-uri=file:///C:/Users/mark/apps/test-tlc"
+        "--folder-uri=file:///C:/Users/mark/apps/test-ext-host"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"

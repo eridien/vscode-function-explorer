@@ -21,6 +21,10 @@ export const langs: Langs = {
         (identifier)    @arrow_function
         (arrow_function)
       )
+      (variable_declarator
+        (identifier)    @call_expression
+        (call_expression)
+      )
       (assignment_expression
         (identifier)    @arrow_function
         (arrow_function)
@@ -48,6 +52,7 @@ export const langs: Langs = {
 
     symbolsByType: new Map<string, string>([
       ['identifier',            '?'],
+      ['call_expression',       '('],
       ['assignment_expression', '='],
       ['class',                 '©'],
       ['class_declaration',     '©'],
