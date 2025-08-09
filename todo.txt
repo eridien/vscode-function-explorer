@@ -3,13 +3,14 @@ release changes ...
   changed bookmark toggle button to ◆
   fixed copy/paste with bookmark
   fixed toggling near node
+  added node types to c++ && rust
 
 bugs ...
   too many matches per mark
     bookmarks - extension.ts
     only set one mark per toggle
       option: use line number with marks
-
+  
 low priority ...
   chg alpha sort -> no refresh
 
@@ -29,6 +30,7 @@ unlikely ...
   chg funcnodes to use indexes not lines
     solves multiple items in one line
   gutter highlight skips blank lines
+  
 
 testing ...
 x settings changes

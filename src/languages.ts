@@ -93,11 +93,27 @@ export const langs: Langs = {
         (function_declarator
            (identifier) @function_definition)
        )
+
+      (namespace_definition
+         (namespace_identifier) @namespace
+       )
+
+      (function_declarator
+         (qualified_identifier) @function_declarator
+       )
+
+      (call_expression
+         (identifier) @call_expression
+       )
+
       (identifier) @identifier      
     ] @body`,
 
     symbolsByType: new Map<string, string>([
       ['identifier',           '?'],
+      ['namespace',            '©'],
+      ['call_expression',      '('],
+      ['function_declarator',  'ƒ'],
       ['function_definition',  'ƒ'],
     ]),
 
@@ -168,14 +184,18 @@ export const langs: Langs = {
   rust: {
     sExpr: `[
       (function_item
-        name: (identifier) @function_item
+        (identifier) @function_item
       )
-      (identifier) @identifier
+       (macro_invocation
+         (identifier) @macro_invocation
+      )
+     (identifier) @identifier
     ] @body`,
 
     symbolsByType: new Map<string, string>([
-      ['identifier',    '?'],
-      ['function_item', 'ƒ'],
+      ['identifier',       '?'],
+      ['macro_invocation', 'ƒ'],
+      ['function_item',    'ƒ'],
     ]),
 
     suffixes: new Set(['.rs'])
