@@ -332,7 +332,6 @@ function loadMarks() {
     for(const funcId of markIds) {
       const nameTypes = funcId.split('\x01');
       nameTypes.pop();
-      // const context = nameTypes.pop();
       let fixedFuncId = '';
       for(const nameType of nameTypes) {
         let [name, type] = nameType.split('\x02');
@@ -340,7 +339,6 @@ function loadMarks() {
         const symbol = symbolsByType.get(type);
         fixedFuncId += name + '\x02' + symbol + type + '\x01';
       }
-      // fixedFuncId += (context + '\x01' + fsPath);
       fixedFuncId += fsPath;
       mrks.addMark(fsPath, funcId);
       markCount++;

@@ -99,15 +99,8 @@ function idNodeName(node: SyntaxNode,
   let name        = '';
   let grammarType = node.type;
   const symbol    = symbolsByType?.get(grammarType) ?? '?';
-  if(["identifier", "dotted_name", "lifetime", "metavariable",
-      "property_identifier", "shorthand_property_identifier",
-      "variable_name"].includes(grammarType)) {
-    name = node.text;
-  }
-  else {
-    const nameNode = node.childForFieldName('name');
-    name = nameNode ? nameNode.text : '';
-  }
+  const nameNode = node.childForFieldName('name');
+  name = nameNode ? nameNode.text : '';
   return name + "\x02" + symbol + grammarType + "\x01";
 }
 function getParentFuncId(node: SyntaxNode, 
@@ -132,7 +125,6 @@ function capToFuncData(code: string, lang: string, fsPath: string,
   const startName = node.startIndex;
   const endName   = node.endIndex;
   const symbol    = symbolsByType.get(type) ?? '?';
-  // const context   = code.slice(start, start + CONTEXT_LENGTH);
   const funcId    = name + '\x02' + symbol + type + '\x01' +
                     getParentFuncId(bodyCapture.node, symbolsByType) + fsPath;
   const funcData  = {lang, name, type, funcId, 

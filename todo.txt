@@ -3,13 +3,12 @@ release changes ...
   changed bookmark toggle button to ◆
   fixed copy/paste with bookmark
   fixed toggling near node
-  added node types to c++ && rust
+  added more node types to c++ && rust
   fixed toggle when two funcs in one line
   removed context text from mark fingerprint
 
 bugs ...
-  copying/deleting function doesn't register
-  hardwired nodenames at parse.ts:100
+  a-emby setLastWatched(){} has ditto
     
 low priority ...
   chg alpha sort -> no refresh
