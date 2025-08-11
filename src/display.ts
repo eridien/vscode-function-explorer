@@ -44,15 +44,6 @@ function getGutterDec() {
     dark:  { gutterIconPath: gutDecDrkUri}
   });
 };
-
-vscode.window.onDidChangeActiveColorTheme(() => {
-  if(gutterDec) gutterDec.dispose();
-  gutterDec = getGutterDec();
-  const editor = vscode.window.activeTextEditor;
-  if(!decRanges || !editor) return;
-  editor.setDecorations(gutterDec, decRanges);
-});
-
 export async function updateGutter(editor: vscode.TextEditor,
                                    fileItem: FileItem) {
   const children = await fileItem.getChildren();

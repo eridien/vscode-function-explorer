@@ -52,25 +52,29 @@ export async function toggleCmd() {
     }
   }
   if(!funcId) return;
-  const beforeAfterData = beforeAfter[beforeAfterIdx];
+  const selFunc   = beforeAfter[beforeAfterIdx];
   const funcItems = itms.getFuncItemsByFuncId(funcId);
   let funcItem: FuncItem | undefined;
   for(const item of funcItems) {
     if(item.getFsPath() === fsPath && 
-             item.start === beforeAfterData.start) {
+             item.start === selFunc.start) {
       funcItem = item;
       break;
     }
   }
-  if(!funcItem)
-      funcItem = new FuncItem(beforeAfterData, fileItem);
-  if(funcItem) {
-    itms.setFunc(funcItem);
-    await disp.setMark(funcItem, true);
-  }
-  else {
+  if(!funcItem) 
+    funcItem = new FuncItem(selFunc, fileItem);
+  if(!funcItem) {
     log('err', 'toggleCmd, funcItem not found for funcId:', funcId, 
-                'beforeAfterData:', beforeAfterData);
+                'beforeAfterData:', selFunc);
+    return;
+  }
+  itms.setFunc(funcItem);
+  const newMarked = await disp.setMark(funcItem, true);
+  const lineNumber = funcItem.getNameLine();
+  for(const item of funcItems) {
+    if(item.getNameLine() === lineNumber) 
+      await disp.setMark(item, false, newMarked);  
   }
 }
 

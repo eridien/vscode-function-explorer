@@ -4,6 +4,7 @@ release changes ...
   fixed copy/paste with bookmark
   fixed toggling near node
   added node types to c++ && rust
+  fixed toggle when two funcs in one line
 
 bugs ...
   copying/deleting function doesn't register
