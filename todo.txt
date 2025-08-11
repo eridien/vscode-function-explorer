@@ -6,10 +6,10 @@ release changes ...
   added more node types to c++ && rust
   fixed toggle when two funcs in one line
   removed context text from mark fingerprint
+  fixed extra breadcrumb dittos
 
 bugs ...
-  a-emby setLastWatched(){} has ditto
-    
+
 low priority ...
   chg alpha sort -> no refresh
   too many matches per mark

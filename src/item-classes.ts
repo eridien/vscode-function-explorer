@@ -329,6 +329,7 @@ export function toggleAlphaSort(fileItem: FileItem) {
 export class FuncItem extends Item {
   declare parent: FileItem;
   prevSibling?:   FuncItem;
+  descr?:         string;
   lang!:          string;
   name!:          string;
   decoration!:    string;
@@ -389,23 +390,23 @@ export class FuncItem extends Item {
   getDescription(): string {
     if(settings.showBreadcrumbs === 'Never Show Breadcrumbs') return '';
     else {
-      let description       = '';
-      const prevfuncId      = this.prevSibling?.funcId ?? '';
-      let   prevFuncIdParts = prevfuncId.split('\x01').slice(2,-2);
-      const prevFuncParents = prevFuncIdParts.join('\x01');
-      let   thisFuncIdParts = this.funcId.split('\x01').slice(2,-2);
-      const thisFuncParents = thisFuncIdParts.join('\x01');
-      if(settings.showBreadcrumbs === 'Show Breadcrumbs With Dittos' &&
-         prevFuncParents !== '' && 
-         prevFuncParents === thisFuncParents) return ' "';
+      const prevDescr = this.prevSibling?.descr ?? '';
+      let description = '';
+      let thisFuncIdParts = this.funcId.split('\x01').slice(1,-2);
       for(const part of thisFuncIdParts) {
         if(part.length === 0) continue;
         const [name, symType] = part.split('\x02');
         if(!name || name === '' || !symType || symType === '') continue;
         description = this.getFuncItemStr(name, symType) + description;
       }
+      description = description.slice(1).trim();
+      this.descr  = description;
+      if(prevDescr !== '' && 
+         settings.showBreadcrumbs === 'Show Breadcrumbs With Dittos' && 
+                      description === prevDescr)
+        description = ' "';
       if(DEBUG_FUNC_TYPE) description += `   (${this.type})`;
-      return description.slice(1).trim();
+      return description;
     }
   }
   getIconPath() {
