@@ -10,7 +10,7 @@ const {log, start, end} = utils.getLog('pars');
 const PARSE_DUMP_TYPE: string = '';  
 const PARSE_DUMP_NAME: string = '';
 const PARSE_DEBUG_STATS = false;
-const CONTEXT_LENGTH    = 20;
+// const CONTEXT_LENGTH    = 20;
 
 let context: vscode.ExtensionContext;
 type SyntaxNode = NonNullable<ReturnType<Parser['parse']>>['rootNode'];
@@ -132,10 +132,9 @@ function capToFuncData(code: string, lang: string, fsPath: string,
   const startName = node.startIndex;
   const endName   = node.endIndex;
   const symbol    = symbolsByType.get(type) ?? '?';
-  const context   = code.slice(start, start + CONTEXT_LENGTH);
-  let funcId      = name + '\x02' + symbol + type + '\x01'   +
-                    getParentFuncId(bodyCapture.node, symbolsByType) + 
-                    context + '\x01' +fsPath;
+  // const context   = code.slice(start, start + CONTEXT_LENGTH);
+  const funcId    = name + '\x02' + symbol + type + '\x01' +
+                    getParentFuncId(bodyCapture.node, symbolsByType) + fsPath;
   const funcData  = {lang, name, type, funcId, 
                      start, startName, endName, end, isFunction};
   if(PARSE_DEBUG_STATS) collectParseStats(funcData);

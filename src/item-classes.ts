@@ -383,7 +383,6 @@ export class FuncItem extends Item {
   getLabel() {
     const nameType = this.funcId.split('\x01')[0];
     const symType  = nameType.split('\x02')[1];
-    let label      = this.name;
     return this.isFunction ? this.name 
                            : this.getFuncItemStr(this.name, symType);
   }
@@ -392,9 +391,9 @@ export class FuncItem extends Item {
     else {
       let description       = '';
       const prevfuncId      = this.prevSibling?.funcId ?? '';
-      let   prevFuncIdParts = prevfuncId.split('\x01').slice(2,-3);
+      let   prevFuncIdParts = prevfuncId.split('\x01').slice(2,-2);
       const prevFuncParents = prevFuncIdParts.join('\x01');
-      let   thisFuncIdParts = this.funcId.split('\x01').slice(2,-3);
+      let   thisFuncIdParts = this.funcId.split('\x01').slice(2,-2);
       const thisFuncParents = thisFuncIdParts.join('\x01');
       if(settings.showBreadcrumbs === 'Show Breadcrumbs With Dittos' &&
          prevFuncParents !== '' && 

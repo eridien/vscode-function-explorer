@@ -5,11 +5,11 @@ release changes ...
   fixed toggling near node
   added node types to c++ && rust
   fixed toggle when two funcs in one line
+  removed context text from mark fingerprint
 
 bugs ...
   copying/deleting function doesn't register
-  deleting func removes mark from func above
-    d-dbs.ts:20
+  hardwired nodenames at parse.ts:100
     
 low priority ...
   chg alpha sort -> no refresh
