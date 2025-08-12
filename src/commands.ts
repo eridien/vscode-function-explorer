@@ -304,8 +304,10 @@ export async function selectionChg(
     clrGesture();
   }
   if(selStart != selEnd) {
-    const funcs = await itmc.getSortedFuncs(fsPath, false, false);
-    for(const func of [...funcs]) {
+    const fileItem = await itmc.getOrMakeFileItemByFsPath(fsPath);
+    if(!fileItem) return;
+    const funcs = await sbar.getAllFuncItemsFromAst(fileItem);
+    for(const func of funcs) {
       if(!gestureTimeout &&
             selStart >= func.startName && selStart <= func.endName &&
             (selEnd   <  func.startName ||  selEnd  >  func.endName)) {

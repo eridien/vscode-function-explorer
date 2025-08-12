@@ -217,6 +217,28 @@ export async function updateFileChildrenFromAst(fileItem: FileItem):
   return {structChg, funcItems};
 }
 
+///////////////// getAllFuncItemsFromAst //////////////////////
+
+export async function getAllFuncItemsFromAst(fileItem: FileItem): 
+                                               Promise<FuncItem[]> {
+  const document = fileItem.document;
+  const uri      = document.uri;
+  const fsPath   = uri.fsPath;
+  if(uri.scheme !== 'file' || !sett.includeFile(uri.fsPath)) return [];
+  const docText = document.getText();
+  if (!docText || docText.length === 0) return [];
+  const funcDataArr = await parse.parseCode(
+                          docText, fsPath, document, false, null, true);
+  if(!funcDataArr || funcDataArr.length === 0) return [];
+  const funcItems: FuncItem[] = [];
+  for(const funcData of funcDataArr) {
+    let items = itms.getFuncItemsByFuncId(funcData.funcId);
+    if(items.length == 0) items.push(new FuncItem(funcData, fileItem));
+    for(const funcItem of items) funcItems.push(funcItem);
+  }
+  return funcItems;
+}
+
 let blockChg = false;
 export function blockExpChg() { blockChg = true; }
 let blockChgTimeout: NodeJS.Timeout | undefined;

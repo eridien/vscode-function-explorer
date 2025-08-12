@@ -3,7 +3,7 @@
   "displayName": "Function Explorer",
   "description": "Function explorer and marked functions.",
   "icon": "images/icon.png",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -407,7 +407,7 @@
         },
         "function-explorer.showFilePaths": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "order": 4,
           "title": "Show File Paths",
           "description": "Show file path after filenames when folders are hidden."

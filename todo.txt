@@ -7,10 +7,16 @@ release changes ...
   fixed toggle when two funcs in one line
   removed context text from mark fingerprint
   fixed extra breadcrumb dittos
+  support gestures in non-sidebar nodes
 
 bugs ...
-
+  wrap (cannot repeat)
+  foo - clear in b-dbs.txt  (cannot repeat)
+  
 low priority ...
+  itemsById in description in itemsById 
+        b-dbs.ts: private static itemsById
+  toggle all in selection
   chg alpha sort -> no refresh
   too many matches per mark
     bookmarks - extension.ts
@@ -18,6 +24,8 @@ low priority ...
       option: use line number with marks
 
 todo ...
+  rgtest in rust needs context
+  add typedef struct to C lang
   filter addDir and add by include()
     .unwatch(path / paths)
   languages
@@ -33,19 +41,23 @@ unlikely ...
   chg funcnodes to use indexes not lines
     solves multiple items in one line
   gutter highlight skips blank lines
-  
 
 testing ...
-x settings changes
-x  error test files
-x languages
-  adding, deleting, moving, and copying funcs
-  changing files in other editor
-  multiple ws roots
-  check all menus
-  multiple selections
-  dark theme
-  gesture
+x  settings changes 
+x  syntax errors
+x  languages
+x  toggling around neighbor
+x  toggling two funcs in one line
+x  adding, deleting, moving, and copying funcs
+x  changing files in other editor
+x  marks/gutter across boots
+x  dittos
+x  multiple ws roots
+x  check all menus
+x  check item icon buttons
+x  multiple selections
+x  dark theme
+x  gesture
 
 release checks ...
   package.json version

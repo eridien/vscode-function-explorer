@@ -33,7 +33,7 @@ export let settings:  FunctionExplorerSettings = {
   hideFolders:          true,
   maxWatchers:          300,
   openEditorsAsPinned:  true,
-  showFilePaths:        true,
+  showFilePaths:        false,
   showBreadcrumbs:      "Show Breadcrumbs With Dittos",
   scrollPosition:       "Function Center At Center If Needed",
   fileWrap:             true,
@@ -190,10 +190,6 @@ async function setFileWatcher(filesToExclude: string) {
     const watchPaths = fils.includedPathsAndParents(wsPath);
     const watcherInstance = chokidar.watch(watchPaths, {
       cwd: wsPath,
-      // ignored: (filePath) => {
-      //   const relPath = filePath.replace(/\\/g, '/');
-      //   return minimatch(relPath, filesToExclude, { dot: true });
-      // },
       usePolling:      false,
       ignoreInitial:   false,
       awaitWriteFinish: true,
@@ -216,9 +212,7 @@ async function setFileWatcher(filesToExclude: string) {
         allWatchersAborted = true;
         await closeAllWatchers();
         log('infoerr', `Function Explorer: ` + 
-                       `Maximum file watch count (${settings.maxWatchers}) exceeded. ` +
-                       `Aborting watcher. File changes will not be tracked. ` +
-                       `This maximum count can be changed in settings.`);
+                       `Too many file watchers. Maximum file watch count (${settings.maxWatchers}) was exceeded. All watching has ceased and files will not be watched for file creation, deletion, and modification. The maximum value can be changed in settings. Add more file exclusions to reduce the number of watched files.`);
         end('setFileWatcher' + watchReadyCountdown);
         return;
       }
@@ -265,20 +259,20 @@ export async function loadSettings() {
   const config = vscode.workspace.getConfiguration('function-explorer');
   settings = {
     showBreadcrumbs:      config.get('showBreadcrumbs', 
-                             "Show Breadcrumbs With Dittos"),
+                                    "Show Breadcrumbs With Dittos"),
     scrollPosition:       config.get('scrollPosition', 
                              "Function Center At Center If Needed"),
     hideRootFolders:      config.get('hideRootFolders',      false),
     hideFolders:          config.get('hideFolders',           true),
     openEditorsAsPinned:  config.get('openEditorsAsPinned',   true),
-    showFilePaths:        config.get('showFilePaths',         true),
+    showFilePaths:        config.get('showFilePaths',        false),
     openFileWhenExpanded: config.get('openFileWhenExpanded', false),
     fileWrap:             config.get('fileWrap',              true),
     alphaSortFunctions:   config.get('alphaSortFunctions',   false),
     topMargin:            config.get('topMargin',                3),
     maxWatchers:          config.get('maxWatchers',            300)
   };
-  // log('loadSettings', settings);
+  log('loadSettings', settings, config.get('fileWrap', true),);
   vscode.commands.executeCommand(
                     'setContext', 'foldersHidden', settings.hideFolders);
   vscode.commands.executeCommand(

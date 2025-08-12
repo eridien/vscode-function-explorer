@@ -51,11 +51,13 @@ export const langs: Langs = {
       (assignment_expression
         (identifier) @assignment_expression
       )
-      (identifier)   @identifier
+      (property_identifier) @property_identifier
+      (identifier) @identifier
     ] @body`,
 
     symbolsByType: new Map<string, string>([
       ['identifier',            '?'],
+      ['property_identifier',   '?'],
       ['assignment_expression', '='],
       ['call_expression',       '('],
       ['class',                 '©'],

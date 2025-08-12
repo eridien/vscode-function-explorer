@@ -138,7 +138,8 @@ let lastParseErrFsPath = '';
 export async function parseCode(code: string, fsPath: string, 
                                 doc: vscode.TextDocument, 
                                 retrying = false, 
-                                selectIdx: number | null = null): 
+                                selectIdx: number | null = null,
+                                getAllNodes = false): 
                                                Promise<FuncData[]> {
   start('parseCode', true);
   const lang = getLangByFsPath(fsPath);
@@ -251,7 +252,7 @@ export async function parseCode(code: string, fsPath: string,
     }
     else {
       const nameId = bestName + '\x02' + bestType;
-      if(isFunction(bestType) || keepNames.has(nameId))
+      if(isFunction(bestType) || keepNames.has(nameId) || getAllNodes)
         nodes.push(capToFuncData(code, lang!, fsPath, isFunction(bestType),
                        symbolsByType!, bestBodyCapture!, bestNameCapture!));
     };
