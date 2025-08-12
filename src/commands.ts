@@ -56,23 +56,21 @@ export async function toggleCmd() {
   const funcItems = itms.getFuncItemsByFuncId(funcId);
   let funcItem: FuncItem | undefined;
   for(const item of funcItems) {
-    if(item.getFsPath() === fsPath && 
-             item.start === selFunc.start) {
+    if(item.start === selFunc.start) {
       funcItem = item;
       break;
     }
   }
-  if(!funcItem) 
-    funcItem = new FuncItem(selFunc, fileItem);
+  if(!funcItem) funcItem = new FuncItem(selFunc, fileItem);
   if(!funcItem) {
     log('err', 'toggleCmd, funcItem not found for funcId:', funcId, 
                 'beforeAfterData:', selFunc);
     return;
   }
   itms.setFunc(funcItem);
-  const newMarked = await disp.setMark(funcItem, true);
+  const newMarked  = await disp.setMark(funcItem, true);
   const lineNumber = funcItem.getNameLine();
-  for(const item of funcItems) {
+  for(const item of itms.getFuncItemsByFsPath(fsPath)) {
     if(item.getNameLine() === lineNumber) 
       await disp.setMark(item, false, newMarked);  
   }

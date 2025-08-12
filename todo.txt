@@ -14,6 +14,7 @@ bugs ...
   foo - clear in b-dbs.txt (cannot repeat)
   
 low priority ...
+  adding test/test.ts to ham doesn't show
   itemsById in description in itemsById 
         b-dbs.ts: private static itemsById
   toggle all in selection
