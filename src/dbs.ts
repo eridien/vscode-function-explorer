@@ -18,7 +18,7 @@ const CLEAR_MARKS_ON_STARTUP = false;
 
 export function activate(contextIn: vscode.ExtensionContext) {
   context = contextIn;
-  itmc.setDbs(itms, fils, mrks);
+  itmc.setDbs(itms, mrks);
   loadMarks();
 }
 
@@ -161,59 +161,52 @@ export const itms = new Items();
 
 ////////////////////// File paths //////////////////////////
 
-class FilePaths {
-  private static includedfsPaths = new Set<string>();
-  clear() {
-    FilePaths.includedfsPaths.clear();
-  }
-  async loadPaths(fsPath: string, clear = false) {
-    // let pathCount = 0;
-    if (clear) FilePaths.includedfsPaths.clear();
-    async function findFuncFiles(fsPath: string): Promise<boolean> {
-      // log('findFuncFiles', fsPath);
-      let stat;
-      try{
-        stat = await fs.stat(fsPath);
-        // log('loadPaths stat', fsPath);
-        if (stat.isDirectory()) {
-          if(!sett.includeFile(fsPath, true)) return false;
-          let entries: string[];
-          entries = await fs.readdir(fsPath);
-          // log('loadPaths readdir entries', fsPath, entries);
-          for (const entry of entries) {
-            const childPath = path.join(fsPath, entry);
-            if(await findFuncFiles(childPath)) return true;
-          }
-        }
-        else if(sett.includeFile(fsPath)) {
-          if(settings.hideFolders) {
-            // log('includedfsPaths.add fsPath', path.basename(fsPath));
-            FilePaths.includedfsPaths.add(fsPath);
-          }
-          else {
-            // log('includedfsPaths.add dirname', path.basename(fsPath));
-            FilePaths.includedfsPaths.add(path.dirname(fsPath));
-          }
+export class FilePaths {
+  private includedfsPaths = new Set<string>();
+  constructor() {}
+  async addPaths(fsPath: string, hideFolders: boolean): Promise<boolean> {
+    try{
+      const stat = await fs.stat(fsPath);
+      if (stat.isDirectory()) {
+        if(!sett.includeFile(fsPath, true)) return false;
+        let entries: string[];
+        entries = await fs.readdir(fsPath);
+        for (const entry of entries) {
+          const childPath = path.join(fsPath, entry);
+          if(await this.addPaths(childPath, hideFolders)) return true;
         }
       }
-      catch (err) { 
-        log('errmsg', err, 'loadPaths error', fsPath);
-        return true; 
+      else if(sett.includeFile(fsPath)) {
+        if(hideFolders) {
+          this.includedfsPaths.add(fsPath);
+        }
+        else {
+          this.includedfsPaths.add(path.dirname(fsPath));
+        }
       }
-      return false;
+    } 
+    catch (err) {
+      log('errmsg', err, 'add filePaths error', fsPath);
+      return true; 
     }
-    await findFuncFiles(fsPath);
-    // log('loadPaths complete', [...FilePaths.includedfsPaths]);
+    return false;
+  }
+  static async create(fsPath: string | null = null,
+                      hideFolders = settings.hideFolders): Promise<FilePaths> {
+    const filePaths = new FilePaths();
+    if(!fsPath) return filePaths;
+    await filePaths.addPaths(fsPath, hideFolders);
+    return filePaths;
   }
   hasIncludedFile(fsPath: string): boolean {
-    for(const includedPath of FilePaths.includedfsPaths) {
+    for(const includedPath of this.includedfsPaths) {
       if (includedPath.startsWith(fsPath)) return true;
     }
     return false;
   }
   includedPathsAndParents(wsPath: string): string[] {
     const incPandP = new Set<string>();
-    for(const incPath of Array.from(FilePaths.includedfsPaths)) {
+    for(const incPath of Array.from(this.includedfsPaths)) {
       let parent = incPath;
       while(!incPandP.has(parent)) {
         if(parent === wsPath) break;
@@ -224,17 +217,16 @@ class FilePaths {
     return Array.from(incPandP);
   }
   sortedFsPaths(): string[] {
-    return Array.from(FilePaths.includedfsPaths).sort();
+    return Array.from(this.includedfsPaths).sort();
   }
   deleteByFsPath(fsPath: string) {
-    for(const includedPath of FilePaths.includedfsPaths) {
+    for(const includedPath of this.includedfsPaths) {
       if (includedPath.startsWith(fsPath)) {
-        FilePaths.includedfsPaths.delete(includedPath);
+        this.includedfsPaths.delete(includedPath);
       }
     }
   }
 }
-export const fils = new FilePaths();
 
 
 ////////////////////// mark data //////////////////////

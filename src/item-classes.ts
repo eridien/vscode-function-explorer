@@ -15,11 +15,9 @@ export function activate(treeViewIn: vscode.TreeView<Item>) {
 }
 
 let itms:  any;
-let fils:  any;
 let mrks : any;
 export function setDbs(newItms:any, newFiles:any, newMarks:any) {
   itms = newItms;
-  fils = newFiles;
   mrks = newMarks;
 }
 

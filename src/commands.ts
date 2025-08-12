@@ -2,7 +2,7 @@ import * as vscode         from 'vscode';
 import * as path           from 'path';
 import * as disp           from './display';
 import * as pars           from './parse';
-import  {itms, fils, mrks} from './dbs';
+import  {itms, mrks} from './dbs';
 import * as sbar           from './sidebar';
 import * as itmc           from './item-classes';
 import * as sett           from './settings';
@@ -211,7 +211,6 @@ export function collapseAllItems() {
 
 export function refresh() {
   itms.clear();
-  fils.clear();
   sbar.updateItemInTree();
 }
 

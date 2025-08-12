@@ -17,7 +17,6 @@ low priority ...
   adding test/test.ts to ham doesn't show
   itemsById in description in itemsById 
         b-dbs.ts: private static itemsById
-  toggle all in selection
   chg alpha sort -> no refresh
   too many matches per mark
     bookmarks - extension.ts
@@ -25,6 +24,7 @@ low priority ...
       option: use line number with marks
 
 todo ...
+  toggle all in selection
   rgtest in rust needs context
   add typedef struct to C lang
   filter addDir and add by include()
@@ -59,6 +59,7 @@ testing ...
   multiple selections
   dark theme
   gesture
+  dbl-click name in editor
 
 release checks ...
   package.json version

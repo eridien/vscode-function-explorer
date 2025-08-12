@@ -1,14 +1,15 @@
-import * as vscode          from 'vscode';
-import * as path            from 'path';
-import * as parse           from './parse';
-import {fils, mrks, itms}   from './dbs';
-import * as itmc            from './item-classes';
+import * as vscode             from 'vscode';
+import * as path               from 'path';
+import * as parse              from './parse';
+import {mrks, itms, FilePaths} from './dbs';
+import * as itmc               from './item-classes';
 import {Item, WsAndFolderItem,
-        FileItem, FuncItem} from './item-classes';
-import * as sett            from './settings';
-import {settings}           from './settings';
-import * as utils           from './utils';
-import {extStatus}          from './utils';
+        FileItem, FuncItem}    from './item-classes';
+import * as sett               from './settings';
+import {settings}              from './settings';
+import * as utils              from './utils';
+import {extStatus}             from './utils';
+import { create } from 'domain';
 const {log, start, end} = utils.getLog('sbar');
 
 let treeView:  vscode.TreeView<Item>;
@@ -30,11 +31,12 @@ export async function getTree() {
     log('err', 'getTree, No folders in workspace');
     return [];
   }
+  const loadPaths = await FilePaths.create();
   if (!settings.hideFolders && !settings.hideRootFolders) {
     const tree: Item[] = [];
     let firstWsFolder = true;
     for(const wsFolder of wsFolders) {
-      await fils.loadPaths(wsFolder.uri.fsPath, firstWsFolder);
+      await create(wsFolder.uri.fsPath, firstWsFolder);
       const wsFolderItem = itmc.getOrMakeWsFolderItem(wsFolder);
       tree.push(wsFolderItem);
       firstWsFolder = false;

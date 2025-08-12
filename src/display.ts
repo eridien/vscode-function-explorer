@@ -6,7 +6,7 @@ import * as sbar       from './sidebar';
 import * as sett       from './settings';
 import {settings}      from './settings';
 import * as utils      from './utils';
-import {itms, mrks, fils} from './dbs';
+import {mrks}          from './dbs';
 const {log, start, end} = utils.getLog('disp');
 
 // const CLEAR_MARKS_ON_STARTUP = false; 

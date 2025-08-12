@@ -1,10 +1,9 @@
 import * as vscode   from 'vscode';
 import {minimatch}   from 'minimatch';
-import * as fs       from 'fs/promises';
 import * as chokidar from 'chokidar';
 import path          from 'path';
 import {extensionsSupported} from './languages';
-import {fils}        from './dbs';
+import {FilePaths}   from './dbs';
 import * as utils    from './utils';
 const {log, start, end} = utils.getLog('sett');
 
@@ -179,16 +178,16 @@ async function setFileWatcher(filesToExclude: string) {
   if(allWatchersAborted) return;
   await closeAllWatchers();
   watchedFileCount = 0;
-  const wsFolders  = vscode.workspace.workspaceFolders || [];
-  watchReadyCount  = 0;
+  const wsFolders = vscode.workspace.workspaceFolders || [];
+  log('setFileWatcher, wsFolders:', wsFolders);
   for (const wsFolder of wsFolders) {
     start('setFileWatcher', false, `Workspace: ${wsFolder.name}`);
-    let wsPath = wsFolder.uri.fsPath;
-    await fils.loadPaths(wsPath, true);
-    const watchPaths = fils.includedPathsAndParents(wsPath);
+    const wsPath     = wsFolder.uri.fsPath;
+    const filePaths  = await FilePaths.create(wsPath);
+    const watchPaths = filePaths.includedPathsAndParents(wsPath);
     log('setFileWatcher, excludePatterns:', filesToExclude, 
-                             'watchPaths:', watchPaths,
-                             'wsFolders:',   wsFolders);
+                             'filePaths:',  filePaths,
+                             'watchPaths:', watchPaths);
     const watcherInstance = chokidar.watch(watchPaths, {
       cwd: wsPath,
       usePolling:      false,
