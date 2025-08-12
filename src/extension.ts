@@ -218,7 +218,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if(extStatus.isAborted()) return;
     if (event.affectsConfiguration('function-explorer')) {
       await sett.loadSettings();
-      await sbar.refreshTree();
+      sbar.refreshTree();
     }
   });
 

@@ -182,16 +182,28 @@ async function setFileWatcher(filesToExclude: string) {
   log('setFileWatcher, wsFolders:', wsFolders);
   for (const wsFolder of wsFolders) {
     start('setFileWatcher', false, `Workspace: ${wsFolder.name}`);
-    const wsPath     = wsFolder.uri.fsPath;
-    const filePaths  = await FilePaths.create(wsPath, false);
+    const wsPath = wsFolder.uri.fsPath;
+    const wsWatcherInstance = chokidar.watch(wsPath, {
+      cwd:            wsPath,
+      depth:               1,
+      usePolling:      false,
+      ignoreInitial:    true,
+      awaitWriteFinish: true,
+    });
+    wsWatcherInstance.on('add',    () => setFileWatcher(filesToExclude));
+    wsWatcherInstance.on('addDir', () => setFileWatcher(filesToExclude));
+    watchers.push(wsWatcherInstance);
+    
+    const filePaths = await FilePaths.create(wsPath, false);
+    await filePaths.addPaths(wsPath, true);
     const watchPaths = filePaths.includedPathsAndParents(wsPath);
     log('setFileWatcher, excludePatterns:', filesToExclude, 
                              'filePaths:',  filePaths,
                              'watchPaths:', watchPaths);
     const watcherInstance = chokidar.watch(watchPaths, {
-      cwd: wsPath,
+      cwd:            wsPath,
       usePolling:      false,
-      ignoreInitial:   false,
+      ignoreInitial:    true,
       awaitWriteFinish: true,
     });
     watcherInstance.on('add', async (filePath) => {

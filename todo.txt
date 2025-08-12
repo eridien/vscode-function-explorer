@@ -14,7 +14,7 @@ bugs ...
   foo - clear in b-dbs.txt (cannot repeat)
   
 low priority ...
-  adding test/test.ts to ham doesn't show
+  adding test.ts with file explorer doesn't show
   itemsById in description in itemsById 
         b-dbs.ts: private static itemsById
   chg alpha sort -> no refresh
@@ -31,17 +31,11 @@ todo ...
     .unwatch(path / paths)
   languages
 
-low priority ...
-  clnup show-all marks
-  gesture-on is flakey
-
 unlikely ...
-  multiple items in one line
   bounce on some func clicks
   incremental parsing
   chg funcnodes to use indexes not lines
     solves multiple items in one line
-  gutter highlight skips blank lines
 
 testing ...
   settings changes 
