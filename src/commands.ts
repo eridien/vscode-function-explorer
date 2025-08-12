@@ -354,8 +354,7 @@ const fileDeletedQueue: vscode.Uri[] = [];
 // let tryCount = 0;
 
 export function fileDeleted(uri: vscode.Uri, retry = false) {
-  start('fileDeleted', false, `fsPath: ${uri.fsPath}, retry: ${retry}`);
-  // log(`File deleted: ${uri.fsPath}`);
+  // start('fileDeleted', false, `fsPath: ${uri.fsPath}, retry: ${retry}`);
   // if(++tryCount > 10) { // 1 sec
   //   log('err', 'fileDeleted, too many tries:', fileDeletedQueue);
   //   tryCount = 0;
@@ -377,7 +376,7 @@ export function fileDeleted(uri: vscode.Uri, retry = false) {
     fldrFileItem.delete();
     sbar.updateItemInTree();
   }
-  end('fileDeleted', false, 
-      `fsPath: ${uri.fsPath}, delete count: ${itemDeleteCount}`);
+  // end('fileDeleted', false, 
+  //     `fsPath: ${uri.fsPath}, delete count: ${itemDeleteCount}`);
 }
 sett.setWatcherCallbacks( fileCreated, fileDeleted );
