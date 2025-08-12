@@ -10,8 +10,9 @@ release changes ...
   support gestures in non-sidebar nodes
 
 bugs ...
-  wrap (cannot repeat)
-  foo - clear in b-dbs.txt  (cannot repeat)
+  wrap                     (cannot repeat)
+  foo - clear in b-dbs.txt (cannot repeat)
+  too many files to watch  (cannot repeat)
   
 low priority ...
   itemsById in description in itemsById 
@@ -43,21 +44,21 @@ unlikely ...
   gutter highlight skips blank lines
 
 testing ...
-x  settings changes 
-x  syntax errors
-x  languages
-x  toggling around neighbor
-x  toggling two funcs in one line
-x  adding, deleting, moving, and copying funcs
-x  changing files in other editor
-x  marks/gutter across boots
-x  dittos
-x  multiple ws roots
-x  check all menus
-x  check item icon buttons
-x  multiple selections
-x  dark theme
-x  gesture
+  settings changes 
+  syntax errors
+  languages
+  toggling around neighbor
+  toggling two funcs in one line
+  adding, deleting, moving, and copying funcs
+  changing files in other editor
+  marks/gutter across boots
+  dittos
+  multiple ws roots
+  check all menus
+  check item icon buttons
+  multiple selections
+  dark theme
+  gesture
 
 release checks ...
   package.json version

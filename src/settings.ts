@@ -165,10 +165,9 @@ export function setWatcherCallbacks(
   fileDeleted = fileDeletedIn;
 }
 
-const MAX_FILE_COUNT               = 200;
-let watchedFileCount               = 0;
-let allWatchersAborted             = false;
-let watchReadyCountdown            = 0;
+let watchedFileCount   = 0;
+let allWatchersAborted = false;
+let watchReadyCount    = 0;
 let watchers: chokidar.FSWatcher[] = [];
 
 async function closeAllWatchers() {
@@ -179,15 +178,17 @@ async function closeAllWatchers() {
 async function setFileWatcher(filesToExclude: string) {
   if(allWatchersAborted) return;
   await closeAllWatchers();
-  // log('setFileWatcher, excludePatterns:', filesToExclude);
-  watchedFileCount    = 0;
-  const wsFolders     = vscode.workspace.workspaceFolders || [];
-  watchReadyCountdown = wsFolders.length;
+  watchedFileCount = 0;
+  const wsFolders  = vscode.workspace.workspaceFolders || [];
+  watchReadyCount  = 0;
   for (const wsFolder of wsFolders) {
-    start('setFileWatcher' + watchReadyCountdown, false);
+    start('setFileWatcher', false, `Workspace: ${wsFolder.name}`);
     let wsPath = wsFolder.uri.fsPath;
     await fils.loadPaths(wsPath, true);
     const watchPaths = fils.includedPathsAndParents(wsPath);
+    log('setFileWatcher, excludePatterns:', filesToExclude, 
+                             'watchPaths:', watchPaths,
+                             'wsFolders:',   wsFolders);
     const watcherInstance = chokidar.watch(watchPaths, {
       cwd: wsPath,
       usePolling:      false,
@@ -197,24 +198,20 @@ async function setFileWatcher(filesToExclude: string) {
     watcherInstance.on('add', async (filePath) => {
       // log('addFile:', filePath, watchedFileCount);
       if(allWatchersAborted) return;
-      if(watchReadyCountdown <= 0) {
-        const fsPath = path.join(wsPath, filePath);
-        fileCreated?.(fsPath);
-        watchedFileCount++;
-        return;
-      }
       if (!includeFile(filePath, false)) {
         watcherInstance.unwatch(filePath);
         // log('ignoring file:', filePath);
         return;
       }
+      if(watchReadyCount < wsFolders.length) return;
+      const fsPath = path.join(wsPath, filePath);
+      fileCreated?.(fsPath);
       if (++watchedFileCount > settings.maxWatchers) {
         allWatchersAborted = true;
         await closeAllWatchers();
         log('infoerr', `Function Explorer: ` + 
                        `Too many file watchers. Maximum file watch count (${settings.maxWatchers}) was exceeded. All watching has ceased and files will not be watched for file creation, deletion, and modification. The maximum value can be changed in settings. Add more file exclusions to reduce the number of watched files.`);
-        end('setFileWatcher' + watchReadyCountdown);
-        return;
+        end('setFileWatcher', false, `Too many file watchers at ${wsFolder.name}`);
       }
     });
     watcherInstance.on('addDir', (dirPath) => {
@@ -225,31 +222,29 @@ async function setFileWatcher(filesToExclude: string) {
         // log('ignoring dir:', dirPath);
         return;
       }
+      if(watchReadyCount < wsFolders.length) return;
       const fsPath = path.join(wsPath, dirPath);
       fileCreated?.(fsPath);
       ++watchedFileCount;
     });
     watcherInstance.on('unlink', (filePath) => {
-      log('unlinkFile:', filePath);
-      if(allWatchersAborted) return;
+      // log('unlinkFile:', filePath);
+      if(allWatchersAborted || watchReadyCount < wsFolders.length) return;
       const fullPath = path.join(wsPath, filePath);
       const uri = vscode.Uri.file(fullPath);
       fileDeleted?.(uri);
     });
     watcherInstance.on('unlinkDir', (dirPath) => {
-      log('unlinkDir:', dirPath);
-      if(allWatchersAborted) return;
+      // log('unlinkDir:', dirPath);
+      if(allWatchersAborted || watchReadyCount < wsFolders.length) return;
       const fullPath = path.join(wsPath, dirPath);
       const uri = vscode.Uri.file(fullPath);
       fileDeleted?.(uri);
     });
     watcherInstance.on('ready', () => {
       log('ready,', watchedFileCount, 'files watched');
-      end('setFileWatcher' + watchReadyCountdown, false);
-      watchReadyCountdown--;
-      // setTimeout(() => {
-      //   log('delayed ready', JSON.stringify(watcherInstance.getWatched(), null, 2));
-      // }, 300);
+      end('setFileWatcher', false, `Workspace: ${wsFolder.name}`);
+      ++watchReadyCount;
     });
     watchers.push(watcherInstance);
   }
@@ -272,7 +267,7 @@ export async function loadSettings() {
     topMargin:            config.get('topMargin',                3),
     maxWatchers:          config.get('maxWatchers',            300)
   };
-  log('loadSettings', settings, config.get('fileWrap', true),);
+  // log('loadSettings', settings, config.get('fileWrap', true),);
   vscode.commands.executeCommand(
                     'setContext', 'foldersHidden', settings.hideFolders);
   vscode.commands.executeCommand(

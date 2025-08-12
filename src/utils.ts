@@ -115,25 +115,24 @@ export function fsPathHasTab(fsPath: string): boolean {
 const outputChannel = vscode.window.createOutputChannel('function-explorer');
 
 export function getLog(module: string) : {
-  log:   (...args: any[])                   => void;
-  start: (name: string, hide?: boolean)     => void;
+  log:   (...args: any[]) => void;
+  start: (name: string,     hide?: boolean, msg?: string)     => void;
   end:   (name: string, onlySlow?: boolean, msg?: string) => void;
 } {
   const timers: Record<string, number> = {};
 
-  const start = function (name: string, hide?: boolean): void {
+  const start = function (name: string, hide = false, msg = ''): void {
     const startTime = Date.now();
     timers[name] = startTime;
     if (hide) return;
-    const line = `${module}: ${name} started`;
+    const line = `${module}: ${name} started${msg ? ', ' + msg : ''}`;
     outputChannel.appendLine(line);
     console.log(line);
   };
 
-  const end = function (name: string, onlySlow: boolean = false, 
-                        msg: string = ''): void {
+  const end = function (name: string, onlySlow = false, msg = ''): void {
     if (!timers[name]) {
-      const line = `${module}: ${name} ended`;
+      const line = `${module}: ${name} ended${msg ? ', ' + msg : ''}`;
       outputChannel.appendLine(line);
       console.log(line);
       return;
@@ -142,7 +141,7 @@ export function getLog(module: string) : {
     const duration = endTime - timers[name];
     if (onlySlow && duration < 100) return;
     // const line = `${module}: ${name} ended, ${timeInSecs(duration)}s,  ${msg}`;
-    const line = `${module}: ${name} ended, ${duration}ms  ${msg}`;
+    const line = `${module}: ${name} ended, ${duration}ms${msg ? ', ' + msg : ''}`;
     outputChannel.appendLine(line);
     console.log(line);
   };
