@@ -184,7 +184,7 @@ export class FilePaths {
           this.includedfsPaths.add(path.dirname(fsPath));
         }
       }
-    } 
+    }
     catch (err) {
       log('errmsg', err, 'add filePaths error', fsPath);
       return true; 

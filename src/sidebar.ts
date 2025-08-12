@@ -9,7 +9,6 @@ import * as sett               from './settings';
 import {settings}              from './settings';
 import * as utils              from './utils';
 import {extStatus}             from './utils';
-import { create } from 'domain';
 const {log, start, end} = utils.getLog('sbar');
 
 let treeView:  vscode.TreeView<Item>;
@@ -31,22 +30,17 @@ export async function getTree() {
     log('err', 'getTree, No folders in workspace');
     return [];
   }
-  const loadPaths = await FilePaths.create();
   if (!settings.hideFolders && !settings.hideRootFolders) {
     const tree: Item[] = [];
-    let firstWsFolder = true;
     for(const wsFolder of wsFolders) {
-      await create(wsFolder.uri.fsPath, firstWsFolder);
       const wsFolderItem = itmc.getOrMakeWsFolderItem(wsFolder);
       tree.push(wsFolderItem);
-      firstWsFolder = false;
     }
     return tree;
   }
   const foldersIn: Item[] = [];
   const filesIn:   Item[] = [];
   for(const wsFolder of wsFolders){
-    await fils.loadPaths(wsFolder.uri.fsPath);
     const wsFolderItem = itmc.getOrMakeWsFolderItem(wsFolder);
     await itmc.getFolderChildren(wsFolderItem, foldersIn, filesIn, true);
   }
@@ -140,14 +134,7 @@ export function updateItemInTree(item: Item | undefined = undefined) {
   if(sidebarProvider) sidebarProvider.refresh(item);
 }
 
-export async function refreshTree(updateFuncs = false) {
-  const wsFolders = vscode.workspace.workspaceFolders;
-  if (!wsFolders || wsFolders.length === 0) {
-    log('err', 'refreshTree, No folders in workspace');
-    return;
-  }
-  for(const wsFolder of wsFolders)
-    await fils.loadPaths(wsFolder.uri.fsPath);
+export function refreshTree(updateFuncs = false) {
   itms.getAllFolderFileItems().forEach(async item => {
     item.clear();
     if(updateFuncs && item instanceof FileItem) {

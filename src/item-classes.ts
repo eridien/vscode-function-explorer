@@ -2,6 +2,7 @@ import * as vscode     from 'vscode';
 import * as path       from 'path';
 import * as fs         from 'fs/promises';
 import {FuncData}      from './parse';
+import {FilePaths}     from './dbs';
 import * as sett       from './settings';
 import {settings}      from './settings';
 import * as utils      from './utils';
@@ -16,12 +17,12 @@ export function activate(treeViewIn: vscode.TreeView<Item>) {
 
 let itms:  any;
 let mrks : any;
-export function setDbs(newItms:any, newFiles:any, newMarks:any) {
+export function setDbs(newItms:any, newMarks:any) {
   itms = newItms;
   mrks = newMarks;
 }
 
-let updateItemInTree:        (item: Item | undefined) => void = (item) => {};
+let updateItemInTree: (item: Item | undefined) => void = (item) => {};
 let updateFileChildrenFromAst: 
      (fileItem: FileItem) =>
        Promise<{structChg: boolean; funcItems: FuncItem[];} | null>;
@@ -64,7 +65,8 @@ export async function getFolderChildren(parent: WsAndFolderItem,
                 foldersIn: Item[], filesIn: Item[], root = false) {
   // log('getFolderChildren', parent.label, root, settings);
   if(root && settings.hideFolders) {
-    for(const fsPath of fils.sortedFsPaths()) {
+    const filePaths = await FilePaths.create(parent.fsPath, true);
+    for(const fsPath of filePaths.sortedFsPaths()) {
       const fileItem = await getOrMakeFileItemByFsPath(fsPath);
       if(!fileItem || fileItem.contextValue !== 'file' ||
          !fileItem.document.uri.fsPath.startsWith(parent.fsPath)) {
@@ -76,7 +78,8 @@ export async function getFolderChildren(parent: WsAndFolderItem,
     return;
   }
   else if(root) {
-    (fils.sortedFsPaths() as string[]).forEach(fsPath => {
+    const folderPaths = await FilePaths.create(parent.fsPath, false);
+    (folderPaths.sortedFsPaths() as string[]).forEach(fsPath => {
       const folderItem = getOrMakeFolderItemByFsPath(fsPath);
       if(!folderItem || parent === folderItem    ||
           folderItem.contextValue === 'wsFolder' ||
@@ -179,14 +182,9 @@ export class FolderItem extends WsAndFolderItem {
     this.contextValue = 'folder';
     this.description  = getPathCrumbs(uri.fsPath);
   }
-  static create(uri: vscode.Uri): FolderItem | null {
-    if (!fils.hasIncludedFile(uri.fsPath)) return null;
-    return new FolderItem(uri);
-  }
   delete()  {
     itemDeleteCount++;
     itms.deleteFolderById(this.id);
-    fils.deleteByFsPath(this.fsPath);
     if(this.children) {
       for(const child of this.children) {
         if(child instanceof FolderItem || 
@@ -261,7 +259,6 @@ export class FileItem extends Item {
   }
   delete() {
     itemDeleteCount++;
-    fils.deleteByFsPath(this.document.uri.fsPath);
     itms.deleteFileById(this.id);
     if(this.children) {
       for(const child of this.children) child.delete();

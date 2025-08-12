@@ -216,22 +216,22 @@ export function refresh() {
 
 export async function showFolders() {
   await sett.setHideFolders(false);
-  await sbar.refreshTree();
+  sbar.refreshTree();
 }
 
 export async function hideFolders() {
   await sett.setHideFolders(true);
-  await sbar.refreshTree();
+  sbar.refreshTree();
 }
 
 export async function openEditorsAsPinned() {
   await sett.setShowPinned(true);
-  await sbar.refreshTree();
+  sbar.refreshTree();
 }
 
 export async function openEditorsAsPreview() {
   await sett.setShowPinned(false);
-  await sbar.refreshTree();
+  sbar.refreshTree();
 }
 
 export async function settingsMenu() {

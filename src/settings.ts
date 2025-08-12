@@ -183,7 +183,7 @@ async function setFileWatcher(filesToExclude: string) {
   for (const wsFolder of wsFolders) {
     start('setFileWatcher', false, `Workspace: ${wsFolder.name}`);
     const wsPath     = wsFolder.uri.fsPath;
-    const filePaths  = await FilePaths.create(wsPath);
+    const filePaths  = await FilePaths.create(wsPath, false);
     const watchPaths = filePaths.includedPathsAndParents(wsPath);
     log('setFileWatcher, excludePatterns:', filesToExclude, 
                              'filePaths:',  filePaths,
