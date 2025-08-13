@@ -10,7 +10,6 @@ const {log, start, end} = utils.getLog('pars');
 const PARSE_DUMP_TYPE: string = '';  
 const PARSE_DUMP_NAME: string = '';
 const PARSE_DEBUG_STATS = false;
-// const CONTEXT_LENGTH    = 20;
 
 let context: vscode.ExtensionContext;
 type SyntaxNode = NonNullable<ReturnType<Parser['parse']>>['rootNode'];

@@ -9,9 +9,6 @@ import * as utils      from './utils';
 import {mrks}          from './dbs';
 const {log, start, end} = utils.getLog('disp');
 
-// const CLEAR_MARKS_ON_STARTUP = false; 
-const CLEAR_MARKS_ON_STARTUP = true; 
-
 let context: vscode.ExtensionContext;
 let treeView: vscode.TreeView<vscode.TreeItem>;
 

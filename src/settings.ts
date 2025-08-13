@@ -179,7 +179,7 @@ async function setFileWatcher(filesToExclude: string) {
   await closeAllWatchers();
   watchedFileCount = 0;
   const wsFolders = vscode.workspace.workspaceFolders || [];
-  log('setFileWatcher, wsFolders:', wsFolders);
+  // log('setFileWatcher, wsFolders:', wsFolders);
   for (const wsFolder of wsFolders) {
     start('setFileWatcher', false, `Workspace: ${wsFolder.name}`);
     const wsPath = wsFolder.uri.fsPath;
@@ -197,9 +197,9 @@ async function setFileWatcher(filesToExclude: string) {
     const filePaths = await FilePaths.create(wsPath, false);
     await filePaths.addPaths(wsPath, true);
     const watchPaths = filePaths.includedPathsAndParents(wsPath);
-    log('setFileWatcher, excludePatterns:', filesToExclude, 
-                             'filePaths:',  filePaths,
-                             'watchPaths:', watchPaths);
+    // log('setFileWatcher, excludePatterns:', filesToExclude, 
+    //                          'filePaths:',  filePaths,
+    //                          'watchPaths:', watchPaths);
     const watcherInstance = chokidar.watch(watchPaths, {
       cwd:            wsPath,
       usePolling:      false,
@@ -253,7 +253,7 @@ async function setFileWatcher(filesToExclude: string) {
       fileDeleted?.(uri);
     });
     watcherInstance.on('ready', () => {
-      log('ready,', watchedFileCount, 'files watched');
+      // log('ready,', watchedFileCount, 'files watched');
       end('setFileWatcher', false, `Workspace: ${wsFolder.name}`);
       ++watchReadyCount;
     });

@@ -1,19 +1,15 @@
+notes...
+  moving to different context kills mark
+
 release changes ...
-  limit number of folders/files watched for changes
-  changed bookmark toggle button to ◆
-  fixed copy/paste with bookmark
-  fixed toggling near node
-  added more node types to c++ && rust
-  fixed toggle when two funcs in one line
-  removed context text from mark fingerprint
-  fixed extra breadcrumb dittos
-  support gestures in non-sidebar nodes
 
 bugs ...
-  wrap                     (cannot repeat)
-  foo - clear in b-dbs.txt (cannot repeat)
+  adding foo(){} to clear() -> no foo and hilite pos doesn't change
+    can't repeat
   
 low priority ...
+  toggling open filter with no marks 
+    -> always turn off filter and show all
   adding test.ts with file explorer doesn't show
   itemsById in description in itemsById 
         b-dbs.ts: private static itemsById
@@ -32,6 +28,7 @@ todo ...
   languages
 
 unlikely ...
+  moving to different context kills mark
   bounce on some func clicks
   incremental parsing
   chg funcnodes to use indexes not lines
@@ -60,9 +57,14 @@ release checks ...
   log
   console.log
   todo to-do
-  debug dbg
+  debug dbg debugger
   check problems
   run and check console
+  CLEAR_MARKS_ON_STARTUP
+  PARSE_DUMP_TYPE
+  PARSE_DUMP_NAME
+  PARSE_DEBUG_STATS
+
 
 npm install -g @vscode/vsce
 vsce package
