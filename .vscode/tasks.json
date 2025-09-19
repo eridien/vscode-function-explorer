@@ -2,17 +2,33 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "tsc: watch (WSL root)",
-      "type": "process",
-      "command": "C:\\Windows\\System32\\wsl.exe",
-      "args": [
-        "-d", "Ubuntu",
-        "-u", "root",
-        "bash", "-lc",
-        "set -e; . /root/.bashrc; cd /mnt/c/Users/mark/apps/vscode-function-explorer; npm run watch"
-      ],
-      "problemMatcher": "$tsc-watch",
-      "isBackground": true
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "build",
+      "label": "tsc: build",
+      "group": "build",
+      "problemMatcher": ["$tsc"],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      }
+    },
+    {
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "watch",
+      "label": "tsc: watch",
+      "group": "build",
+      "problemMatcher": ["$tsc-watch"],
+      "isBackground": true,
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      }
     }
   ]
 }
