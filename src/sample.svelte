@@ -20,8 +20,7 @@
     isWaiting = !!forceValue;
   }
 
-  async function deleteShowFromEmby({ id, reason = 'manual' }) {
-    // Pretend to call a backend client; helps verify wildcard imports stay fuzzy
+  async function deleteShowFromEmby(id, reason = 'manual') {
     await new Promise((resolve) => setTimeout(resolve, 5));
     lastAction = `deleted:${id}:${reason}`;
     statusStore.set(lastAction);
