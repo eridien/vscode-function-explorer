@@ -149,7 +149,7 @@ export class foo {
   }
 }
 const x = new foo('hello');
-x.baz({'world');
+x.baz('world');
 
 /////////////////////// WsFolderItem //////////////////////
 
