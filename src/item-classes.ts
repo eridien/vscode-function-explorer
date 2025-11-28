@@ -140,17 +140,6 @@ export class WsAndFolderItem extends Item {
   }
 }
 
-export class foo {
-  constructor(x) {
-    console.log(x);  
-  }
-  static baz(y: any) {
-    console.log(y);  
-  }
-}
-const x = new foo('hello');
-x.baz('world');
-
 /////////////////////// WsFolderItem //////////////////////
 
 export class WsFolderItem extends WsAndFolderItem {
